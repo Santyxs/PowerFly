@@ -1,0 +1,9 @@
+remaining-flight-time: "Tiempo de vuelo restante: "
+
+fly-enabled: "El vuelo ha sido habilitado."
+
+fly-disabled: "El vuelo ha sido deshabilitado."
+
+fly-time-ended: "El tiempo de vuelo ha terminado."
+
+reload-success: "§aConfiguración de PowerFly recargada!"

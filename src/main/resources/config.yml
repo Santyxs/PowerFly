@@ -1,0 +1,61 @@
+# Prefix for the custom messages
+prefix: "&7[&ePower&fFly&7] &r"
+
+# Language for messages (en, es, pt)
+language: en
+
+# Flight time in seconds for the default group
+fly-time: 10
+
+# Enable or disable the use of group-based fly times
+use-group-fly-time: false
+
+# Flight time in seconds for each group (can be customized based on LuckPerms groups)
+group-times:
+  default: 10
+  vip: 30
+  mod: 60
+
+# List of worlds where players are allowed to fly
+allowed-worlds:
+  - world
+  - world_nether
+
+# TEST
+newOption: "valorNuevo"
+
+# ↓ EXPERIMENTAL FEATURES ↓ ( ⚠ WILL NOT WORK ⚠ )
+
+# Effects while flying
+flight-effects:
+  particle: END_ROD
+  particle-count: 3
+  particle-offset: 0.2
+  interval: 10
+
+# Effects when enabling or disabling flight
+activation-effects:
+  sound: ENTITY_PLAYER_LEVELUP
+  volume: 1.0
+  pitch: 1.0
+  particle: CLOUD
+  particle-count: 15
+  particle-offset: 0.5
+
+# Effects when deactivating flight manually
+deactivation-effects:
+  sound: BLOCK_BEACON_DEACTIVATE
+  volume: 1.0
+  pitch: 1.0
+  particle: SMOKE
+  particle-count: 10
+  particle-offset: 0.3
+
+# Effects when flight time runs out
+time-ended-effects:
+  sound: BLOCK_PORTAL_TRAVEL
+  volume: 1.0
+  pitch: 0.8
+  particle: FIREWORKS_SPARK
+  particle-count: 20
+  particle-offset: 0.6

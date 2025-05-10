@@ -1,0 +1,21 @@
+name: PowerFly
+version: 0.1
+description: A simple fly plugin
+authors:
+  - Santysx
+api-version: 1.20
+main: pwf.xenova.PowerFly
+commands:
+  fly:
+    description: Fly for a limited time.
+    usage: /fly
+  powerfly:
+    description: Main command for PowerFly plugin.
+    usage: /powerfly <subcommand>
+    subcommands:
+      help:
+        description: Help and info.
+        usage: /powerfly help
+      reload:
+        description: Reloads the plugin configuration.
+        usage: /powerfly reload
