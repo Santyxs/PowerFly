@@ -14,27 +14,24 @@ public class SoundEffectsManager {
 
     private final PowerFly plugin;
     private final FileConfiguration config;
+    private final Map<UUID, BukkitRunnable> activeLoops = new HashMap<>();
 
-    private final Map<UUID, BukkitRunnable> flyingLoops = new HashMap<>();
-
-    private static final Map<String, Particle> PARTICLES = new HashMap<>();
-    private static final Map<String, Sound> SOUNDS = new HashMap<>();
+    // Mapeo de partículas y sonidos válidos
+    private static final Map<String, Particle> PARTICLE_TYPES = new HashMap<>();
+    private static final Map<String, Sound> SOUND_TYPES = new HashMap<>();
 
     static {
-        // Partículas válidas
-        PARTICLES.put("CLOUD", Particle.CLOUD);
-        PARTICLES.put("END_ROD", Particle.END_ROD);
-        PARTICLES.put("FLAME", Particle.FLAME);
-        PARTICLES.put("SMOKE", Particle.SMOKE);
+        // Partículas soportadas
+        PARTICLE_TYPES.put("CLOUD", Particle.CLOUD);
+        PARTICLE_TYPES.put("END_ROD", Particle.END_ROD);
+        PARTICLE_TYPES.put("SMOKE", Particle.SMOKE);
+        PARTICLE_TYPES.put("FLAME", Particle.FLAME);
 
-        // Sonidos válidos
-        SOUNDS.put("ENTITY_PLAYER_LEVELUP", Sound.ENTITY_PLAYER_LEVELUP);
-        SOUNDS.put("ENTITY_ENDER_DRAGON_FLAP", Sound.ENTITY_ENDER_DRAGON_FLAP);
-        SOUNDS.put("BLOCK_NOTE_BLOCK_PLING", Sound.BLOCK_NOTE_BLOCK_PLING);
-        SOUNDS.put("BLOCK_BEACON_ACTIVATE", Sound.BLOCK_BEACON_ACTIVATE);
-        SOUNDS.put("BLOCK_BEACON_DEACTIVATE", Sound.BLOCK_BEACON_DEACTIVATE);
-        SOUNDS.put("BLOCK_PORTAL_TRAVEL", Sound.BLOCK_PORTAL_TRAVEL);
-        SOUNDS.put("BLOCK_PORTAL_AMBIENT", Sound.BLOCK_PORTAL_AMBIENT);
+        // Sonidos soportados
+        SOUND_TYPES.put("BLOCK_BEACON_ACTIVATE", Sound.BLOCK_BEACON_ACTIVATE);
+        SOUND_TYPES.put("BLOCK_BEACON_DEACTIVATE", Sound.BLOCK_BEACON_DEACTIVATE);
+        SOUND_TYPES.put("BLOCK_PORTAL_TRAVEL", Sound.BLOCK_PORTAL_TRAVEL);
+        SOUND_TYPES.put("ENTITY_PLAYER_LEVELUP", Sound.ENTITY_PLAYER_LEVELUP);
     }
 
     public SoundEffectsManager(PowerFly plugin) {
@@ -42,82 +39,102 @@ public class SoundEffectsManager {
         this.config = plugin.getConfig();
     }
 
-    public void handleEffects(Player player, String path) {
-        playSound(player, path);
-        spawnParticles(player, path);
+    public void playActivationEffects(Player player) {
+        if (!config.getBoolean("enable-effects", false)) return;
 
-        // Detener efectos de vuelo si se desactiva
-        if (path.equals("deactivation-effects")) {
-            stopFlyingLoop(player);
+        spawnParticle(player, "particles.activation");
+        playSound(player, "sounds.activation");
+        startFlightLoop(player);
+    }
+
+    public void playDeactivationEffects(Player player) {
+        stopFlightLoop(player);
+
+        if (!config.getBoolean("enable-effects", false)) return;
+
+        spawnParticle(player, "particles.deactivation");
+        playSound(player, "sounds.deactivation");
+    }
+
+    public void playTimeEndEffects(Player player) {
+        if (!config.getBoolean("enable-sounds", false)) return;
+
+        playSound(player, "sounds.time-ended");
+
+        if (config.getBoolean("enable-effects", false)) {
+            spawnParticle(player, "particles.deactivation");
         }
-    }
-
-    public void handleFlyEffects(Player player, boolean activate) {
-        String path = activate ? "fly-effects" : "deactivation-effects";
-        handleEffects(player, path);
-    }
-
-    public void handleTimeEndedEffects(Player player) {
-        handleEffects(player, "time-ended-effects");
     }
 
     private void playSound(Player player, String path) {
-        String soundName = config.getString(path + ".sound");
-        if (soundName != null && SOUNDS.containsKey(soundName.toUpperCase())) {
-            Sound sound = SOUNDS.get(soundName.toUpperCase());
-            float volume = (float) config.getDouble(path + ".volume", 1.0);
-            float pitch = (float) config.getDouble(path + ".pitch", 1.0);
-            player.playSound(player.getLocation(), sound, volume, pitch);
+        if (!config.getBoolean("enable-sounds", false)) return;
+
+        String soundName = config.getString(path + ".type");
+        if (soundName == null || !SOUND_TYPES.containsKey(soundName)) {
+            plugin.getLogger().warning("Sound not found: " + soundName + " en " + path);
+            return;
         }
+
+        player.playSound(player.getLocation(), SOUND_TYPES.get(soundName), 1.0f, 1.0f);
     }
 
-    private void spawnParticles(Player player, String path) {
-        String particleName = config.getString(path + ".particle");
-        if (particleName != null && PARTICLES.containsKey(particleName.toUpperCase())) {
-            Particle particle = PARTICLES.get(particleName.toUpperCase());
-            int count = config.getInt(path + ".particle-count", 10);
-            double offset = config.getDouble(path + ".particle-offset", 0.5);
-            player.getWorld().spawnParticle(particle, player.getLocation(), count, offset, offset, offset, 0.01);
+    private void spawnParticle(Player player, String path) {
+        String particleName = config.getString(path + ".type");
+        if (particleName == null || !PARTICLE_TYPES.containsKey(particleName)) {
+            plugin.getLogger().warning("Particle not found: " + particleName + " en " + path);
+            return;
         }
+
+        Location loc = player.getLocation();
+        if (isOnGround(player)) {
+            loc.add(0, 0.5, 0);
+        }
+
+        player.getWorld().spawnParticle(
+                PARTICLE_TYPES.get(particleName),
+                loc,
+                10,
+                0.5,
+                0.0,
+                0.5,
+                0.0
+        );
     }
 
-    public void startFlyingLoop(Player player) {
-        UUID uuid = player.getUniqueId();
+     // Inicio del bucle de partículas durante el vuelo
+    private void startFlightLoop(Player player) {
+        UUID playerId = player.getUniqueId();
 
-        // Cancelar si ya había uno
-        cancelFlyingLoop(uuid);
+        stopFlightLoop(player);
 
         BukkitRunnable task = new BukkitRunnable() {
             @Override
             public void run() {
-                if (!player.isOnline() || !player.isFlying()) {
+                if (!player.isOnline() || !player.getAllowFlight()) {
                     cancel();
-                    flyingLoops.remove(uuid);
+                    activeLoops.remove(playerId);
                     return;
                 }
-
-                String particleName = config.getString("flight-loop-effects.particle", "CLOUD");
-                Particle particle = PARTICLES.getOrDefault(particleName.toUpperCase(), Particle.CLOUD);
-                int count = config.getInt("flight-loop-effects.particle-count", 3);
-                double offset = config.getDouble("flight-loop-effects.particle-offset", 0.2);
-
-                player.getWorld().spawnParticle(particle, player.getLocation(), count, offset, offset, offset, 0.01);
+                spawnParticle(player, "particles.flying");
             }
         };
 
-        int intervalTicks = config.getInt("flight-loop-effects.interval", 10); // cada 0.5 segundos por defecto
-        flyingLoops.put(uuid, task);
-        task.runTaskTimer(plugin, 0L, intervalTicks);
+        task.runTaskTimer(plugin, 0L, 5L);
+        activeLoops.put(playerId, task);
     }
 
-    public void stopFlyingLoop(Player player) {
-        cancelFlyingLoop(player.getUniqueId());
+    private void stopFlightLoop(Player player) {
+        BukkitRunnable task = activeLoops.remove(player.getUniqueId());
+        if (task != null) task.cancel();
     }
 
-    private void cancelFlyingLoop(UUID uuid) {
-        if (flyingLoops.containsKey(uuid)) {
-            flyingLoops.get(uuid).cancel();
-            flyingLoops.remove(uuid);
-        }
+     // Limpieza de todos los bucles al reiniciar/desactivar el plugin
+    public void cleanupAllLoops() {
+        activeLoops.values().forEach(BukkitRunnable::cancel);
+        activeLoops.clear();
+    }
+
+    private boolean isOnGround(Player player) {
+        return !player.getLocation().clone().subtract(0, 0.1, 0).getBlock().isPassable();
     }
 }

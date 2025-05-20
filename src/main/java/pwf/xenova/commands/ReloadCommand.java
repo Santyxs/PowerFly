@@ -6,6 +6,8 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
 
+import java.io.File;
+
 public class ReloadCommand implements CommandExecutor {
 
     private final PowerFly plugin;
@@ -16,23 +18,40 @@ public class ReloadCommand implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull[] args) {
         try {
-            // Recargar la configuración principal
-            plugin.reloadConfig();
+            // Comprobación de que config.yml existe
+            File configFile = new File(plugin.getDataFolder(), "config.yml");
+            if (!configFile.exists()) {
+                plugin.getLogger().warning("config.yml not found, creating default one...");
+                plugin.saveDefaultConfig();
+            }
 
-            // Recargar los archivos de mensajes
+            // Comprobación de que la carpeta y archivos de traducción existen
+            File translationsFolder = new File(plugin.getDataFolder(), "translations");
+            File enFile = new File(translationsFolder, "en.yml");
+            File esFile = new File(translationsFolder, "es.yml");
+            File ptFile = new File(translationsFolder, "pt.yml");
+
+            if (!translationsFolder.exists() || !enFile.exists() || !esFile.exists() || !ptFile.exists()) {
+                plugin.getLogger().warning("Missing translation files, creating default ones...");
+                plugin.saveDefaultMessages();
+            }
+
+            // Recargar config.yml y messages
+            plugin.reloadConfig();
             plugin.reloadMessages();
 
-            // Obtener el mensaje de éxito desde los archivos de traducción con valor por defecto
             String reloadMessage = plugin.getMessages().getString("reload-success", "§aPowerFly configuration reloaded successfully!");
-
-            // Enviar el mensaje de éxito al jugador o consola
             sender.sendMessage(reloadMessage);
 
         } catch (Exception e) {
-            // En caso de error, enviar un mensaje a la consola y al jugador
-            plugin.getLogger().warning("Error reloading configuration or messages.");
+            plugin.getLogger().severe("Error reloading configuration or messages:");
+            plugin.getLogger().severe("Exception: " + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                plugin.getLogger().severe("    at " + element.toString());
+            }
             sender.sendMessage("§cAn error occurred while reloading configuration or messages.");
         }
+
         return true;
     }
 }

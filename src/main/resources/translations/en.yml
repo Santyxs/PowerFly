@@ -1,9 +1,13 @@
-remaining-flight-time: "Remaining flight time: "
+fly-not-allowed-in-world: "You can't fly in this world."
 
-fly-enabled: "Flight has been enabled."
+no-fly-time: "You don't have any fly time available."
 
-fly-disabled: "Flight has been disabled."
+fly-enabled: "Fly has been enabled."
 
-fly-time-ended: "Flight time has ended."
+fly-disabled: "Fly has been disabled."
+
+remaining-fly-time: "Remaining fly time: "
+
+fly-time-ended: "&cFly time has ended."
 
 reload-success: "§aPowerFly configuration reloaded!"

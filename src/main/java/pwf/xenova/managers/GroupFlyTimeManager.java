@@ -20,7 +20,7 @@ public class GroupFlyTimeManager {
         loadTimesFromConfig();
     }
 
-    // Carga los tiempos desde config.yml
+    // Tiempos de carga desde config.yml
     public void loadTimesFromConfig() {
         groupFlyTimes.clear();
         FileConfiguration config = plugin.getConfig();
@@ -33,7 +33,7 @@ public class GroupFlyTimeManager {
         plugin.getLogger().info("Group fly times loaded: " + groupFlyTimes);
     }
 
-    // Obtiene el tiempo de vuelo para un grupo
+    // Tiempo de vuelo para un grupo
     public int getFlyTimeForGroup(String group) {
         return groupFlyTimes.getOrDefault(group.toLowerCase(), plugin.getConfig().getInt("fly-time", 10));
     }

@@ -14,10 +14,10 @@ import java.util.Objects;
 public class CommandManager {
 
     public static void registerCommands(JavaPlugin plugin) {
-        // Registrar el comando /fly
+        // Registro del comando /fly
         Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(new FlyCommand());
 
-        // Registrar el comando /powerfly y manejar los subcomandos y autocompletado
+        // Registro del comando /powerfly y manejo de subcomandos y autocompletado
         Objects.requireNonNull(plugin.getCommand("powerfly")).setExecutor((sender, command, label, args) -> {
             // Si no se pasan argumentos, mostramos el uso del comando
             if (args.length == 0) {
@@ -33,12 +33,12 @@ public class CommandManager {
                     new HelpCommand((PowerFly) plugin).onCommand(sender, command, label, args);
                     break;
                 default:
-                    return false; // Si el subcomando no es reconocido, mostramos el uso
+                    return false; // Si el subcomando no es reconocido, se muestra el uso
             }
             return true;
         });
 
-        // Registrar el TabCompleter para el comando /powerfly
+        // Registro del TabCompleter para el comando /powerfly
         Objects.requireNonNull(plugin.getCommand("powerfly")).setTabCompleter((sender, command, label, args) -> {
             // Lista de subcomandos disponibles
             List<String> subCommands = new ArrayList<>();

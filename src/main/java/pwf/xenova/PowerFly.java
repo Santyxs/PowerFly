@@ -7,8 +7,8 @@ import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.CommandManager;
-import pwf.xenova.managers.ConfigUpdater;
 import pwf.xenova.managers.GroupFlyTimeManager;
+import pwf.xenova.managers.SoundEffectsManager;
 import pwf.xenova.utils.ErrorUtils;
 
 import java.io.File;
@@ -19,20 +19,23 @@ public class PowerFly extends JavaPlugin {
     private YamlConfiguration messages;
     private GroupFlyTimeManager groupFlyTimeManager;
     private LuckPerms luckPerms;
+    private SoundEffectsManager soundEffectsManager;
 
     public void onEnable() {
         instance = this;
 
-        // Cargar la configuración predeterminada y actualizar con valores nuevos
+        // Crea el archivo config.yml si no existe
         saveDefaultConfig();
-        ConfigUpdater.updateConfigWithDefaults(new File(getDataFolder(), "config.yml"));
 
-        // Guardar los mensajes predeterminados
+        // Crea y carga los archivos de traducción predeterminados
         saveDefaultMessages();
+
+        // Inicialización de managers
+        this.soundEffectsManager = new SoundEffectsManager(this);
         CommandManager.registerCommands(this);
         reloadMessages();
 
-        // Inicializar LuckPerms y GroupFlyTimeManager
+        // Conexión con LuckPerms
         try {
             luckPerms = LuckPermsProvider.get();
             groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
@@ -45,8 +48,11 @@ public class PowerFly extends JavaPlugin {
         getLogger().info("PowerFly plugin has been enabled.");
     }
 
-    @Override
     public void onDisable() {
+        // Limpieza de efectos
+        if (soundEffectsManager != null) {
+            soundEffectsManager.cleanupAllLoops();
+        }
         getLogger().info("PowerFly plugin has been disabled.");
     }
 
@@ -66,6 +72,10 @@ public class PowerFly extends JavaPlugin {
         return luckPerms;
     }
 
+    public SoundEffectsManager getSoundEffectsManager() {
+        return soundEffectsManager;
+    }
+
     public Component getPrefixedMessage(String key, String defaultMessage) {
         String prefix = getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         String message = getMessages().getString(key, defaultMessage);
@@ -78,6 +88,7 @@ public class PowerFly extends JavaPlugin {
         return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
+    // Carga los mensajes según el idioma especificado en config.yml
     public void reloadMessages() {
         reloadConfig();
         String language = getConfig().getString("language", "en");
@@ -91,21 +102,20 @@ public class PowerFly extends JavaPlugin {
         }
     }
 
-    public void reloadPlugin() {
-        reloadConfig();
-        ConfigUpdater.updateConfigWithDefaults(new File(getDataFolder(), "config.yml"));
-        reloadMessages();
-        groupFlyTimeManager.loadTimesFromConfig();
-        getLogger().info("PowerFly config, messages and group times reloaded.");
+    public String getMessage(String key) {
+        return messages.getString(key, "Missing message for " + key);
     }
 
-    private void saveDefaultMessages() {
+    // Guarda los archivos de mensajes por defecto si no existen
+    public void saveDefaultMessages() {
         File translationsFolder = new File(getDataFolder(), "translations");
 
+        // Crea la carpeta de traducciones si no existe
         if (!translationsFolder.exists() && !translationsFolder.mkdirs()) {
             getLogger().warning("The translations folder could not be created.");
         }
 
+        // Guarda las traducciones si no existen
         if (!new File(translationsFolder, "en.yml").exists()) {
             saveResource("translations/en.yml", false);
         }
@@ -116,6 +126,7 @@ public class PowerFly extends JavaPlugin {
             saveResource("translations/pt.yml", false);
         }
 
+        // Carga el archivo de mensajes por defecto
         File messagesFile = new File(translationsFolder, "en.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
     }

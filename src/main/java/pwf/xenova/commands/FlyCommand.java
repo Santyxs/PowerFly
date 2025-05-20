@@ -10,31 +10,35 @@ import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
 import pwf.xenova.managers.SoundEffectsManager;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class FlyCommand implements CommandExecutor {
 
     private final PowerFly plugin;
-    private final SoundEffectsManager soundEffectsManager;
-    private BukkitRunnable flightTask;
+    private final SoundEffectsManager soundManager;
+    private final Map<UUID, BukkitRunnable> flightTimers = new HashMap<>();
 
     public FlyCommand() {
         this.plugin = PowerFly.getInstance();
-        this.soundEffectsManager = new SoundEffectsManager(plugin);
+        this.soundManager = plugin.getSoundEffectsManager();
     }
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(plugin.getPrefixedMessage("console-error", "You must be a player to execute this command."));
+            sender.sendMessage("&cOnly players can use this command.");
             return true;
         }
 
         if (!isFlightAllowedInWorld(player)) {
-            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-world", "You cannot use fly in this world."));
+            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-world", "&cYou can't fly in this world."));
             return true;
         }
 
         int flightTime = getPlayerFlightTime(player);
         if (flightTime <= 0) {
-            player.sendMessage(plugin.getPrefixedMessage("no-flight-time", "You don't have flight time available."));
+            player.sendMessage(plugin.getPrefixedMessage("no-fly-time", "&cYou don't have any fly time available."));
             return true;
         }
 
@@ -53,62 +57,86 @@ public class FlyCommand implements CommandExecutor {
 
     private int getPlayerFlightTime(Player player) {
         if (!plugin.getConfig().getBoolean("use-group-fly-time", false)) {
-            return plugin.getConfig().getInt("fly-time", 10);
+            return plugin.getConfig().getInt("fly-time", 60);
         }
 
         var user = plugin.getLuckPerms().getUserManager().getUser(player.getUniqueId());
-        if (user == null) return -1;
+        if (user == null) return 0;
 
         String group = user.getPrimaryGroup();
-        return plugin.getConfig().getInt("group-times." + group, plugin.getConfig().getInt("fly-time", 10));
+        return plugin.getConfig().getInt("group-times." + group, plugin.getConfig().getInt("fly-time", 60));
     }
 
     private void disableFlight(Player player) {
+        stopFlightTimer(player);
         player.setAllowFlight(false);
         player.setFlying(false);
-        player.sendMessage(plugin.getPrefixedMessage("fly-disabled", "Flying has been disabled."));
-
-        if (flightTask != null) {
-            flightTask.cancel();
-            flightTask = null;
-        }
-
-        soundEffectsManager.handleFlyEffects(player, false);
-        soundEffectsManager.stopFlyingLoop(player);
+        soundManager.playDeactivationEffects(player);
+        player.sendMessage(plugin.getPrefixedMessage("fly-disabled", "Fly disabled."));
+        player.sendActionBar(Component.empty());
     }
 
     private void enableFlight(Player player, int flightTime) {
+        stopFlightTimer(player);
+
         player.setAllowFlight(true);
         player.setFlying(true);
-        player.sendMessage(plugin.getPrefixedMessage("fly-enabled", "Flying has been enabled."));
+        soundManager.playActivationEffects(player);
 
-        soundEffectsManager.handleFlyEffects(player, true);
-        soundEffectsManager.startFlyingLoop(player);
+        player.sendMessage(plugin.getPrefixedMessage(
+                "fly-enabled",
+                "Flight activated by " + flightTime + " seconds."
+        ));
 
-        flightTask = new BukkitRunnable() {
-            int timeRemaining = flightTime;
+        startFlightTimer(player, flightTime);
+    }
+
+    private void startFlightTimer(Player player, int flightTime) {
+        BukkitRunnable timer = new BukkitRunnable() {
+            int timeLeft = flightTime;
+            long lastSecond = System.currentTimeMillis();
 
             public void run() {
-                if (timeRemaining <= 0) {
-                    disableFlight(player);
-                    player.sendMessage(plugin.getPrefixedMessage("fly-time-ended", "Your flight time has ended."));
-                    soundEffectsManager.handleTimeEndedEffects(player);
-                    cancel();
+                // Verificación básica de estado
+                if (!player.isOnline() || !player.getAllowFlight()) {
+                    cancelTimer(player);
                     return;
                 }
 
-                if (!player.isFlying()) {
-                    player.setAllowFlight(false);
-                    soundEffectsManager.stopFlyingLoop(player);
-                    cancel();
-                    return;
-                }
+                // Actualizar contador cada SEGUNDO REAL
+                if (System.currentTimeMillis() - lastSecond >= 1000) {
+                    lastSecond = System.currentTimeMillis();
 
-                player.sendActionBar(Component.text("Remaining flight time: " + timeRemaining + " seconds"));
-                timeRemaining--;
+                    player.sendActionBar(Component.text(
+                            "§e" + plugin.getMessage("remaining-flight-time") + "§6" + timeLeft + "s"
+                    ));
+
+                    if (timeLeft-- <= 0) {
+                        endFlight(player);
+                    }
+                }
             }
         };
 
-        flightTask.runTaskTimer(plugin, 0L, 20L);
+        timer.runTaskTimer(plugin, 0L, 20L);
+        flightTimers.put(player.getUniqueId(), timer);
+    }
+
+    private void endFlight(Player player) {
+        soundManager.playTimeEndEffects(player);
+        disableFlight(player);
+        player.sendActionBar(Component.text(plugin.getMessage("fly-time-ended")));
+    }
+
+    private void stopFlightTimer(Player player) {
+        BukkitRunnable timer = flightTimers.remove(player.getUniqueId());
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    private void cancelTimer(Player player) {
+        stopFlightTimer(player);
+        player.sendActionBar(Component.empty());
     }
 }
