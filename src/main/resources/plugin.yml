@@ -19,3 +19,6 @@ commands:
       reload:
         description: Reloads the plugin configuration.
         usage: /powerfly reload
+      check:
+        description: Manage fly time.
+        usage: /powerfly check <player>

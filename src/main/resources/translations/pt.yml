@@ -1,13 +1,19 @@
-fly-not-allowed-in-world: "Você não pode voar neste mundo."
+fly-not-allowed-in-world: "&cVocê não pode voar neste mundo."
 
-no-fly-time: "Você não tem tempo de voo disponível."
+no-fly-time: "&cVocê não tem tempo de voo disponível."
 
-fly-enabled: "O voo foi ativado."
+fly-enabled: "&aO voo foi ativado."
 
-fly-disabled: "O voo foi desativado."
+fly-disabled: "&cO voo foi desativado."
 
-remaining-fly-time: "Tempo de voo restante: "
+remaining-fly-time: "&6Tempo de voo restante: "
 
 fly-time-ended: "&cO tempo de voo acabou."
 
 reload-success: "&aConfiguração do PowerFly recarregada!"
+
+player-not-found: "&cJogador não encontrado."
+
+no-fly-time-remaining: "&c{player} não tem tempo de voo restante."
+
+fly-time-remaining: "&a{player} tem {minutes}m e {seconds}s de tempo de voo restante."

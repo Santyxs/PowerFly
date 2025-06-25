@@ -1,13 +1,19 @@
-fly-not-allowed-in-world: "You can't fly in this world."
+fly-not-allowed-in-world: "&cYou can't fly in this world."
 
-no-fly-time: "You don't have any fly time available."
+no-fly-time: "&cYou don't have any fly time available."
 
-fly-enabled: "Fly has been enabled."
+fly-enabled: "&aFly has been enabled."
 
-fly-disabled: "Fly has been disabled."
+fly-disabled: "&cFly has been disabled."
 
-remaining-fly-time: "Remaining fly time: "
+remaining-fly-time: "&6Remaining fly time: "
 
 fly-time-ended: "&cFly time has ended."
 
-reload-success: "§aPowerFly configuration reloaded!"
+reload-success: "&aPowerFly configuration reloaded!"
+
+player-not-found: "&cPlayer not found."
+
+no-fly-time-remaining: "&c{player} has no flight time remaining."
+
+fly-time-remaining: "&a{player} has {minutes}m and {seconds}s of flight time remaining."

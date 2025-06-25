@@ -1,14 +1,15 @@
 package pwf.xenova.commands;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import pwf.xenova.PowerFly;
 import pwf.xenova.managers.SoundEffectsManager;
+import pwf.xenova.PowerFly;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class FlyCommand implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("&cOnly players can use this command.");
+            sender.sendMessage("§cOnly players can use this command.");
             return true;
         }
 
@@ -72,7 +73,7 @@ public class FlyCommand implements CommandExecutor {
         player.setAllowFlight(false);
         player.setFlying(false);
         soundManager.playDeactivationEffects(player);
-        player.sendMessage(plugin.getPrefixedMessage("fly-disabled", "Fly disabled."));
+        player.sendMessage(plugin.getPrefixedMessage("fly-disabled", "&cFly disabled."));
         player.sendActionBar(Component.empty());
     }
 
@@ -88,6 +89,7 @@ public class FlyCommand implements CommandExecutor {
                 "Flight activated by " + flightTime + " seconds."
         ));
 
+        plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), flightTime);
         startFlightTimer(player, flightTime);
     }
 
@@ -97,35 +99,46 @@ public class FlyCommand implements CommandExecutor {
             long lastSecond = System.currentTimeMillis();
 
             public void run() {
-                // Verificación básica de estado
                 if (!player.isOnline() || !player.getAllowFlight()) {
-                    cancelTimer(player);
+                    cancel();
                     return;
                 }
 
-                // Actualizar contador cada SEGUNDO REAL
                 if (System.currentTimeMillis() - lastSecond >= 1000) {
                     lastSecond = System.currentTimeMillis();
 
+                    plugin.getFlyTimeManager().removeFlyTime(player.getUniqueId(), 1);
+                    timeLeft--;
+
+                    int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+
                     player.sendActionBar(Component.text(
-                            "§e" + plugin.getMessage("remaining-flight-time") + "§6" + timeLeft + "s"
+                            "§e" + plugin.getMessage("remaining-fly-time") + "§6" + remaining + "s"
                     ));
 
-                    if (timeLeft-- <= 0) {
+                    if (remaining <= 0 || timeLeft <= 0) {
                         endFlight(player);
                     }
                 }
             }
+
+            public void cancel() {
+                plugin.getFlyTimeManager().removeFlyTime(player.getUniqueId(), timeLeft);
+                super.cancel();
+            }
         };
 
-        timer.runTaskTimer(plugin, 0L, 20L);
+        timer.runTaskTimer(plugin, 0L, 1L);
         flightTimers.put(player.getUniqueId(), timer);
     }
 
     private void endFlight(Player player) {
         soundManager.playTimeEndEffects(player);
         disableFlight(player);
-        player.sendActionBar(Component.text(plugin.getMessage("fly-time-ended")));
+
+        String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
+        Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
+        player.sendActionBar(message);
     }
 
     private void stopFlightTimer(Player player) {

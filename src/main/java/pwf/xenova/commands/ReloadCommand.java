@@ -1,5 +1,7 @@
 package pwf.xenova.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,12 +18,16 @@ public class ReloadCommand implements CommandExecutor {
         this.plugin = plugin;
     }
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull[] args) {
+    public boolean onCommand(@NotNull CommandSender sender,
+                             @NotNull Command command,
+                             @NotNull String label,
+                             String @NotNull[] args) {
+
         try {
             // Comprobación de que config.yml existe
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
-                plugin.getLogger().warning("config.yml not found, creating default one...");
+                plugin.getLogger().warning("&cconfig.yml not found, creating default one...");
                 plugin.saveDefaultConfig();
             }
 
@@ -32,7 +38,7 @@ public class ReloadCommand implements CommandExecutor {
             File ptFile = new File(translationsFolder, "pt.yml");
 
             if (!translationsFolder.exists() || !enFile.exists() || !esFile.exists() || !ptFile.exists()) {
-                plugin.getLogger().warning("Missing translation files, creating default ones...");
+                plugin.getLogger().warning("&cMissing translation files, creating default ones...");
                 plugin.saveDefaultMessages();
             }
 
@@ -40,8 +46,9 @@ public class ReloadCommand implements CommandExecutor {
             plugin.reloadConfig();
             plugin.reloadMessages();
 
-            String reloadMessage = plugin.getMessages().getString("reload-success", "§aPowerFly configuration reloaded successfully!");
-            sender.sendMessage(reloadMessage);
+            String rawMessage = plugin.getMessages().getString("reload-success", "&aPowerFly configuration reloaded successfully!");
+            Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage);
+            sender.sendMessage(message);
 
         } catch (Exception e) {
             plugin.getLogger().severe("Error reloading configuration or messages:");
@@ -49,7 +56,9 @@ public class ReloadCommand implements CommandExecutor {
             for (StackTraceElement element : e.getStackTrace()) {
                 plugin.getLogger().severe("    at " + element.toString());
             }
-            sender.sendMessage("§cAn error occurred while reloading configuration or messages.");
+            Component errorMsg = LegacyComponentSerializer.legacyAmpersand()
+                    .deserialize("&cAn error occurred while reloading configuration or messages.");
+            sender.sendMessage(errorMsg);
         }
 
         return true;
