@@ -35,7 +35,7 @@ public class PowerFly extends JavaPlugin {
         saveDefaultMessages();
         reloadMessages();
 
-        this.flyTimeManager = new FlyTimeManager();
+        this.flyTimeManager = new FlyTimeManager(this);
         this.soundEffectsManager = new SoundEffectsManager(this);
 
         CommandManager.registerCommands(this);
@@ -55,9 +55,15 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Desactivación -----------------
 
     public void onDisable() {
+
+        if (flyTimeManager != null) {
+            flyTimeManager.save();
+        }
+
         if (soundEffectsManager != null) {
             soundEffectsManager.cleanupAllLoops();
         }
+
         getLogger().info("&cPowerFly plugin has been disabled.");
     }
 
@@ -115,8 +121,7 @@ public class PowerFly extends JavaPlugin {
             ErrorUtils.handleMissingMessagesFile(language);
         }
     }
-
-    public String getMessage(String key) {
+    public String getMessage(String key, String defaultMessage) {
         return messages.getString(key, "&cMissing message for " + key);
     }
 

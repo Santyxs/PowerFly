@@ -6,14 +6,22 @@ fly-enabled: "&aFly has been enabled."
 
 fly-disabled: "&cFly has been disabled."
 
-remaining-fly-time: "&6Remaining fly time: "
+remaining-fly-time: "&eRemaining fly time: &6"
 
 fly-time-ended: "&cFly time has ended."
 
 reload-success: "&aPowerFly configuration reloaded!"
+
+no-player-specified: "&cYou must specify a player name."
 
 player-not-found: "&cPlayer not found."
 
 no-fly-time-remaining: "&c{player} has no flight time remaining."
 
 fly-time-remaining: "&a{player} has {minutes}m and {seconds}s of flight time remaining."
+
+invalid-time: "&cInvalid time."
+
+fly-time-added: "&aAdded {seconds}s of fly time to {player}."
+
+fly-time-deleted: "&aDeleted {seconds}s of fly time to {player}."

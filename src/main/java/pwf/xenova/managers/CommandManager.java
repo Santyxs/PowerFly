@@ -6,6 +6,8 @@ import org.bukkit.util.StringUtil;
 import pwf.xenova.PowerFly;
 import pwf.xenova.commands.CheckCommand;
 import pwf.xenova.commands.FlyCommand;
+import pwf.xenova.commands.AddFlyTimeCommand;
+import pwf.xenova.commands.DelFlyTimeCommand;
 import pwf.xenova.commands.HelpCommand;
 import pwf.xenova.commands.ReloadCommand;
 
@@ -23,6 +25,8 @@ public class CommandManager {
 
         // Instancia comandos para /powerfly subcomandos
         CheckCommand checkCommand = new CheckCommand((PowerFly) plugin);
+        AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand((PowerFly) plugin);
+        DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand((PowerFly) plugin);
         ReloadCommand reloadCommand = new ReloadCommand((PowerFly) plugin);
         HelpCommand helpCommand = new HelpCommand((PowerFly) plugin);
 
@@ -41,6 +45,12 @@ public class CommandManager {
                 case "check":
                     checkCommand.onCommand(sender, command, label, args);
                     break;
+                case "addflytime":
+                    addFlyTimeCommand.onCommand(sender, command, label, args);
+                    break;
+                case "delflytime":
+                    delFlyTimeCommand.onCommand(sender, command, label, args);
+                    break;
                 default:
                     return false;
             }
@@ -52,7 +62,7 @@ public class CommandManager {
             if (args.length == 1) {
 
                 // Sugerencias para el primer argumento (subcomandos)
-                List<String> subCommands = List.of("reload", "help", "check");
+                List<String> subCommands = List.of("reload", "help", "check", "addflytime", "delflytime");
                 return StringUtil.copyPartialMatches(args[0], subCommands, new ArrayList<>());
             } else if (args.length == 2 && args[0].equalsIgnoreCase("check")) {
 

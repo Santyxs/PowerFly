@@ -22,7 +22,7 @@ public class HelpCommand implements CommandExecutor {
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/fly &7- Enable flying for a limited time."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly check <player> &7- Check fly time to a player."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly addtime <player> <seconds> &7- Add fly time to a player."));
-            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly removetime <player> <seconds> &7- Remove fly time from a player."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly deltime <player> <seconds> &7- Remove fly time from a player."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly reload &7- Reload the plugin configuration."));
             return true;
         }

@@ -1,7 +1,6 @@
 package pwf.xenova.commands;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -24,30 +23,36 @@ public class ReloadCommand implements CommandExecutor {
                              String @NotNull[] args) {
 
         try {
-            // Comprobación de que config.yml existe
+            // Verificar existencia de config.yml
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
-                plugin.getLogger().warning("&cconfig.yml not found, creating default one...");
+                plugin.getLogger().warning("Config.yml not found, creating default one...");
                 plugin.saveDefaultConfig();
             }
 
-            // Comprobación de que la carpeta y archivos de traducción existen
+            // Verificar existencia de traducciones
             File translationsFolder = new File(plugin.getDataFolder(), "translations");
             File enFile = new File(translationsFolder, "en.yml");
             File esFile = new File(translationsFolder, "es.yml");
             File ptFile = new File(translationsFolder, "pt.yml");
 
             if (!translationsFolder.exists() || !enFile.exists() || !esFile.exists() || !ptFile.exists()) {
-                plugin.getLogger().warning("&cMissing translation files, creating default ones...");
+                plugin.getLogger().warning("Missing translation files, creating default ones...");
                 plugin.saveDefaultMessages();
             }
 
-            // Recargar config.yml y messages
+            // Verificar existencia de database.yml y recargar FlyTimeManager
+            File dbFile = new File(plugin.getDataFolder(), "database.yml");
+            if (!dbFile.exists()) {
+                plugin.getLogger().warning("Missing database.yml, recreating...");
+            }
+
+            // Recargar configuración, mensajes y tiempos de vuelo
             plugin.reloadConfig();
             plugin.reloadMessages();
+            plugin.getFlyTimeManager().reload();
 
-            String rawMessage = plugin.getMessages().getString("reload-success", "&aPowerFly configuration reloaded successfully!");
-            Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage);
+            Component message = plugin.getPrefixedMessage("reload-success", "&aConfiguration reloaded successfully!");
             sender.sendMessage(message);
 
         } catch (Exception e) {
@@ -56,8 +61,7 @@ public class ReloadCommand implements CommandExecutor {
             for (StackTraceElement element : e.getStackTrace()) {
                 plugin.getLogger().severe("    at " + element.toString());
             }
-            Component errorMsg = LegacyComponentSerializer.legacyAmpersand()
-                    .deserialize("&cAn error occurred while reloading configuration or messages.");
+            Component errorMsg = plugin.getPrefixedMessage("reload-error", "&cAn error occurred while reloading configuration or messages.");
             sender.sendMessage(errorMsg);
         }
 

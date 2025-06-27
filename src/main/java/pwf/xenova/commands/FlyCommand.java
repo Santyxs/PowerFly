@@ -19,57 +19,45 @@ public class FlyCommand implements CommandExecutor {
 
     private final PowerFly plugin;
     private final SoundEffectsManager soundManager;
-    private final Map<UUID, BukkitRunnable> flightTimers = new HashMap<>();
+    private final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
 
     public FlyCommand() {
         this.plugin = PowerFly.getInstance();
         this.soundManager = plugin.getSoundEffectsManager();
     }
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cOnly players can use this command.");
             return true;
         }
 
-        if (!isFlightAllowedInWorld(player)) {
+        if (!isFlyAllowedInWorld(player)) {
             player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-world", "&cYou can't fly in this world."));
             return true;
         }
 
-        int flightTime = getPlayerFlightTime(player);
-        if (flightTime <= 0) {
+        int availableFlyTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+        if (availableFlyTime <= 0) {
             player.sendMessage(plugin.getPrefixedMessage("no-fly-time", "&cYou don't have any fly time available."));
             return true;
         }
 
         if (player.getAllowFlight()) {
-            disableFlight(player);
+            disableFly(player);
         } else {
-            enableFlight(player, flightTime);
+            enableFly(player);
         }
 
         return true;
     }
 
-    private boolean isFlightAllowedInWorld(Player player) {
+    private boolean isFlyAllowedInWorld(Player player) {
         return plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName());
     }
 
-    private int getPlayerFlightTime(Player player) {
-        if (!plugin.getConfig().getBoolean("use-group-fly-time", false)) {
-            return plugin.getConfig().getInt("fly-time", 60);
-        }
-
-        var user = plugin.getLuckPerms().getUserManager().getUser(player.getUniqueId());
-        if (user == null) return 0;
-
-        String group = user.getPrimaryGroup();
-        return plugin.getConfig().getInt("group-times." + group, plugin.getConfig().getInt("fly-time", 60));
-    }
-
-    private void disableFlight(Player player) {
-        stopFlightTimer(player);
+    private void disableFly(Player player) {
+        stopFlyTimer(player);
         player.setAllowFlight(false);
         player.setFlying(false);
         soundManager.playDeactivationEffects(player);
@@ -77,25 +65,20 @@ public class FlyCommand implements CommandExecutor {
         player.sendActionBar(Component.empty());
     }
 
-    private void enableFlight(Player player, int flightTime) {
-        stopFlightTimer(player);
+    private void enableFly(Player player) {
+        stopFlyTimer(player);
 
         player.setAllowFlight(true);
         player.setFlying(true);
         soundManager.playActivationEffects(player);
 
-        player.sendMessage(plugin.getPrefixedMessage(
-                "fly-enabled",
-                "Flight activated by " + flightTime + " seconds."
-        ));
+        player.sendMessage(plugin.getPrefixedMessage("fly-enabled", "Fly activated."));
 
-        plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), flightTime);
-        startFlightTimer(player, flightTime);
+        startFlyTimer(player);
     }
 
-    private void startFlightTimer(Player player, int flightTime) {
+    private void startFlyTimer(Player player) {
         BukkitRunnable timer = new BukkitRunnable() {
-            int timeLeft = flightTime;
             long lastSecond = System.currentTimeMillis();
 
             public void run() {
@@ -107,49 +90,38 @@ public class FlyCommand implements CommandExecutor {
                 if (System.currentTimeMillis() - lastSecond >= 1000) {
                     lastSecond = System.currentTimeMillis();
 
-                    plugin.getFlyTimeManager().removeFlyTime(player.getUniqueId(), 1);
-                    timeLeft--;
+                    UUID uuid = player.getUniqueId();
+                    plugin.getFlyTimeManager().delFlyTime(uuid, 1);
 
-                    int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+                    int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
+                    String raw = plugin.getMessages().getString("remaining-fly-time", "&eRemaining fly time: &6");
+                    Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw + remaining + "s");
+                    player.sendActionBar(message);
 
-                    player.sendActionBar(Component.text(
-                            "§e" + plugin.getMessage("remaining-fly-time") + "§6" + remaining + "s"
-                    ));
-
-                    if (remaining <= 0 || timeLeft <= 0) {
-                        endFlight(player);
+                    if (remaining <= 0) {
+                        endFly(player);
                     }
                 }
-            }
-
-            public void cancel() {
-                plugin.getFlyTimeManager().removeFlyTime(player.getUniqueId(), timeLeft);
-                super.cancel();
             }
         };
 
         timer.runTaskTimer(plugin, 0L, 1L);
-        flightTimers.put(player.getUniqueId(), timer);
+        flyTimers.put(player.getUniqueId(), timer);
     }
 
-    private void endFlight(Player player) {
+    private void endFly(Player player) {
         soundManager.playTimeEndEffects(player);
-        disableFlight(player);
+        disableFly(player);
 
         String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
         Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
         player.sendActionBar(message);
     }
 
-    private void stopFlightTimer(Player player) {
-        BukkitRunnable timer = flightTimers.remove(player.getUniqueId());
+    private void stopFlyTimer(Player player) {
+        BukkitRunnable timer = flyTimers.remove(player.getUniqueId());
         if (timer != null) {
             timer.cancel();
         }
-    }
-
-    private void cancelTimer(Player player) {
-        stopFlightTimer(player);
-        player.sendActionBar(Component.empty());
     }
 }
