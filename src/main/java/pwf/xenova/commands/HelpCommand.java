@@ -15,14 +15,16 @@ public class HelpCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String[] args) {
+                             String @NotNull[] args) {
+
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&8&m----§r §bPowerFly Help &8&m----"));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(""));
-            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/fly &7- Enable flying for a limited time."));
-            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly check <player> &7- Check fly time to a player."));
-            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly addtime <player> <seconds> &7- Add fly time to a player."));
-            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly deltime <player> <seconds> &7- Remove fly time from a player."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/fly &7- Enable fly for a limited time."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly fly <player | all> <on | off> &7- Enable or disable fly to a player or all."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly check <player> &7- Check fly time of a player."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly addflytime <player | all> <seconds> &7- Add fly time to a player or all."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly delflytime <player | all> <seconds> &7- Remove fly time from a player or all."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly reload &7- Reload the plugin configuration."));
             return true;
         }

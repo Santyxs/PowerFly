@@ -23,14 +23,12 @@ public class ReloadCommand implements CommandExecutor {
                              String @NotNull[] args) {
 
         try {
-            // Verificar existencia de config.yml
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
                 plugin.getLogger().warning("Config.yml not found, creating default one...");
                 plugin.saveDefaultConfig();
             }
 
-            // Verificar existencia de traducciones
             File translationsFolder = new File(plugin.getDataFolder(), "translations");
             File enFile = new File(translationsFolder, "en.yml");
             File esFile = new File(translationsFolder, "es.yml");
@@ -41,13 +39,11 @@ public class ReloadCommand implements CommandExecutor {
                 plugin.saveDefaultMessages();
             }
 
-            // Verificar existencia de database.yml y recargar FlyTimeManager
             File dbFile = new File(plugin.getDataFolder(), "database.yml");
             if (!dbFile.exists()) {
                 plugin.getLogger().warning("Missing database.yml, recreating...");
             }
 
-            // Recargar configuración, mensajes y tiempos de vuelo
             plugin.reloadConfig();
             plugin.reloadMessages();
             plugin.getFlyTimeManager().reload();

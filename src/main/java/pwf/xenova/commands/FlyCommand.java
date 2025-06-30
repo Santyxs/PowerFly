@@ -21,12 +21,16 @@ public class FlyCommand implements CommandExecutor {
     private final SoundEffectsManager soundManager;
     private final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
 
-    public FlyCommand() {
+    public FlyCommand(PowerFly powerFly) {
         this.plugin = PowerFly.getInstance();
         this.soundManager = plugin.getSoundEffectsManager();
     }
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull[] args) {
+    public boolean onCommand(@NotNull CommandSender sender,
+                             @NotNull Command command,
+                             @NotNull String label,
+                             String @NotNull[] args) {
+
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cOnly players can use this command.");
             return true;

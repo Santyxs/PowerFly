@@ -24,9 +24,9 @@ public class GroupFlyTimeManager {
     public void loadTimesFromConfig() {
         groupFlyTimes.clear();
         FileConfiguration config = plugin.getConfig();
-        if (config.isConfigurationSection("group-times")) {
-            for (String group : Objects.requireNonNull(config.getConfigurationSection("group-times")).getKeys(false)) {
-                int time = config.getInt("group-times." + group, config.getInt("fly-time", 10));
+        if (config.isConfigurationSection("groups-fly-time:s")) {
+            for (String group : Objects.requireNonNull(config.getConfigurationSection("groups-fly-time:s")).getKeys(false)) {
+                int time = config.getInt("groups-fly-time:s." + group, config.getInt("fly-time", 10));
                 groupFlyTimes.put(group.toLowerCase(), time);
             }
         }

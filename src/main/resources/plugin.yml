@@ -13,6 +13,9 @@ commands:
     description: Main command for PowerFly plugin.
     usage: /powerfly <subcommand>
     subcommands:
+      fly:
+        description: Fly for a limited time.
+        usage: /powerfly fly
       help:
         description: Help and info.
         usage: /powerfly help
@@ -22,3 +25,9 @@ commands:
       check:
         description: Manage fly time.
         usage: /powerfly check <player>
+      addflytime:
+        description: Add fly time to a player.
+        usage: /powerfly addflytime <player|all> <time>
+      delflytime:
+        description: Remove fly time from a player.
+        usage: /powerfly delflytime <player|all> <time>

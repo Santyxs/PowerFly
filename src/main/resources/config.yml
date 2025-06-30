@@ -13,14 +13,14 @@ language: en
 #        FLY TIMER         #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
-# Flight time in seconds for the default group
-fly-time: 10
+# Fly time in seconds for the default group
+flytime: 10
 
 # Enable or disable the use of group-based fly times
-use-group-fly-time: false
+use-groups-fly-time: false
 
-# Flight time in seconds for each group (can be customized based on LuckPerms groups)
-group-times:
+# Fly time in seconds for each group (can be customized based on LuckPerms groups)
+groups-fly-time:
   default: 10
   vip: 30
   mod: 60

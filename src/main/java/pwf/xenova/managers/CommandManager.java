@@ -4,12 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StringUtil;
 import pwf.xenova.PowerFly;
-import pwf.xenova.commands.CheckCommand;
-import pwf.xenova.commands.FlyCommand;
-import pwf.xenova.commands.AddFlyTimeCommand;
-import pwf.xenova.commands.DelFlyTimeCommand;
-import pwf.xenova.commands.HelpCommand;
-import pwf.xenova.commands.ReloadCommand;
+import pwf.xenova.commands.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,64 +12,52 @@ import java.util.Objects;
 
 public class CommandManager {
 
-    // Comandos y tab completions
     public static void registerCommands(JavaPlugin plugin) {
+        if (!(plugin instanceof PowerFly powerFly)) {
+            throw new IllegalArgumentException();
+        }
 
-        // Establece el ejecutor para el comando /fly
-        Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(new FlyCommand());
+        FlyCommand flyCommand = new FlyCommand(powerFly);
+        CheckCommand checkCommand = new CheckCommand(powerFly);
+        AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand(powerFly);
+        DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(powerFly);
+        ReloadCommand reloadCommand = new ReloadCommand(powerFly);
+        HelpCommand helpCommand = new HelpCommand(powerFly);
 
-        // Instancia comandos para /powerfly subcomandos
-        CheckCommand checkCommand = new CheckCommand((PowerFly) plugin);
-        AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand((PowerFly) plugin);
-        DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand((PowerFly) plugin);
-        ReloadCommand reloadCommand = new ReloadCommand((PowerFly) plugin);
-        HelpCommand helpCommand = new HelpCommand((PowerFly) plugin);
+        Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(flyCommand);
 
-        // Asigna ejecutor para /powerfly que delega según subcomando
         Objects.requireNonNull(plugin.getCommand("powerfly")).setExecutor((sender, command, label, args) -> {
-            if (args.length == 0) {
-                return false;
-            }
-            switch (args[0].toLowerCase()) {
-                case "reload":
-                    reloadCommand.onCommand(sender, command, label, args);
-                    break;
-                case "help":
-                    helpCommand.onCommand(sender, command, label, args);
-                    break;
-                case "check":
-                    checkCommand.onCommand(sender, command, label, args);
-                    break;
-                case "addflytime":
-                    addFlyTimeCommand.onCommand(sender, command, label, args);
-                    break;
-                case "delflytime":
-                    delFlyTimeCommand.onCommand(sender, command, label, args);
-                    break;
-                default:
-                    return false;
-            }
-            return true;
-        });
+            if (args.length < 1) return false;
 
-        // Tab completion
+            return switch (args[0].toLowerCase()) {
+                case "fly" -> flyCommand.onCommand(sender, command, label, args);
+                case "check" -> checkCommand.onCommand(sender, command, label, args);
+                case "addflytime" -> addFlyTimeCommand.onCommand(sender, command, label, args);
+                case "delflytime" -> delFlyTimeCommand.onCommand(sender, command, label, args);
+                case "reload" -> reloadCommand.onCommand(sender, command, label, args);
+                case "help" -> helpCommand.onCommand(sender, command, label, args);
+                default -> false;
+            };
+    });
         Objects.requireNonNull(plugin.getCommand("powerfly")).setTabCompleter((sender, command, label, args) -> {
             if (args.length == 1) {
-
-                // Sugerencias para el primer argumento (subcomandos)
-                List<String> subCommands = List.of("reload", "help", "check", "addflytime", "delflytime");
-                return StringUtil.copyPartialMatches(args[0], subCommands, new ArrayList<>());
-            } else if (args.length == 2 && args[0].equalsIgnoreCase("check")) {
-
-                // Sugerencias de nombres de jugador para /powerfly check
-                String prefix = args[1].toLowerCase();
-                List<String> playerNames = new ArrayList<>();
-                for (var player : Bukkit.getOnlinePlayers()) {
-                    if (player.getName().toLowerCase().startsWith(prefix)) {
-                        playerNames.add(player.getName());
-                    }
+                return StringUtil.copyPartialMatches(args[0], List.of("fly", "check", "addflytime", "delflytime", "reload", "help"), new ArrayList<>());
+            } else if (args.length == 2) {
+                if (List.of("fly", "addflytime", "delflytime").contains(args[0].toLowerCase())) {
+                    List<String> options = new ArrayList<>();
+                    options.add("all");
+                    Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                    return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
+                } else if (args[0].equalsIgnoreCase("check")) {
+                    List<String> options = new ArrayList<>();
+                    Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                    return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
                 }
-                return playerNames;
+            } else if (args.length == 3 && args[0].equalsIgnoreCase("fly")) {
+                return StringUtil.copyPartialMatches(args[2], List.of("on", "off"), new ArrayList<>());
+            } else if ((args.length == 3) && (args[0].equalsIgnoreCase("addflytime") || args[0].equalsIgnoreCase("delflytime"))) {
+                // Aquí devolver el placeholder en morado para indicar que va un número
+                return List.of("<seconds>");
             }
             return new ArrayList<>();
         });

@@ -45,7 +45,7 @@ public class CheckCommand implements CommandExecutor {
         if (remainingSeconds <= 0) {
             String raw = plugin.getMessages().getString("no-fly-time-remaining", "&c{player} has no flight time remaining.")
                     .replace("{player}", Objects.requireNonNull(target.getName()));
-            // Añadir prefijo manualmente para mensajes con variables
+
             String prefixedRaw = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + raw;
             Component msg = LegacyComponentSerializer.legacyAmpersand().deserialize(prefixedRaw);
             sender.sendMessage(msg);

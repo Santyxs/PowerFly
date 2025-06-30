@@ -6,11 +6,11 @@ fly-enabled: "&aO voo foi ativado."
 
 fly-disabled: "&cO voo foi desativado."
 
-remaining-fly-time: "&eTempo de voo restante: &6"
+remaining-fly-time: "&eTempo de voo restante: &6{time}"
 
 fly-time-ended: "&cO tempo de voo acabou."
 
-reload-success: "&aConfiguração do PowerFly recarregada!"
+reload-success: "&aConfiguração recarregada!"
 
 no-player-specified: "&cVocê deve especificar um nome de jogador."
 
@@ -21,6 +21,18 @@ no-fly-time-remaining: "&c{player} não tem tempo de voo restante."
 fly-time-remaining: "&a{player} tem {minutes}m e {seconds}s de tempo de voo restante."
 
 invalid-time: "&cTempo inválido."
+
+invalid-argument: "&cArgumento invalido."
+
+fly-enabled-all: "&aVoo ativado para todos os jogadores."
+
+fly-enabled-target: "&aVoo ativado para {player}"
+
+fly-disabled-target: "&aVoo desativado para {player}"
+
+fly-time-added-all: "&aForam adicionados {seconds}s de tempo de voo a todos os jogadores."
+
+fly-time-deleted-all: "&aForam removidos {seconds}s de tempo de voo de todos os jogadores."
 
 fly-time-added: "&aAdicionado {seconds}s de tempo de voo para {player}."
 

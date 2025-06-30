@@ -6,11 +6,11 @@ fly-enabled: "&aFly has been enabled."
 
 fly-disabled: "&cFly has been disabled."
 
-remaining-fly-time: "&eRemaining fly time: &6"
+remaining-fly-time: "&eRemaining fly time: &6{time}"
 
 fly-time-ended: "&cFly time has ended."
 
-reload-success: "&aPowerFly configuration reloaded!"
+reload-success: "&aConfiguration reloaded!"
 
 no-player-specified: "&cYou must specify a player name."
 
@@ -21,6 +21,20 @@ no-fly-time-remaining: "&c{player} has no flight time remaining."
 fly-time-remaining: "&a{player} has {minutes}m and {seconds}s of flight time remaining."
 
 invalid-time: "&cInvalid time."
+
+invalid-argument: "&cInvalid argument."
+
+fly-enabled-all: "&aFly enabled for all players."
+
+fly-disabled-all: "&cVoo desativado para todos os jogadores."
+
+fly-enabled-target: "&aFly enabled for {player}"
+
+fly-disabled-target: "&cFly disabled for {player}"
+
+fly-time-added-all: "&aAdded {seconds}s of fly time to all players."
+
+fly-time-deleted-all: "&aRemoved {seconds}s of fly time from all players."
 
 fly-time-added: "&aAdded {seconds}s of fly time to {player}."
 
