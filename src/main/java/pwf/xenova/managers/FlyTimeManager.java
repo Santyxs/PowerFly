@@ -6,9 +6,7 @@ import pwf.xenova.PowerFly;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class FlyTimeManager {
 
@@ -22,16 +20,17 @@ public class FlyTimeManager {
         load();
     }
 
-    // Carga los datos del archivo database.yml
     private void load() {
         file = new File(plugin.getDataFolder(), "database.yml");
 
-        // Si el archivo no existe, se crea
         if (!file.exists()) {
             try {
                 boolean created = file.createNewFile();
                 if (!created) {
-                    plugin.getLogger().warning("Could not create database.yml (unknown reason)");
+                    plugin.getLogger().warning("Could not create database.yml");
+                } else {
+                    config = YamlConfiguration.loadConfiguration(file);
+                    save();
                 }
             } catch (IOException e) {
                 plugin.getLogger().severe("Failed to create database.yml: " + e.getMessage());
@@ -40,12 +39,12 @@ public class FlyTimeManager {
         }
 
         config = YamlConfiguration.loadConfiguration(file);
+        flyTimeMap.clear();
 
-        // Se carga los datos en memoria
         for (String key : config.getKeys(false)) {
             try {
                 UUID uuid = UUID.fromString(key);
-                int time = config.getInt(key);
+                int time = config.getInt(key + ".time", 0);
                 flyTimeMap.put(uuid, time);
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().warning("Invalid UUID in database.yml: " + key);
@@ -53,10 +52,19 @@ public class FlyTimeManager {
         }
     }
 
-    // Guarda los datos actuales en database.yml
     public void save() {
+        if (config == null) {
+            config = YamlConfiguration.loadConfiguration(file);
+        }
+
+        // Limpia todos los campos .time antes de guardar para evitar residuos
+        for (String key : config.getKeys(false)) {
+            config.set(key + ".time", null);
+        }
+
+        // Guarda los tiempos de vuelo actuales
         for (Map.Entry<UUID, Integer> entry : flyTimeMap.entrySet()) {
-            config.set(entry.getKey().toString(), entry.getValue());
+            config.set(entry.getKey().toString() + ".time", entry.getValue());
         }
 
         try {
@@ -66,37 +74,40 @@ public class FlyTimeManager {
         }
     }
 
-    // Devuelve el tiempo de vuelo restante de un jugador
     public int getRemainingFlyTime(UUID playerUUID) {
         return flyTimeMap.getOrDefault(playerUUID, 0);
     }
 
-    // Añade tiempo de vuelo a un jugador y lo guarda
     public void addFlyTime(UUID playerUUID, int seconds) {
         int current = flyTimeMap.getOrDefault(playerUUID, 0);
         flyTimeMap.put(playerUUID, current + seconds);
         save();
     }
 
-    // Resta tiempo de vuelo a un jugador y lo guarda
     public void delFlyTime(UUID playerUUID, int seconds) {
         int current = flyTimeMap.getOrDefault(playerUUID, 0);
-        int updated = Math.max(0, current - seconds);
-        flyTimeMap.put(playerUUID, updated);
+        flyTimeMap.put(playerUUID, Math.max(0, current - seconds));
         save();
     }
 
-    // Establece un valor específico de tiempo de vuelo
     public void setFlyTime(UUID playerUUID, int seconds) {
         flyTimeMap.put(playerUUID, Math.max(0, seconds));
         save();
     }
 
-    // Elimina los datos de vuelo de un jugador del mapa y del archivo
+    public void reloadFlyTime(UUID playerUUID) {
+        String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(playerUUID);
+        int flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
+        flyTimeMap.put(playerUUID, flyTime);
+        save();
+    }
+
     public void removePlayer(UUID playerUUID) {
         flyTimeMap.remove(playerUUID);
-        config.set(playerUUID.toString(), null);
-        save();
+        if (config != null) {
+            config.set(playerUUID.toString() + ".time", null);
+            save();
+        }
     }
 
     public void reload() {

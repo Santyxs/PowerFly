@@ -22,6 +22,11 @@ public class ReloadCommand implements CommandExecutor {
                              @NotNull String label,
                              String @NotNull[] args) {
 
+        if (!sender.hasPermission("powerfly.reload")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
+        }
+
         try {
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {

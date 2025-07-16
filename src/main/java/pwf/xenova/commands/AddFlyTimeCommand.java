@@ -23,20 +23,30 @@ public class AddFlyTimeCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String @NotNull [] args) {
+                             @NotNull String @NotNull [] args) {
 
-        if (args.length != 3 || !args[0].equalsIgnoreCase("Addflytime")) {
-            sender.sendMessage(plugin.getPrefixedMessage("invalid-arguments", "&cInvalid arguments. Usage: /powerfly Addflytime <player|all> <seconds>"));
+        if (!sender.hasPermission("powerfly.addflytime")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
             return true;
         }
 
-        String targetName = args[1];
-        String secondsStr = args[2];
+        if (args.length < 2) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-player-specified", "&cYou must specify a player."));
+            return true;
+        }
 
-        int secondsToRemove;
+        if (args.length < 3) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-time-specified", "&cYou must specify a time in seconds."));
+            return true;
+        }
+
+        String targetName = args[1]; // args[1] = player name
+        String secondsStr = args[2]; // args[2] = time
+
+        int secondsToAdd;
         try {
-            secondsToRemove = Integer.parseInt(secondsStr);
-            if (secondsToRemove <= 0) throw new NumberFormatException();
+            secondsToAdd = Integer.parseInt(secondsStr.trim());
+            if (secondsToAdd <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
             sender.sendMessage(plugin.getPrefixedMessage("invalid-time", "&cInvalid time."));
             return true;
@@ -48,18 +58,17 @@ public class AddFlyTimeCommand implements CommandExecutor {
                 if (!plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName()))
                     continue;
 
-                plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToRemove);
+                plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
                 affected++;
             }
 
             String rawMessage = plugin.getMessages().getString("fly-time-added-all",
                     "&aAdded {seconds}s of fly time to {players} players.");
 
-            rawMessage = rawMessage.replace("{seconds}", String.valueOf(secondsToRemove))
+            rawMessage = rawMessage.replace("{seconds}", String.valueOf(secondsToAdd))
                     .replace("{players}", String.valueOf(affected));
 
             String prefixedMessage = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + rawMessage;
-
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(prefixedMessage));
             return true;
         }
@@ -71,12 +80,13 @@ public class AddFlyTimeCommand implements CommandExecutor {
         }
 
         UUID uuid = target.getUniqueId();
-        plugin.getFlyTimeManager().addFlyTime(uuid, secondsToRemove);
+        plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
-        String raw = plugin.getMessages().getString("fly-time-added", "&aAdded {seconds}s of fly time to {player}.");
+        String raw = plugin.getMessages().getString("fly-time-added",
+                "&aAdded {seconds}s of fly time to {player}.");
         String playerName = target.getName() != null ? target.getName() : targetName;
         raw = raw.replace("{player}", playerName)
-                .replace("{seconds}", String.valueOf(secondsToRemove));
+                .replace("{seconds}", String.valueOf(secondsToAdd));
 
         String prefixedMessage = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + raw;
         sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(prefixedMessage));

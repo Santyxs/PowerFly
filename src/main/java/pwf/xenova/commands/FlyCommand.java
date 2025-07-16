@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.managers.SoundEffectsManager;
+import pwf.xenova.managers.CooldownFlyManager;
 import pwf.xenova.PowerFly;
 
 import java.util.HashMap;
@@ -19,11 +20,13 @@ public class FlyCommand implements CommandExecutor {
 
     private final PowerFly plugin;
     private final SoundEffectsManager soundManager;
+    private final CooldownFlyManager cooldownManager;
     private final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
 
     public FlyCommand(PowerFly powerFly) {
         this.plugin = PowerFly.getInstance();
         this.soundManager = plugin.getSoundEffectsManager();
+        this.cooldownManager = plugin.getCooldownFlyManager();
     }
 
     public boolean onCommand(@NotNull CommandSender sender,
@@ -33,6 +36,21 @@ public class FlyCommand implements CommandExecutor {
 
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cOnly players can use this command.");
+            return true;
+        }
+
+        if (!player.hasPermission("powerfly.fly")) {
+            player.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
+        }
+
+        if (cooldownManager.isOnCooldown(player.getUniqueId())) {
+            int secondsLeft = cooldownManager.getRemainingCooldownSeconds(player.getUniqueId());
+
+            String raw = plugin.getMessage("fly-cooldown", "&cYou have used your fly time. Wait {seconds}s to fly again.");
+            raw = raw.replace("{seconds}", String.valueOf(secondsLeft));
+            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + raw));
             return true;
         }
 
@@ -98,8 +116,9 @@ public class FlyCommand implements CommandExecutor {
                     plugin.getFlyTimeManager().delFlyTime(uuid, 1);
 
                     int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
-                    String raw = plugin.getMessages().getString("remaining-fly-time", "&eRemaining fly time: &6");
-                    Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw + remaining + "s");
+                    String raw = plugin.getMessages().getString("remaining-fly-time", "&eRemaining fly time: &6{time}s");
+                    raw = raw.replace("{time}", String.valueOf(remaining));
+                    Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
                     player.sendActionBar(message);
 
                     if (remaining <= 0) {
@@ -109,13 +128,18 @@ public class FlyCommand implements CommandExecutor {
             }
         };
 
-        timer.runTaskTimer(plugin, 0L, 1L);
+        timer.runTaskTimer(plugin, 0L, 20L);
         flyTimers.put(player.getUniqueId(), timer);
     }
 
     private void endFly(Player player) {
         soundManager.playTimeEndEffects(player);
         disableFly(player);
+
+        UUID uuid = player.getUniqueId();
+        if (!cooldownManager.isOnCooldown(uuid)) {
+            cooldownManager.startCooldown(uuid);
+        }
 
         String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
         Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);

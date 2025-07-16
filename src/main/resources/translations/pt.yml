@@ -1,39 +1,36 @@
+# Mensagens do jogador
+remaining-fly-time: "&eTempo de voo restante: &6{time}s"
+fly-time-ended: "&cO tempo de voo terminou."
+fly-cooldown: "&cVocê gastou o seu tempo de voo, aguarde {seconds}s para voar novamente."
+fly-enabled: "&aO voo foi habilitado."
+fly-disabled: "&cO voo foi desabilitado."
+fly-time-recharged: "&aSeu tempo de voo foi recarregado automaticamente."
 fly-not-allowed-in-world: "&cVocê não pode voar neste mundo."
+no-permission: "&cVocê não tem permissão para usar este comando."
 
-no-fly-time: "&cVocê não tem tempo de voo disponível."
-
-fly-enabled: "&aO voo foi ativado."
-
-fly-disabled: "&cO voo foi desativado."
-
-remaining-fly-time: "&eTempo de voo restante: &6{time}"
-
-fly-time-ended: "&cO tempo de voo acabou."
-
-reload-success: "&aConfiguração recarregada!"
-
-no-player-specified: "&cVocê deve especificar um nome de jogador."
-
+# Mensagens de admin
+no-player-specified: "&cVocê deve especificar o nome de um jogador."
 player-not-found: "&cJogador não encontrado."
-
-no-fly-time-remaining: "&c{player} não tem tempo de voo restante."
-
-fly-time-remaining: "&a{player} tem {minutes}m e {seconds}s de tempo de voo restante."
-
+no-time-specified: "&cVocê deve especificar um tempo em segundos."
 invalid-time: "&cTempo inválido."
 
-invalid-argument: "&cArgumento invalido."
+check-info: |
+  &8&m-&r &bbInformações de {player} &8&m-
+  
+  &bTempo de voo: &7{fly_minutes}m {fly_seconds}s
+  &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s
+no-player-fly-time: "&c{player} não tem tempo de voo restante."
+fly-time-remaining: "&a{player} tem {minutes}m e {seconds}s de tempo de voo restante."
 
-fly-enabled-all: "&aVoo ativado para todos os jogadores."
+fly-enabled-target: "&aVoo habilitado para {player}"
+fly-disabled-target: "&cVoo desabilitado para {player}"
+fly-enabled-all: "&aVoo habilitado para todos os jogadores."
+fly-disabled-all: "&cVoo desabilitado para todos os jogadores."
 
-fly-enabled-target: "&aVoo ativado para {player}"
+fly-time-added: "&aForam adicionados {seconds}s de tempo de voo para {player}."
+fly-time-deleted: "&aForam removidos {seconds}s de tempo de voo para {player}."
+fly-time-added-all: "&aForam adicionados {seconds}s de tempo de voo para todos os jogadores."
+fly-time-deleted-all: "&aForam removidos {seconds}s de tempo de voo para todos os jogadores."
 
-fly-disabled-target: "&aVoo desativado para {player}"
-
-fly-time-added-all: "&aForam adicionados {seconds}s de tempo de voo a todos os jogadores."
-
-fly-time-deleted-all: "&aForam removidos {seconds}s de tempo de voo de todos os jogadores."
-
-fly-time-added: "&aAdicionado {seconds}s de tempo de voo para {player}."
-
-fly-time-deleted: "&aRemovido {seconds}s de tempo de voo para {player}."
+reload-success: "&aConfiguração recarregada!"
+reload-error: "&cOcorreu um erro ao recarregar a configuração ou as mensagens."

@@ -5,29 +5,44 @@ authors:
   - Santysx
 api-version: 1.20
 main: pwf.xenova.PowerFly
+
 commands:
-  fly:
-    description: Fly for a limited time.
-    usage: /fly
   powerfly:
     description: Main command for PowerFly plugin.
-    usage: /powerfly <subcommand>
-    subcommands:
-      fly:
-        description: Fly for a limited time.
-        usage: /powerfly fly
-      help:
-        description: Help and info.
-        usage: /powerfly help
-      reload:
-        description: Reloads the plugin configuration.
-        usage: /powerfly reload
-      check:
-        description: Manage fly time.
-        usage: /powerfly check <player>
-      addflytime:
-        description: Add fly time to a player.
-        usage: /powerfly addflytime <player|all> <time>
-      delflytime:
-        description: Remove fly time from a player.
-        usage: /powerfly delflytime <player|all> <time>
+    usage: Use /powerfly help to see the list of commands
+    permission: powerfly.use
+  fly:
+    description: Enable or disable fly for a limited time.
+    usage: /fly
+
+permissions:
+  powerfly.admin:
+    description: Gives access to all admin commands of PowerFly.
+    default: false
+    children:
+      powerfly.addflytime: true
+      powerfly.delflytime: true
+      powerfly.reload: true
+      powerfly.check: true
+  powerfly.addflytime:
+    description: Allows using /powerfly addflytime
+    default: op
+  powerfly.delflytime:
+    description: Allows using /powerfly delflytime
+    default: op
+  powerfly.reload:
+    description: Allows using /powerfly reload
+    default: op
+  powerfly.check:
+    description: Allows using /powerfly check
+    default: op
+  powerfly.help:
+    description: Allows using /powerfly help
+    default: op
+  powerfly:
+    description: Allows using /powerfly
+    default: op
+  powerfly.fly:
+    description: Allows using /fly
+    default: true
+

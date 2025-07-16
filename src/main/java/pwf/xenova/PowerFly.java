@@ -6,10 +6,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import pwf.xenova.managers.CommandManager;
-import pwf.xenova.managers.FlyTimeManager;
-import pwf.xenova.managers.GroupFlyTimeManager;
-import pwf.xenova.managers.SoundEffectsManager;
+import pwf.xenova.managers.*;
 import pwf.xenova.utils.ErrorUtils;
 
 import java.io.File;
@@ -20,11 +17,12 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Managers -----------------
 
-    private YamlConfiguration messages;
     private FlyTimeManager flyTimeManager;
+    private CooldownFlyManager cooldownManager;
     private GroupFlyTimeManager groupFlyTimeManager;
-    private LuckPerms luckPerms;
     private SoundEffectsManager soundEffectsManager;
+    private LuckPerms luckPerms;
+    private YamlConfiguration messages;
 
     // ----------------- Activación -----------------
 
@@ -33,12 +31,6 @@ public class PowerFly extends JavaPlugin {
 
         saveDefaultConfig();
         saveDefaultMessages();
-        reloadMessages();
-
-        this.flyTimeManager = new FlyTimeManager(this);
-        this.soundEffectsManager = new SoundEffectsManager(this);
-
-        CommandManager.registerCommands(this);
 
         try {
             luckPerms = LuckPermsProvider.get();
@@ -49,13 +41,20 @@ public class PowerFly extends JavaPlugin {
             return;
         }
 
-        getLogger().info("&aPowerFly plugin has been enabled.");
+        reloadMessages();
+
+        this.flyTimeManager = new FlyTimeManager(this);
+        this.cooldownManager = new CooldownFlyManager(this);
+        this.soundEffectsManager = new SoundEffectsManager(this);
+
+        CommandManager.registerCommands(this);
+
+        getLogger().info("PowerFly plugin has been enabled.");
     }
 
     // ----------------- Desactivación -----------------
 
     public void onDisable() {
-
         if (flyTimeManager != null) {
             flyTimeManager.save();
         }
@@ -64,7 +63,7 @@ public class PowerFly extends JavaPlugin {
             soundEffectsManager.cleanupAllLoops();
         }
 
-        getLogger().info("&cPowerFly plugin has been disabled.");
+        getLogger().info("PowerFly plugin has been disabled.");
     }
 
     // ----------------- Getters -----------------
@@ -73,31 +72,35 @@ public class PowerFly extends JavaPlugin {
         return instance;
     }
 
-    public YamlConfiguration getMessages() {
-        return messages;
-    }
-
     public FlyTimeManager getFlyTimeManager() {
         return flyTimeManager;
+    }
+
+    public CooldownFlyManager getCooldownFlyManager() {
+        return cooldownManager;
     }
 
     public GroupFlyTimeManager getGroupFlyTimeManager() {
         return groupFlyTimeManager;
     }
 
+    public SoundEffectsManager getSoundEffectsManager() {
+        return soundEffectsManager;
+    }
+
     public LuckPerms getLuckPerms() {
         return luckPerms;
     }
 
-    public SoundEffectsManager getSoundEffectsManager() {
-        return soundEffectsManager;
+    public YamlConfiguration getMessages() {
+        return messages;
     }
 
     // ----------------- Mensajes -----------------
 
     public Component getPrefixedMessage(String key, String defaultMessage) {
         String prefix = getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        String message = messages.getString(key, defaultMessage);
+        String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
         return LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + message);
     }
 
@@ -105,6 +108,10 @@ public class PowerFly extends JavaPlugin {
         String prefix = getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + message);
         return LegacyComponentSerializer.legacySection().serialize(component);
+    }
+
+    public String getMessage(String key, String defaultMessage) {
+        return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
     // ----------------- Gestión de traducción -----------------
@@ -119,17 +126,15 @@ public class PowerFly extends JavaPlugin {
             getLogger().info("Messages reloaded for language: " + language);
         } else {
             ErrorUtils.handleMissingMessagesFile(language);
+            messages = null;
         }
-    }
-    public String getMessage(String key, String defaultMessage) {
-        return messages.getString(key, "&cMissing message for " + key);
     }
 
     public void saveDefaultMessages() {
         File translationsFolder = new File(getDataFolder(), "translations");
 
         if (!translationsFolder.exists() && !translationsFolder.mkdirs()) {
-            getLogger().warning("&cThe translations folder could not be created.");
+            getLogger().warning("The translations folder could not be created.");
         }
 
         if (!new File(translationsFolder, "en.yml").exists()) {

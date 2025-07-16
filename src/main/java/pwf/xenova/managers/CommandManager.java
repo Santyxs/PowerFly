@@ -56,7 +56,6 @@ public class CommandManager {
             } else if (args.length == 3 && args[0].equalsIgnoreCase("fly")) {
                 return StringUtil.copyPartialMatches(args[2], List.of("on", "off"), new ArrayList<>());
             } else if ((args.length == 3) && (args[0].equalsIgnoreCase("addflytime") || args[0].equalsIgnoreCase("delflytime"))) {
-                // Aquí devolver el placeholder en morado para indicar que va un número
                 return List.of("<seconds>");
             }
             return new ArrayList<>();

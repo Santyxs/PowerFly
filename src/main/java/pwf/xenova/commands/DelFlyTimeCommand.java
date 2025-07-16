@@ -23,10 +23,20 @@ public class DelFlyTimeCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String @NotNull [] args) {
+                             @NotNull String @NotNull [] args) {
 
-        if (args.length != 3 || !args[0].equalsIgnoreCase("delflytime")) {
-            sender.sendMessage(plugin.getPrefixedMessage("invalid-arguments", "&cInvalid arguments. Usage: /powerfly delflytime <player|all> <seconds>"));
+        if (!sender.hasPermission("powerfly.delflytime")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
+        }
+
+        if (args.length < 2) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-player-specified", "&cYou must specify a player."));
+            return true;
+        }
+
+        if (args.length < 3) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-time-specified", "&cYou must specify a time in seconds."));
             return true;
         }
 
@@ -35,7 +45,7 @@ public class DelFlyTimeCommand implements CommandExecutor {
 
         int secondsToRemove;
         try {
-            secondsToRemove = Integer.parseInt(secondsStr);
+            secondsToRemove = Integer.parseInt(secondsStr.trim());
             if (secondsToRemove <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
             sender.sendMessage(plugin.getPrefixedMessage("invalid-time", "&cInvalid time."));
@@ -53,7 +63,7 @@ public class DelFlyTimeCommand implements CommandExecutor {
             }
 
             String rawMessage = plugin.getMessages().getString("fly-time-deleted-all",
-                    "&aDeleted {seconds}s of fly time from {players} players.");
+                    "&aRemoved {seconds}s of fly time from {players} players.");
             rawMessage = rawMessage.replace("{seconds}", String.valueOf(secondsToRemove))
                     .replace("{players}", String.valueOf(affected));
 
@@ -71,7 +81,8 @@ public class DelFlyTimeCommand implements CommandExecutor {
         UUID uuid = target.getUniqueId();
         plugin.getFlyTimeManager().delFlyTime(uuid, secondsToRemove);
 
-        String raw = plugin.getMessages().getString("fly-time-deleted", "&aDeleted {seconds}s of fly time from {player}.");
+        String raw = plugin.getMessages().getString("fly-time-deleted",
+                "&aRemoved {seconds}s of fly time from {player}.");
         String playerName = target.getName() != null ? target.getName() : targetName;
         raw = raw.replace("{player}", playerName)
                 .replace("{seconds}", String.valueOf(secondsToRemove));

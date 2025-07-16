@@ -13,11 +13,11 @@ language: en
 #        FLY TIMER         #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
+# Time in seconds before fly time is recharged after it runs out
+cooldown: 100
+
 # Fly time in seconds for the default group
 flytime: 10
-
-# Enable or disable the use of group-based fly times
-use-groups-fly-time: false
 
 # Fly time in seconds for each group (can be customized based on LuckPerms groups)
 groups-fly-time:

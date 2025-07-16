@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class CheckCommand implements CommandExecutor {
 
@@ -23,10 +24,11 @@ public class CheckCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String[] args) {
+                             String @NotNull [] args) {
 
-        if (args.length == 0 || !args[0].equalsIgnoreCase("check")) {
-            return false;
+        if (!sender.hasPermission("powerfly.check")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
         }
 
         if (args.length < 2) {
@@ -40,28 +42,33 @@ public class CheckCommand implements CommandExecutor {
             return true;
         }
 
-        int remainingSeconds = plugin.getFlyTimeManager().getRemainingFlyTime(target.getUniqueId());
+        UUID uuid = target.getUniqueId();
+        String playerName = Objects.requireNonNullElse(target.getName(), args[1]);
 
-        if (remainingSeconds <= 0) {
-            String raw = plugin.getMessages().getString("no-fly-time-remaining", "&c{player} has no flight time remaining.")
-                    .replace("{player}", Objects.requireNonNull(target.getName()));
+        int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
+        int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
 
-            String prefixedRaw = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + raw;
-            Component msg = LegacyComponentSerializer.legacyAmpersand().deserialize(prefixedRaw);
-            sender.sendMessage(msg);
-            return true;
-        }
+        int flyMinutes = flySeconds / 60;
+        int flyRemSeconds = flySeconds % 60;
 
-        int minutes = remainingSeconds / 60;
-        int seconds = remainingSeconds % 60;
+        int cooldownMinutes = cooldownSeconds / 60;
+        int cooldownRemSeconds = cooldownSeconds % 60;
 
-        String raw = plugin.getMessages().getString("fly-time-remaining", "&a{player} has {minutes}m {seconds}s of flight time remaining.")
-                .replace("{player}", Objects.requireNonNull(target.getName()))
-                .replace("{minutes}", String.valueOf(minutes))
-                .replace("{seconds}", String.valueOf(seconds));
+        String raw = plugin.getMessages().getString("check-info",
+                """
+                &8&m-&r &b{player} Info &8&m-
+                
+                &bTime fly: &7{fly_minutes}m {fly_seconds}s
+                &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s"""
+        );
 
-        String prefixedRaw = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + raw;
-        Component msg = LegacyComponentSerializer.legacyAmpersand().deserialize(prefixedRaw);
+        raw = raw.replace("{player}", playerName)
+                .replace("{fly_minutes}", String.valueOf(flyMinutes))
+                .replace("{fly_seconds}", String.valueOf(flyRemSeconds))
+                .replace("{cooldown_minutes}", String.valueOf(cooldownMinutes))
+                .replace("{cooldown_seconds}", String.valueOf(cooldownRemSeconds));
+
+        Component msg = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
         sender.sendMessage(msg);
 
         return true;
