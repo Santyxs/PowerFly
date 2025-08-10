@@ -12,13 +12,7 @@ import pwf.xenova.PowerFly;
 
 import java.util.UUID;
 
-public class AddFlyTimeCommand implements CommandExecutor {
-
-    private final PowerFly plugin;
-
-    public AddFlyTimeCommand(PowerFly plugin) {
-        this.plugin = plugin;
-    }
+public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
@@ -40,8 +34,8 @@ public class AddFlyTimeCommand implements CommandExecutor {
             return true;
         }
 
-        String targetName = args[1]; // args[1] = player name
-        String secondsStr = args[2]; // args[2] = time
+        String targetName = args[1];
+        String secondsStr = args[2];
 
         int secondsToAdd;
         try {
@@ -63,7 +57,7 @@ public class AddFlyTimeCommand implements CommandExecutor {
             }
 
             String rawMessage = plugin.getMessages().getString("fly-time-added-all",
-                    "&aAdded {seconds}s of fly time to {players} players.");
+                    "&aAdded &f{seconds}s &aof fly time to {players} players.");
 
             rawMessage = rawMessage.replace("{seconds}", String.valueOf(secondsToAdd))
                     .replace("{players}", String.valueOf(affected));
@@ -83,7 +77,7 @@ public class AddFlyTimeCommand implements CommandExecutor {
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
         String raw = plugin.getMessages().getString("fly-time-added",
-                "&aAdded {seconds}s of fly time to {player}.");
+                "&aAdded &f{seconds}s &aof fly time to {player}.");
         String playerName = target.getName() != null ? target.getName() : targetName;
         raw = raw.replace("{player}", playerName)
                 .replace("{seconds}", String.valueOf(secondsToAdd));

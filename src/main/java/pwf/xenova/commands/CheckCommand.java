@@ -13,13 +13,7 @@ import pwf.xenova.PowerFly;
 import java.util.Objects;
 import java.util.UUID;
 
-public class CheckCommand implements CommandExecutor {
-
-    private final PowerFly plugin;
-
-    public CheckCommand(PowerFly plugin) {
-        this.plugin = plugin;
-    }
+public record CheckCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
@@ -56,10 +50,10 @@ public class CheckCommand implements CommandExecutor {
 
         String raw = plugin.getMessages().getString("check-info",
                 """
-                &8&m-&r &b{player} Info &8&m-
-                
-                &bTime fly: &7{fly_minutes}m {fly_seconds}s
-                &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s"""
+                        &8&m-&r &b{player} Info &8&m-
+                        
+                        &bTime fly: &7{fly_minutes}m {fly_seconds}s
+                        &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s"""
         );
 
         raw = raw.replace("{player}", playerName)

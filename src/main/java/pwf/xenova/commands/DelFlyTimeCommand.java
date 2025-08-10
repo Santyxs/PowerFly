@@ -12,13 +12,7 @@ import pwf.xenova.PowerFly;
 
 import java.util.UUID;
 
-public class DelFlyTimeCommand implements CommandExecutor {
-
-    private final PowerFly plugin;
-
-    public DelFlyTimeCommand(PowerFly plugin) {
-        this.plugin = plugin;
-    }
+public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
@@ -63,7 +57,7 @@ public class DelFlyTimeCommand implements CommandExecutor {
             }
 
             String rawMessage = plugin.getMessages().getString("fly-time-deleted-all",
-                    "&aRemoved {seconds}s of fly time from {players} players.");
+                    "&aRemoved &f{seconds}s &aof fly time from all players.");
             rawMessage = rawMessage.replace("{seconds}", String.valueOf(secondsToRemove))
                     .replace("{players}", String.valueOf(affected));
 
@@ -82,7 +76,7 @@ public class DelFlyTimeCommand implements CommandExecutor {
         plugin.getFlyTimeManager().delFlyTime(uuid, secondsToRemove);
 
         String raw = plugin.getMessages().getString("fly-time-deleted",
-                "&aRemoved {seconds}s of fly time from {player}.");
+                "&aRemoved &f{seconds}s &aof fly time from {player}.");
         String playerName = target.getName() != null ? target.getName() : targetName;
         raw = raw.replace("{player}", playerName)
                 .replace("{seconds}", String.valueOf(secondsToRemove));

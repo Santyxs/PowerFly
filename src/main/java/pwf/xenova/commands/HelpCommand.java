@@ -7,13 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
 
-public class HelpCommand implements CommandExecutor {
-
-    private final PowerFly plugin;
-
-    public HelpCommand(PowerFly plugin) {
-        this.plugin = plugin;
-    }
+public record HelpCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,

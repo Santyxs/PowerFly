@@ -4,7 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.ErrorUtils;
@@ -17,21 +19,34 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Managers -----------------
 
+    private YamlConfiguration messages;
     private FlyTimeManager flyTimeManager;
     private CooldownFlyManager cooldownManager;
     private GroupFlyTimeManager groupFlyTimeManager;
     private SoundEffectsManager soundEffectsManager;
     private LuckPerms luckPerms;
-    private YamlConfiguration messages;
+    private Economy economy;
 
-    // ----------------- Activación -----------------
+    // ----------------- Activation -----------------
 
     public void onEnable() {
         instance = this;
 
+        // bStats
+        int pluginId = 26789;
+        new Metrics(this, pluginId);
+
         saveDefaultConfig();
         saveDefaultMessages();
 
+        // Vault
+        if (setupEconomy()) {
+            getLogger().info("Economy hooked successfully: " + economy.getName());
+        } else {
+            getLogger().info("Economy features disabled (Vault not found or no provider).");
+        }
+
+        // LuckPerms
         try {
             luckPerms = LuckPermsProvider.get();
             groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
@@ -43,16 +58,16 @@ public class PowerFly extends JavaPlugin {
 
         reloadMessages();
 
-        this.flyTimeManager = new FlyTimeManager(this);
-        this.cooldownManager = new CooldownFlyManager(this);
-        this.soundEffectsManager = new SoundEffectsManager(this);
+        flyTimeManager = new FlyTimeManager(this);
+        cooldownManager = new CooldownFlyManager(this);
+        soundEffectsManager = new SoundEffectsManager(this);
 
         CommandManager.registerCommands(this);
 
         getLogger().info("PowerFly plugin has been enabled.");
     }
 
-    // ----------------- Desactivación -----------------
+    // ----------------- Deactivation -----------------
 
     public void onDisable() {
         if (flyTimeManager != null) {
@@ -72,16 +87,20 @@ public class PowerFly extends JavaPlugin {
         return instance;
     }
 
+    public YamlConfiguration getMessages() {
+        return messages;
+    }
+
     public FlyTimeManager getFlyTimeManager() {
         return flyTimeManager;
     }
 
-    public CooldownFlyManager getCooldownFlyManager() {
-        return cooldownManager;
-    }
-
     public GroupFlyTimeManager getGroupFlyTimeManager() {
         return groupFlyTimeManager;
+    }
+
+    public CooldownFlyManager getCooldownFlyManager() {
+        return cooldownManager;
     }
 
     public SoundEffectsManager getSoundEffectsManager() {
@@ -92,21 +111,38 @@ public class PowerFly extends JavaPlugin {
         return luckPerms;
     }
 
-    public YamlConfiguration getMessages() {
-        return messages;
+    public Economy getEconomy() {
+        return economy;
     }
 
-    // ----------------- Mensajes -----------------
+    // ----------------- Economy -----------------
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return true;
+    }
+
+    // ----------------- Messages -----------------
+
+    private String getDefaultPrefix() {
+        return getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+    }
 
     public Component getPrefixedMessage(String key, String defaultMessage) {
-        String prefix = getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = getDefaultPrefix();
         String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
         return LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + message);
     }
 
     public String getPrefixedConsoleMessage(String message) {
-        String prefix = getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + message);
+        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(getDefaultPrefix() + message);
         return LegacyComponentSerializer.legacySection().serialize(component);
     }
 
@@ -114,7 +150,7 @@ public class PowerFly extends JavaPlugin {
         return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
-    // ----------------- Gestión de traducción -----------------
+    // ----------------- Translation -----------------
 
     public void reloadMessages() {
         reloadConfig();
@@ -137,17 +173,17 @@ public class PowerFly extends JavaPlugin {
             getLogger().warning("The translations folder could not be created.");
         }
 
-        if (!new File(translationsFolder, "en.yml").exists()) {
-            saveResource("translations/en.yml", false);
-        }
-        if (!new File(translationsFolder, "es.yml").exists()) {
-            saveResource("translations/es.yml", false);
-        }
-        if (!new File(translationsFolder, "pt.yml").exists()) {
-            saveResource("translations/pt.yml", false);
-        }
+        saveIfNotExists(translationsFolder, "en.yml");
+        saveIfNotExists(translationsFolder, "es.yml");
+        saveIfNotExists(translationsFolder, "pt.yml");
 
         File messagesFile = new File(translationsFolder, "en.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
+    }
+
+    private void saveIfNotExists(File folder, String fileName) {
+        if (!new File(folder, fileName).exists()) {
+            saveResource("translations/" + fileName, false);
+        }
     }
 }

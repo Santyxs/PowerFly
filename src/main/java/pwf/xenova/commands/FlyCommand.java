@@ -16,26 +16,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class FlyCommand implements CommandExecutor {
+public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
-    private final PowerFly plugin;
-    private final SoundEffectsManager soundManager;
-    private final CooldownFlyManager cooldownManager;
-    private final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
-
-    public FlyCommand(PowerFly powerFly) {
-        this.plugin = PowerFly.getInstance();
-        this.soundManager = plugin.getSoundEffectsManager();
-        this.cooldownManager = plugin.getCooldownFlyManager();
-    }
+    private static final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String @NotNull[] args) {
+                             @NotNull String[] args) {
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cOnly players can use this command.");
+            sender.sendMessage("&cOnly players can use this command.");
             return true;
         }
 
@@ -44,17 +35,20 @@ public class FlyCommand implements CommandExecutor {
             return true;
         }
 
+        CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
+        SoundEffectsManager soundManager = plugin.getSoundEffectsManager();
+
         if (cooldownManager.isOnCooldown(player.getUniqueId())) {
             int secondsLeft = cooldownManager.getRemainingCooldownSeconds(player.getUniqueId());
 
-            String raw = plugin.getMessage("fly-cooldown", "&cYou have used your fly time. Wait {seconds}s to fly again.");
+            String raw = plugin.getMessage("fly-cooldown", "&cYou have used your fly time, wait &f{seconds}s &cto fly again.");
             raw = raw.replace("{seconds}", String.valueOf(secondsLeft));
             String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
             player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + raw));
             return true;
         }
 
-        if (!isFlyAllowedInWorld(player)) {
+        if (!plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName())) {
             player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-world", "&cYou can't fly in this world."));
             return true;
         }
@@ -66,19 +60,15 @@ public class FlyCommand implements CommandExecutor {
         }
 
         if (player.getAllowFlight()) {
-            disableFly(player);
+            disableFly(player, soundManager);
         } else {
-            enableFly(player);
+            enableFly(player, soundManager);
         }
 
         return true;
     }
 
-    private boolean isFlyAllowedInWorld(Player player) {
-        return plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName());
-    }
-
-    private void disableFly(Player player) {
+    private void disableFly(Player player, SoundEffectsManager soundManager) {
         stopFlyTimer(player);
         player.setAllowFlight(false);
         player.setFlying(false);
@@ -87,14 +77,14 @@ public class FlyCommand implements CommandExecutor {
         player.sendActionBar(Component.empty());
     }
 
-    private void enableFly(Player player) {
+    private void enableFly(Player player, SoundEffectsManager soundManager) {
         stopFlyTimer(player);
 
         player.setAllowFlight(true);
         player.setFlying(true);
         soundManager.playActivationEffects(player);
 
-        player.sendMessage(plugin.getPrefixedMessage("fly-enabled", "Fly activated."));
+        player.sendMessage(plugin.getPrefixedMessage("fly-enabled", "&aFly activated."));
 
         startFlyTimer(player);
     }
@@ -133,10 +123,11 @@ public class FlyCommand implements CommandExecutor {
     }
 
     private void endFly(Player player) {
-        soundManager.playTimeEndEffects(player);
-        disableFly(player);
+        plugin.getSoundEffectsManager().playTimeEndEffects(player);
+        disableFly(player, plugin.getSoundEffectsManager());
 
         UUID uuid = player.getUniqueId();
+        CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
         if (!cooldownManager.isOnCooldown(uuid)) {
             cooldownManager.startCooldown(uuid);
         }

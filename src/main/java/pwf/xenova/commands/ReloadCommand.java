@@ -9,18 +9,12 @@ import pwf.xenova.PowerFly;
 
 import java.io.File;
 
-public class ReloadCommand implements CommandExecutor {
-
-    private final PowerFly plugin;
-
-    public ReloadCommand(PowerFly plugin) {
-        this.plugin = plugin;
-    }
+public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String @NotNull[] args) {
+                             String @NotNull [] args) {
 
         if (!sender.hasPermission("powerfly.reload")) {
             sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
