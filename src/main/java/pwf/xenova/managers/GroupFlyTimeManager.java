@@ -4,11 +4,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import org.bukkit.configuration.file.FileConfiguration;
 import pwf.xenova.PowerFly;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class GroupFlyTimeManager {
 
@@ -22,7 +18,6 @@ public class GroupFlyTimeManager {
         loadTimesFromConfig();
     }
 
-    // Carga los tiempos desde config.yml
     public void loadTimesFromConfig() {
         groupFlyTimes.clear();
         FileConfiguration config = plugin.getConfig();
@@ -35,12 +30,10 @@ public class GroupFlyTimeManager {
         plugin.getLogger().info("Group fly times loaded: " + groupFlyTimes);
     }
 
-    // Devuelve el tiempo de vuelo asociado a un grupo
     public int getGroupFlyTime(String group) {
         return groupFlyTimes.getOrDefault(group.toLowerCase(), plugin.getConfig().getInt("fly-time", 10));
     }
 
-    // Devuelve el grupo primario de un jugador por UUID
     public String getPrimaryGroup(UUID uuid) {
         User user = luckPerms.getUserManager().getUser(uuid);
         if (user != null) {

@@ -1,6 +1,6 @@
-config-version: 1.1
+config-version: 1.2
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#      CORE SETTINGS       #
+#       CORE SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # Prefix for the custom messages
@@ -9,8 +9,11 @@ prefix: "&7[&ePower&fFly&7] &r"
 # Language for messages (en, es, pt)
 language: en
 
+# Enable or disable update checking
+check-updates: true
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#        FLY TIMER         #
+#       FLY SETTINGS       #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # Time in seconds before fly time is recharged after it runs out
@@ -26,7 +29,7 @@ groups-fly-time:
   mod: 60
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#      ECONOMY SETTINGS    #
+#     ECONOMY SETTINGS     #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # Enable or disable economy support
@@ -47,50 +50,40 @@ allowed-worlds:
   - world
   - world_nether
 
-
-# ↓ EXPERIMENTAL FEATURES ↓ ( ⚠ WILL NOT WORK ⚠ )
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#     EFFECTS TOGGLES      #
+#     PARTICLE SETTINGS    #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
-# Enable or disabe fly effects or sounds
+# Enable or disable particle effects
 enable-effects: true
-enable-sounds: true
 
-# ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#     PARTICLE EFFECTS     #
-# ━━━━━━━━━━━━━━━━━━━━━━━━ #
-
+# List: www.minecraft.wiki/Particles_(Java_Edition)
 particles:
-
-# Effects when activating fly manually
+  # Particle shown when fly is activated
   activation:
     type: CLOUD
-
-# Effects when player flying
+  # Particle shown while the player is flying
   flying:
     type: END_ROD
-
-# Effects when deactivating fly manually
+  # Particle shown when fly is deactivated
   deactivation:
     type: SMOKE
 
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#      SOUND EFFECTS       #
+#      SOUND SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
+# Enable or disable sounds
+enable-sounds: true
+
+# List: www.minecraft.wiki/Category:Sound_effects
 sounds:
-
-# Effects when fly time runs out
+  # Sound when fly is activated
   activation:
     type: BLOCK_BEACON_ACTIVATE
-
-# Effects when deactivating fly manually
+  # Sound when fly is deactivated
   deactivation:
     type: BLOCK_BEACON_DEACTIVATE
-
-# Effects when fly time runs out
+  # Sound when fly time ends
   time-ended:
     type: BLOCK_PORTAL_TRAVEL

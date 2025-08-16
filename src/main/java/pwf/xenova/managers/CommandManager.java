@@ -5,10 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StringUtil;
 import pwf.xenova.PowerFly;
 import pwf.xenova.commands.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class CommandManager {
 

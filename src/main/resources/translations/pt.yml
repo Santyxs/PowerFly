@@ -18,7 +18,7 @@ invalid-time: "&cTempo inválido."
 no-player-fly-time: "&c{player} não tem tempo de voo restante."
 
 check-info: |
-  &8&m-&r &bbInformações de {player} &8&m-
+  &8&m-&r &bInformações de {player} &8&m-
 
   &bTempo de voo: &7{fly_minutes}m {fly_seconds}s
   &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s

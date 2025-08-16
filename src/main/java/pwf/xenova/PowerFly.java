@@ -5,13 +5,16 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
-import pwf.xenova.utils.ErrorUtils;
-
+import pwf.xenova.utils.*;
 import java.io.File;
+import java.util.logging.Level;
+import java.util.UUID;
 
 public class PowerFly extends JavaPlugin {
 
@@ -20,6 +23,7 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Managers -----------------
 
     private YamlConfiguration messages;
+    private UpdateChecker updateChecker;
     private FlyTimeManager flyTimeManager;
     private CooldownFlyManager cooldownManager;
     private GroupFlyTimeManager groupFlyTimeManager;
@@ -51,7 +55,7 @@ public class PowerFly extends JavaPlugin {
             luckPerms = LuckPermsProvider.get();
             groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
         } catch (IllegalStateException e) {
-            ErrorUtils.handleLuckPermsError(e);
+            handleLuckPermsError(e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -64,7 +68,48 @@ public class PowerFly extends JavaPlugin {
 
         CommandManager.registerCommands(this);
 
+        for (Player player : getServer().getOnlinePlayers()) {
+            UUID uuid = player.getUniqueId();
+            int flyTime = flyTimeManager.getRemainingFlyTime(uuid);
+            boolean onCooldown = cooldownManager.isOnCooldown(uuid);
+
+            if (flyTime <= 0 && !onCooldown) {
+                cooldownManager.startCooldown(uuid);
+            } else if (onCooldown) {
+                flyTimeManager.setFlyTime(uuid, 0);
+            }
+        }
+
+        // ----------------- Update Checker -----------------
+
+        if (getConfig().getBoolean("check-updates", true)) {
+            updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
+            updateChecker.checkForUpdates(() -> {
+                if (updateChecker.isUpdateAvailable()) {
+                    getLogger().warning("=====================================");
+                    getLogger().warning("A new version of PowerFly is available!");
+                    logCurrentVersion();
+                    getLogger().warning("Latest version: " + updateChecker.getLatestVersion());
+                    getLogger().warning("Download: " + updateChecker.getDownloadUrl());
+                    getLogger().warning("=====================================");
+
+                    Bukkit.getOnlinePlayers().forEach(player -> {
+                        if (player.isOp() || player.hasPermission("powerfly.admin")) {
+                            player.sendMessage("&e[PowerFly] &cNew version available: &f" + updateChecker.getLatestVersion());
+                        }
+                    });
+                } else {
+                    getLogger().info("You are running the latest version.");
+                }
+            });
+        }
+
         getLogger().info("PowerFly plugin has been enabled.");
+    }
+
+    @SuppressWarnings("deprecation")
+    private void logCurrentVersion() {
+        getLogger().warning("Current version: " + getDescription().getVersion());
     }
 
     // ----------------- Deactivation -----------------
@@ -150,7 +195,7 @@ public class PowerFly extends JavaPlugin {
         return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
-    // ----------------- Translation -----------------
+    // ----------------- Translations -----------------
 
     public void reloadMessages() {
         reloadConfig();
@@ -161,7 +206,7 @@ public class PowerFly extends JavaPlugin {
             messages = YamlConfiguration.loadConfiguration(messagesFile);
             getLogger().info("Messages reloaded for language: " + language);
         } else {
-            ErrorUtils.handleMissingMessagesFile(language);
+            handleMissingMessagesFile(language);
             messages = null;
         }
     }
@@ -185,5 +230,17 @@ public class PowerFly extends JavaPlugin {
         if (!new File(folder, fileName).exists()) {
             saveResource("translations/" + fileName, false);
         }
+    }
+
+    // ----------------- Error Handling -----------------
+
+    public void handleLuckPermsError(Exception e) {
+        getLogger().log(Level.SEVERE,
+                "[PowerFly] LuckPerms is not loaded. PowerFly will not be able to manage group times.", e);
+    }
+
+    public void handleMissingMessagesFile(String language) {
+        getLogger().warning(
+                "[PowerFly] The messages file for language " + language + " does not exist.");
     }
 }

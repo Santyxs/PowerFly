@@ -6,7 +6,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
-
 import java.io.File;
 
 public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
@@ -17,15 +16,19 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
                              String @NotNull [] args) {
 
         if (!sender.hasPermission("powerfly.reload")) {
-            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission",
+                    "&cYou do not have permission to use this command."));
             return true;
         }
 
         try {
+
             File configFile = new File(plugin.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
                 plugin.getLogger().warning("Config.yml not found, creating default one...");
                 plugin.saveDefaultConfig();
+            } else {
+                plugin.reloadConfig();
             }
 
             File translationsFolder = new File(plugin.getDataFolder(), "translations");
@@ -36,18 +39,15 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
             if (!translationsFolder.exists() || !enFile.exists() || !esFile.exists() || !ptFile.exists()) {
                 plugin.getLogger().warning("Missing translation files, creating default ones...");
                 plugin.saveDefaultMessages();
+            } else {
+                plugin.reloadMessages();
             }
 
-            File dbFile = new File(plugin.getDataFolder(), "database.yml");
-            if (!dbFile.exists()) {
-                plugin.getLogger().warning("Missing database.yml, recreating...");
-            }
-
-            plugin.reloadConfig();
-            plugin.reloadMessages();
             plugin.getFlyTimeManager().reload();
+            plugin.getSoundEffectsManager().reload();
 
-            Component message = plugin.getPrefixedMessage("reload-success", "&aConfiguration reloaded successfully!");
+            Component message = plugin.getPrefixedMessage("reload-success",
+                    "&aConfiguration reloaded successfully!");
             sender.sendMessage(message);
 
         } catch (Exception e) {
@@ -56,7 +56,8 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
             for (StackTraceElement element : e.getStackTrace()) {
                 plugin.getLogger().severe("    at " + element.toString());
             }
-            Component errorMsg = plugin.getPrefixedMessage("reload-error", "&cAn error occurred while reloading configuration or messages.");
+            Component errorMsg = plugin.getPrefixedMessage("reload-error",
+                    "&cAn error occurred while reloading configuration or messages.");
             sender.sendMessage(errorMsg);
         }
 

@@ -9,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
-
 import java.util.UUID;
 
 public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {

@@ -9,9 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
-
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public record CheckCommand(PowerFly plugin) implements CommandExecutor {
 

@@ -3,7 +3,6 @@ package pwf.xenova.managers;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import pwf.xenova.PowerFly;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -26,15 +25,11 @@ public class FlyTimeManager {
         if (!file.exists()) {
             try {
                 boolean created = file.createNewFile();
-                if (!created) {
-                    plugin.getLogger().warning("Could not create database.yml");
-                } else {
-                    config = YamlConfiguration.loadConfiguration(file);
-                    save();
-                }
+                if (!created) plugin.getLogger().warning("Could not create database.yml");
+                config = YamlConfiguration.loadConfiguration(file);
+                save();
             } catch (IOException e) {
                 plugin.getLogger().severe("Failed to create database.yml: " + e.getMessage());
-                return;
             }
         }
 
@@ -53,25 +48,15 @@ public class FlyTimeManager {
     }
 
     public void save() {
-        if (config == null) {
-            config = YamlConfiguration.loadConfiguration(file);
-        }
+        if (config == null) config = YamlConfiguration.loadConfiguration(file);
 
-        // Limpia todos los campos .time antes de guardar para evitar residuos
-        for (String key : config.getKeys(false)) {
-            config.set(key + ".time", null);
-        }
+        for (String key : config.getKeys(false)) config.set(key + ".time", null);
 
-        // Guarda los tiempos de vuelo actuales
-        for (Map.Entry<UUID, Integer> entry : flyTimeMap.entrySet()) {
+        for (Map.Entry<UUID, Integer> entry : flyTimeMap.entrySet())
             config.set(entry.getKey().toString() + ".time", entry.getValue());
-        }
 
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save database.yml: " + e.getMessage());
-        }
+        try { config.save(file); }
+        catch (IOException e) { plugin.getLogger().severe("Failed to save database.yml: " + e.getMessage()); }
     }
 
     public int getRemainingFlyTime(UUID playerUUID) {
