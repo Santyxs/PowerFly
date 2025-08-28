@@ -1,0 +1,38 @@
+# Сообщения игрока
+actionbar-fly-time: "&eВашего времени полёта: &6{time}s"
+bossbar-fly-time: "&eВашего времени полёта: &6{time}s"
+fly-time-ended: "&cВремя полёта истекло"
+fly-cooldown: "&cВы уже потратили ваше время полёта, подождите &f{seconds}s &aчтобы летать снова." 
+fly-enabled: "&aПолёт включен."
+fly-disabled: "&cПолёт отключён."
+fly-time-recharged: "&aВаше время полёта было автоматически восстановлено."
+fly-not-allowed-in-world: "&cВы не можете использовать полёт в этом мире."
+no-permission: "&cУ вас нет прав для использования этой команды."
+not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купить &f{secondstobuy}s &cвремени полёта."
+flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}."
+
+# Сообщения Администратора
+no-player-specified: "&cВы не указали имя игрока."
+player-not-found: "&cИгрок не найден."
+no-time-specified: "&cВы не установили конкретного времени."
+invalid-time: "&cВремя выбрано неверно."
+no-player-fly-time: "&cИгрок {player} не имеет времени полёта."
+
+check-info: |
+  &8&m-&r &bИнформация об {player} &8&m- 
+
+  &bВремя полёта: &7{fly_minutes}m {fly_seconds}s 
+  &bВремя восстановления: &7{cooldown_minutes}m {cooldown_seconds}s
+
+fly-enabled-target: "&aИгрок {player} теперь может летать." 
+fly-disabled-target: "&cИгрок {player} больше не может летать."
+fly-enabled-all: "&aВсе игроки теперь могут летать."
+fly-disabled-all: "&cПолёт был запрещён для всех игроков."
+
+fly-time-added: "&aИгроку {player} было добавлено время полёта в размере &f{seconds}s."
+fly-time-deleted: "&aУ игрока {player} было отнято &f{seconds}s &aвремени полёта."
+fly-time-added-all: "&aВсем игрокам было добавлено &f{seconds}s &aвремени полёта."
+fly-time-deleted-all: "&aУ всех игроков было отнято &f{seconds}s &aвремени полёта."
+
+reload-success: "&aКонфигурация была перезагружена успешно."
+reload-error: "&cВозникла ошибка при перезагрузке конфигурации."

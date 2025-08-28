@@ -8,13 +8,15 @@ import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 import java.io.File;
+import java.util.*;
 import java.util.logging.Level;
-import java.util.UUID;
 
 public class PowerFly extends JavaPlugin {
 
@@ -31,26 +33,21 @@ public class PowerFly extends JavaPlugin {
     private LuckPerms luckPerms;
     private Economy economy;
 
-    // ----------------- Activation -----------------
+    // ----------------- Plugin Enable -----------------
+
+    private final Set<UUID> noFallDamage = new HashSet<>();
+
+    public Set<UUID> getNoFallDamageSet() {
+        return noFallDamage;
+    }
 
     public void onEnable() {
         instance = this;
 
-        // bStats
-        int pluginId = 26789;
-        new Metrics(this, pluginId);
-
         saveDefaultConfig();
         saveDefaultMessages();
 
-        // Vault
-        if (setupEconomy()) {
-            getLogger().info("Economy hooked successfully: " + economy.getName());
-        } else {
-            getLogger().info("Economy features disabled (Vault not found or no provider).");
-        }
-
-        // LuckPerms
+        // LuckPerms and managers
         try {
             luckPerms = LuckPermsProvider.get();
             groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
@@ -60,14 +57,77 @@ public class PowerFly extends JavaPlugin {
             return;
         }
 
-        reloadMessages();
-
         flyTimeManager = new FlyTimeManager(this);
         cooldownManager = new CooldownFlyManager(this);
         soundEffectsManager = new SoundEffectsManager(this);
 
         CommandManager.registerCommands(this);
 
+        // Register events
+        registerPlayerJoinEvent();
+        registerNoFallDamageEvent();
+
+        // Metrics
+        new Metrics(this, 26789);
+
+        // Vault
+        if (setupEconomy()) {
+            getLogger().info("Economy hooked successfully: " + economy.getName());
+        } else {
+            getLogger().info("Economy features disabled (Vault not found or no provider).");
+        }
+
+        reloadMessages();
+        handleOnlinePlayersFlyTime();
+        checkForUpdates();
+
+        getLogger().info("PowerFly plugin has been enabled.");
+    }
+
+    // ----------------- Plugin Disable -----------------
+
+    public void onDisable() {
+        if (flyTimeManager != null) flyTimeManager.save();
+        if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
+        getLogger().info("PowerFly plugin has been disabled.");
+    }
+
+    // ----------------- Events -----------------
+
+    private void registerPlayerJoinEvent() {
+        Bukkit.getPluginManager().registerEvent(
+                PlayerJoinEvent.class,
+                new org.bukkit.event.Listener() {},
+                org.bukkit.event.EventPriority.NORMAL,
+                (listener, event) -> {
+                    PlayerJoinEvent joinEvent = (PlayerJoinEvent) event;
+                    Player player = joinEvent.getPlayer();
+                    flyTimeManager.handleJoin(player);
+                },
+                this
+        );
+    }
+
+    private void registerNoFallDamageEvent() {
+        Bukkit.getPluginManager().registerEvent(
+                EntityDamageEvent.class,
+                new org.bukkit.event.Listener() {},
+                org.bukkit.event.EventPriority.NORMAL,
+                (listener, event) -> {
+                    EntityDamageEvent damageEvent = (EntityDamageEvent) event;
+                    if (!(damageEvent.getEntity() instanceof Player player)) return;
+                    if (damageEvent.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+                    if (noFallDamage.remove(player.getUniqueId())) {
+                        damageEvent.setCancelled(true);
+                    }
+                },
+                this
+        );
+    }
+
+    // ----------------- Fly Time Handling -----------------
+
+    private void handleOnlinePlayersFlyTime() {
         for (Player player : getServer().getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
             int flyTime = flyTimeManager.getRemainingFlyTime(uuid);
@@ -79,9 +139,11 @@ public class PowerFly extends JavaPlugin {
                 flyTimeManager.setFlyTime(uuid, 0);
             }
         }
+    }
 
-        // ----------------- Update Checker -----------------
+    // ----------------- Update Checker -----------------
 
+    private void checkForUpdates() {
         if (getConfig().getBoolean("check-updates", true)) {
             updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
             updateChecker.checkForUpdates(() -> {
@@ -95,7 +157,8 @@ public class PowerFly extends JavaPlugin {
 
                     Bukkit.getOnlinePlayers().forEach(player -> {
                         if (player.isOp() || player.hasPermission("powerfly.admin")) {
-                            player.sendMessage("&e[PowerFly] &cNew version available: &f" + updateChecker.getLatestVersion());
+                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand()
+                                    .deserialize("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
                         }
                     });
                 } else {
@@ -103,27 +166,11 @@ public class PowerFly extends JavaPlugin {
                 }
             });
         }
-
-        getLogger().info("PowerFly plugin has been enabled.");
     }
 
     @SuppressWarnings("deprecation")
     private void logCurrentVersion() {
         getLogger().warning("Current version: " + getDescription().getVersion());
-    }
-
-    // ----------------- Deactivation -----------------
-
-    public void onDisable() {
-        if (flyTimeManager != null) {
-            flyTimeManager.save();
-        }
-
-        if (soundEffectsManager != null) {
-            soundEffectsManager.cleanupAllLoops();
-        }
-
-        getLogger().info("PowerFly plugin has been disabled.");
     }
 
     // ----------------- Getters -----------------
@@ -163,13 +210,9 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Economy -----------------
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
+        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
+        if (rsp == null) return false;
         economy = rsp.getProvider();
         return true;
     }
@@ -195,17 +238,12 @@ public class PowerFly extends JavaPlugin {
         return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
-    // ----------------- Translations -----------------
-
     public void reloadMessages() {
         reloadConfig();
         String language = getConfig().getString("language", "en");
         File messagesFile = new File(getDataFolder(), "translations/" + language + ".yml");
-
-        if (messagesFile.exists()) {
-            messages = YamlConfiguration.loadConfiguration(messagesFile);
-            getLogger().info("Messages reloaded for language: " + language);
-        } else {
+        if (messagesFile.exists()) messages = YamlConfiguration.loadConfiguration(messagesFile);
+        else {
             handleMissingMessagesFile(language);
             messages = null;
         }
@@ -213,15 +251,13 @@ public class PowerFly extends JavaPlugin {
 
     public void saveDefaultMessages() {
         File translationsFolder = new File(getDataFolder(), "translations");
-
         if (!translationsFolder.exists() && !translationsFolder.mkdirs()) {
-            getLogger().warning("The translations folder could not be created.");
+            getLogger().warning("Could not create translations folder.");
         }
-
         saveIfNotExists(translationsFolder, "en.yml");
         saveIfNotExists(translationsFolder, "es.yml");
         saveIfNotExists(translationsFolder, "pt.yml");
-
+        saveIfNotExists(translationsFolder, "rus.yml");
         File messagesFile = new File(translationsFolder, "en.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
     }
@@ -235,12 +271,10 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Error Handling -----------------
 
     public void handleLuckPermsError(Exception e) {
-        getLogger().log(Level.SEVERE,
-                "[PowerFly] LuckPerms is not loaded. PowerFly will not be able to manage group times.", e);
+        getLogger().log(Level.SEVERE, "[PowerFly] LuckPerms is not loaded. PowerFly will not manage group times.", e);
     }
 
     public void handleMissingMessagesFile(String language) {
-        getLogger().warning(
-                "[PowerFly] The messages file for language " + language + " does not exist.");
+        getLogger().warning("[PowerFly] Messages file for language " + language + " does not exist.");
     }
 }

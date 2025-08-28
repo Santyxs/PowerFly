@@ -1,7 +1,6 @@
 package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StringUtil;
 import pwf.xenova.PowerFly;
 import pwf.xenova.commands.*;
@@ -9,7 +8,7 @@ import java.util.*;
 
 public class CommandManager {
 
-    public static void registerCommands(JavaPlugin plugin) {
+    public static void registerCommands(PowerFly plugin) {
         if (!(plugin instanceof PowerFly powerFly)) {
             throw new IllegalArgumentException("Plugin must be an instance of PowerFly");
         }

@@ -203,7 +203,7 @@ public class SoundEffectsManager {
             plugin.getLogger().warning("Sound not found: " + soundName);
             return;
         }
-        player.playSound(player.getLocation(), soundMap.get(soundName), 1.0f, 1.0f);
+        player.playSound(player.getLocation(), soundMap.get(soundName), 0.5f, 1.0f);
     }
 
     private void spawnParticle(Player player, String particleName) {

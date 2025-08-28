@@ -24,6 +24,7 @@ public record HelpCommand(PowerFly plugin) implements CommandExecutor {
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(""));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/fly &7- Enable or disable fly for a limited time."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly fly &7- Enable or disable fly for a limited time."));
+            sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly buyflytime <seconds> &7- Buy fly time."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly check <player> &7- Check fly time and cooldown of a player."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly addflytime <player | all> <seconds> &7- Add fly time to a player or all."));
             sender.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize("&e/powerfly delflytime <player | all> <seconds> &7- Remove fly time from a player or all."));

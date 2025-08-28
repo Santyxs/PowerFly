@@ -3,15 +3,15 @@ package pwf.xenova.utils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import pwf.xenova.PowerFly;
 import java.util.concurrent.CompletableFuture;
 
 public class UpdateChecker {
 
-    private final JavaPlugin plugin;
+    private final PowerFly plugin;
     private final String repoOwner;
     private final String repoName;
 
@@ -19,7 +19,7 @@ public class UpdateChecker {
     private String downloadUrl;
     private boolean updateAvailable;
 
-    public UpdateChecker(JavaPlugin plugin, String repoOwner, String repoName) {
+    public UpdateChecker(PowerFly plugin, String repoOwner, String repoName) {
         this.plugin = plugin;
         this.repoOwner = repoOwner;
         this.repoName = repoName;

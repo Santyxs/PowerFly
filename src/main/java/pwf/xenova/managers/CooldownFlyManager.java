@@ -1,6 +1,7 @@
 package pwf.xenova.managers;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -22,6 +23,7 @@ public class CooldownFlyManager {
         load();
 
         new BukkitRunnable() {
+            @Override
             public void run() {
                 long now = System.currentTimeMillis();
 
@@ -34,7 +36,7 @@ public class CooldownFlyManager {
                     if (now >= cooldownUntil) {
                         iterator.remove();
 
-                        Player player = plugin.getServer().getPlayer(uuid);
+                        Player player = Bukkit.getPlayer(uuid);
                         if (player != null && player.isOnline()) {
                             int groupTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(
                                     plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid)
@@ -45,6 +47,9 @@ public class CooldownFlyManager {
                                     "&aYour fly time has been automatically recharged.");
                             player.sendMessage(message);
                         }
+
+                        config.set(uuid + ".cooldown", 0);
+                        save();
 
                         plugin.getLogger().info("Cooldown ended for player " + uuid);
                     }
@@ -60,8 +65,11 @@ public class CooldownFlyManager {
 
         if (!file.exists()) {
             try {
-                if (!file.createNewFile())
+                if (file.createNewFile()) {
+                    plugin.getLogger().info("Created database.yml");
+                } else {
                     plugin.getLogger().warning("Could not create database.yml.");
+                }
             } catch (IOException e) {
                 plugin.getLogger().severe("Failed to create database.yml: " + e.getMessage());
                 return;
@@ -74,27 +82,47 @@ public class CooldownFlyManager {
         for (String key : config.getKeys(false)) {
             try {
                 UUID uuid = UUID.fromString(key);
-                long cooldownUntil = config.getLong(key + ".cooldown", 0L);
-                int flyTime = config.getInt(key + ".time", 0);
-
-                if (flyTime <= 0 && cooldownUntil > System.currentTimeMillis())
+                long cooldownUntil = config.getLong(uuid + ".cooldown", 0L);
+                if (cooldownUntil > System.currentTimeMillis()) {
                     cooldowns.put(uuid, cooldownUntil);
+                }
+
+                if (!config.contains(uuid + ".name")) {
+                    Player player = Bukkit.getPlayer(uuid);
+                    String name = (player != null) ? player.getName() : "Unknown";
+                    config.set(uuid + ".name", name);
+                }
+
+                if (!config.contains(uuid + ".time")) {
+                    config.set(uuid + ".time", 0);
+                }
+
             } catch (IllegalArgumentException ignored) {}
         }
+
+        save();
     }
 
     public void save() {
         if (config == null) config = YamlConfiguration.loadConfiguration(file);
 
-        for (String key : config.getKeys(false)) {
-            config.set(key + ".cooldown", null);
+        for (UUID uuid : config.getKeys(false).stream().map(UUID::fromString).toList()) {
+            int time = config.getInt(uuid + ".time", 0);
+            long cooldownUntil = cooldowns.getOrDefault(uuid, config.getLong(uuid + ".cooldown", 0));
+            Player player = Bukkit.getPlayer(uuid);
+            String name = (player != null) ? player.getName() : config.getString(uuid + ".name", "Unknown");
+
+            config.set(uuid.toString(), null);
+            config.set(uuid + ".name", name);
+            config.set(uuid + ".time", time);
+            config.set(uuid + ".cooldown", cooldownUntil);
         }
 
-        for (Map.Entry<UUID, Long> entry : cooldowns.entrySet())
-            config.set(entry.getKey().toString() + ".cooldown", entry.getValue());
-
-        try { config.save(file); }
-        catch (IOException e) { plugin.getLogger().severe("Failed to save cooldowns to database.yml: " + e.getMessage()); }
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save database.yml: " + e.getMessage());
+        }
     }
 
     public boolean isOnCooldown(UUID playerUUID) {
@@ -119,16 +147,23 @@ public class CooldownFlyManager {
 
             plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
 
+            Player player = Bukkit.getPlayer(playerUUID);
+            String name = (player != null) ? player.getName() : config.getString(playerUUID + ".name", "Unknown");
+            int time = config.getInt(playerUUID + ".time", 0);
+
+            config.set(playerUUID.toString(), null);
+            config.set(playerUUID + ".name", name);
+            config.set(playerUUID + ".time", time);
+            config.set(playerUUID + ".cooldown", cooldownUntil);
+
             save();
-            plugin.getLogger().info("Cooldown started for player " + playerUUID + " for " + cooldownSeconds + " seconds.");
+            plugin.getLogger().info("Cooldown started for player " + playerUUID + " (" + name + ") for " + cooldownSeconds + " seconds.");
         }
     }
 
     public void removeCooldown(UUID playerUUID) {
         cooldowns.remove(playerUUID);
-        if (config != null) {
-            config.set(playerUUID.toString() + ".cooldown", null);
-            save();
-        }
+        config.set(playerUUID + ".cooldown", 0);
+        save();
     }
 }

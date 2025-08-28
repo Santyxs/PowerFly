@@ -1,4 +1,4 @@
-config-version: 1.2
+config-version: 1.4
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
@@ -6,7 +6,7 @@ config-version: 1.2
 # Prefix for the custom messages
 prefix: "&7[&ePower&fFly&7] &r"
 
-# Language for messages (en, es, pt)
+# Language for messages (en, es, pt, rus)
 language: en
 
 # Enable or disable update checking
@@ -19,14 +19,33 @@ check-updates: true
 # Time in seconds before fly time is recharged after it runs out
 cooldown: 100
 
-# Fly time in seconds for the default group
-flytime: 10
+# Fly time in seconds for new players
+fly-time: 100
 
 # Fly time in seconds for each group (can be customized based on LuckPerms groups)
 groups-fly-time:
-  default: 10
-  vip: 30
-  mod: 60
+  default: 100
+  vip: 300
+  mod: 600
+
+# Prevent fall damage when fly time ends (10s)
+no-fall-damage: false
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
+#     DISPLAY SETTINGS     #
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
+
+# Show ActionBar
+show-actionbar: true
+
+# Show BossBar
+show-bossbar: true
+
+# BossBar color (options: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE)
+bossbar-color: GREEN
+
+# BossBar style (options: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20)
+bossbar-style: SOLID
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #     ECONOMY SETTINGS     #

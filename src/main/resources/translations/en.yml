@@ -1,5 +1,6 @@
 # Player messages
-remaining-fly-time: "&eRemaining fly time: &6{time}s"
+actionbar-fly-time: "&eFly time: &6{time}s"
+bossbar-fly-time: "&eFly time: &6{time}s"
 fly-time-ended: "&cFly time has ended."
 fly-cooldown: "&cYou have used your fly time, wait &f{seconds}s &cto fly again."
 fly-enabled: "&aFly has been enabled."
