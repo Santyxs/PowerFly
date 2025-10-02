@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.util.StringUtil;
 import pwf.xenova.PowerFly;
 import pwf.xenova.commands.*;
+
 import java.util.*;
 
 public class CommandManager {
@@ -77,6 +78,21 @@ public class CommandManager {
                 if ("addflytime".equals(subcommand) || "delflytime".equals(subcommand)) {
                     return List.of("<seconds>");
                 }
+            }
+
+            return new ArrayList<>();
+        });
+
+        Objects.requireNonNull(plugin.getCommand("fly")).setTabCompleter((sender, command, label, args) -> {
+            if (args.length == 1) {
+                List<String> options = new ArrayList<>();
+                options.add("all");
+                Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                return StringUtil.copyPartialMatches(args[0], options, new ArrayList<>());
+            }
+
+            if (args.length == 2) {
+                return StringUtil.copyPartialMatches(args[1], List.of("on", "off"), new ArrayList<>());
             }
 
             return new ArrayList<>();

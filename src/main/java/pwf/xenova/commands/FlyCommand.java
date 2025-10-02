@@ -14,6 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
 import pwf.xenova.managers.*;
+
 import java.util.*;
 
 public record FlyCommand(PowerFly plugin) implements CommandExecutor {
@@ -21,47 +22,99 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     private static final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
     private static final Map<UUID, BossBar> flyBossBars = new HashMap<>();
 
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("&cOnly players can use this command.");
-            return true;
+    public boolean onCommand(@NotNull CommandSender sender,
+                             @NotNull Command command,
+                             @NotNull String label,
+                             @NotNull String[] args) {
+
+        List<Player> targets = new ArrayList<>();
+        String action = "toggle";
+
+        int nameArgIndex = 0;
+        if (args.length > 0 && args[0].equalsIgnoreCase("fly")) {
+            nameArgIndex = 1;
         }
 
-        if (!player.hasPermission("powerfly.fly")) {
-            player.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
-            return true;
-        }
+        if (args.length > nameArgIndex) {
+            String name = args[nameArgIndex];
 
-        CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
-        SoundEffectsManager soundManager = plugin.getSoundEffectsManager();
+            if (args.length > nameArgIndex + 1) {
+                String act = args[nameArgIndex + 1].toLowerCase();
+                if (act.equals("on") || act.equals("off")) action = act;
+            }
 
-        if (cooldownManager.isOnCooldown(player.getUniqueId())) {
-            int secondsLeft = cooldownManager.getRemainingCooldownSeconds(player.getUniqueId());
-            String raw = plugin.getMessage("fly-cooldown", "&cYou have used your fly time, wait &f{seconds}s &cto fly again.")
-                    .replace("{seconds}", String.valueOf(secondsLeft));
-            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-            player.sendMessage(LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + raw));
-            return true;
-        }
+            if (name.equalsIgnoreCase("all")) {
+                if (!sender.hasPermission("powerfly.admin")) {
+                    sender.sendMessage(plugin.getPrefixedMessage("no-permission",
+                            "&cYou do not have permission to fly all players."));
+                    return true;
+                }
+                targets.addAll(Bukkit.getOnlinePlayers());
+            } else {
+                Player p = Bukkit.getPlayerExact(name);
+                if (p == null) {
+                    for (Player pl : Bukkit.getOnlinePlayers()) {
+                        if (pl.getName().equalsIgnoreCase(name)) {
+                            p = pl;
+                            break;
+                        }
+                    }
+                }
+                if (p != null) targets.add(p);
+            }
 
-        if (!plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName())) {
-            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-world", "&cYou can't fly in this world."));
-            return true;
-        }
+            if (targets.isEmpty()) {
+                sender.sendMessage(plugin.getPrefixedMessage("player-not-found",
+                        "&cPlayer not found or offline."));
+                return true;
+            }
 
-        int availableFlyTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
-        if (availableFlyTime <= 0) {
-            player.sendMessage(plugin.getPrefixedMessage("no-fly-time", "&cYou don't have any fly time available."));
-            return true;
-        }
-
-        if (player.getAllowFlight()) {
-            disableFly(player, soundManager, false);
+        } else if (sender instanceof Player player) {
+            targets.add(player);
         } else {
-            enableFly(player, soundManager, availableFlyTime);
+            sender.sendMessage(plugin.getPrefixedMessage("no-console",
+                    "&cOnly players can use this command."));
+            return true;
+        }
+
+        for (Player target : targets) {
+            if (target.equals(sender) && !target.hasPermission("powerfly.fly")) {
+                target.sendMessage(plugin.getPrefixedMessage("no-permission",
+                        "&cYou do not have permission to use this command."));
+                continue;
+            }
+            toggleFly(target, sender, action);
         }
 
         return true;
+    }
+
+    private void toggleFly(Player player, CommandSender sender, String action) {
+        CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
+        SoundEffectsManager soundManager = plugin.getSoundEffectsManager();
+
+        int availableFlyTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+        if (availableFlyTime <= 0) {
+            player.sendMessage(plugin.getPrefixedMessage("no-fly-time",
+                    "&cYou don't have any fly time available."));
+            return;
+        }
+
+        boolean enable;
+        if (action.equals("toggle")) {
+            enable = !player.getAllowFlight();
+        } else enable = action.equals("on");
+
+        if (enable) {
+            enableFly(player, soundManager, availableFlyTime);
+        } else {
+            disableFly(player, soundManager, false);
+        }
+
+        if (!player.equals(sender)) {
+            sender.sendMessage(plugin.getPrefixedMessage("fly-other",
+                    "&aFly toggled for &f" + player.getName()));
+        }
     }
 
     private void disableFly(Player player, SoundEffectsManager soundManager, boolean fromEnd) {
@@ -114,7 +167,6 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         BukkitRunnable timer = new BukkitRunnable() {
             long lastSecond = System.currentTimeMillis();
 
-            @Override
             public void run() {
                 if (!player.isOnline() || !player.getAllowFlight()) {
                     cancel();
