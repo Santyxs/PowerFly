@@ -27,14 +27,16 @@ public class CommandManager {
         Objects.requireNonNull(plugin.getCommand("powerfly")).setExecutor((sender, command, label, args) -> {
             if (args.length < 1) return false;
 
+            String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
+
             return switch (args[0].toLowerCase()) {
-                case "help" -> helpCommand.onCommand(sender, command, label, args);
-                case "reload" -> reloadCommand.onCommand(sender, command, label, args);
-                case "fly" -> flyCommand.onCommand(sender, command, label, args);
-                case "check" -> checkCommand.onCommand(sender, command, label, args);
-                case "addflytime" -> addFlyTimeCommand.onCommand(sender, command, label, args);
-                case "delflytime" -> delFlyTimeCommand.onCommand(sender, command, label, args);
-                case "buyflytime" -> buyFlyTimeCommand.onCommand(sender, command, label, args);
+                case "help" -> helpCommand.onCommand(sender, command, label, subArgs);
+                case "reload" -> reloadCommand.onCommand(sender, command, label, subArgs);
+                case "fly" -> flyCommand.onCommand(sender, command, label, subArgs);
+                case "check" -> checkCommand.onCommand(sender, command, label, subArgs);
+                case "addflytime" -> addFlyTimeCommand.onCommand(sender, command, label, subArgs);
+                case "delflytime" -> delFlyTimeCommand.onCommand(sender, command, label, subArgs);
+                case "buyflytime" -> buyFlyTimeCommand.onCommand(sender, command, label, subArgs);
                 default -> false;
             };
         });

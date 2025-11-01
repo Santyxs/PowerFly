@@ -1,7 +1,6 @@
 package pwf.xenova;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.milkbowl.vault.economy.Economy;
@@ -13,9 +12,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
-import pwf.xenova.utils.*;
+import pwf.xenova.utils.MessageFormat;
+import pwf.xenova.utils.Metrics;
+import pwf.xenova.utils.UpdateChecker;
+
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class PowerFly extends JavaPlugin {
@@ -76,6 +80,9 @@ public class PowerFly extends JavaPlugin {
         } else {
             getLogger().info("Economy features disabled (Vault not found or no provider).");
         }
+
+        // PlaceholderAPI
+        setupExpansion();
 
         reloadMessages();
         handleOnlinePlayersFlyTime();
@@ -157,8 +164,7 @@ public class PowerFly extends JavaPlugin {
 
                     Bukkit.getOnlinePlayers().forEach(player -> {
                         if (player.isOp() || player.hasPermission("powerfly.admin")) {
-                            player.sendMessage(LegacyComponentSerializer.legacyAmpersand()
-                                    .deserialize("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
+                            player.sendMessage(MessageFormat.parseMessage("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
                         }
                     });
                 } else {
@@ -217,6 +223,15 @@ public class PowerFly extends JavaPlugin {
         return true;
     }
 
+    // ----------------- Expansion -----------------
+
+    private void setupExpansion() {
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new pwf.xenova.managers.ExpansionManager(this).register();
+            getLogger().info("PlaceholderAPI detected, registered placeholders!");
+        }
+    }
+
     // ----------------- Messages -----------------
 
     private String getDefaultPrefix() {
@@ -226,16 +241,21 @@ public class PowerFly extends JavaPlugin {
     public Component getPrefixedMessage(String key, String defaultMessage) {
         String prefix = getDefaultPrefix();
         String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + message);
+        return MessageFormat.parseMessageWithPrefix(prefix, message);
+    }
+
+    public Component getMessage(String key, String defaultMessage) {
+        String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
+        return MessageFormat.parseMessage(message);
+    }
+
+    public String getMessageString(String key, String defaultMessage) {
+        return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
     public String getPrefixedConsoleMessage(String message) {
-        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(getDefaultPrefix() + message);
-        return LegacyComponentSerializer.legacySection().serialize(component);
-    }
-
-    public String getMessage(String key, String defaultMessage) {
-        return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
+        Component component = MessageFormat.parseMessageWithPrefix(getDefaultPrefix(), message);
+        return MessageFormat.toConsoleString(component);
     }
 
     public void reloadMessages() {

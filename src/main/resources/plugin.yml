@@ -1,12 +1,12 @@
 name: PowerFly
-version: 0.6
+version: 0.7
 description: A simple fly plugin
 authors:
   - Santysx
 api-version: 1.20
 main: pwf.xenova.PowerFly
 depend: [LuckPerms]
-softdepend: [Vault]
+softdepend: [Vault, PlaceholderAPI]
 
 commands:
   powerfly:

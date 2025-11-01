@@ -9,6 +9,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
+
 import java.util.*;
 
 public record CheckCommand(PowerFly plugin) implements CommandExecutor {
@@ -23,19 +24,19 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             sender.sendMessage(plugin.getPrefixedMessage("no-player-specified", "&cYou must specify a player name."));
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+        OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
         if (!target.hasPlayedBefore() && !target.isOnline()) {
             sender.sendMessage(plugin.getPrefixedMessage("player-not-found", "&cPlayer not found."));
             return true;
         }
 
         UUID uuid = target.getUniqueId();
-        String playerName = Objects.requireNonNullElse(target.getName(), args[1]);
+        String playerName = Objects.requireNonNullElse(target.getName(), args[0]);
 
         int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);

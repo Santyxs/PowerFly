@@ -9,7 +9,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.PowerFly;
-import java.util.UUID;
+
+import java.util.*;
 
 public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -23,18 +24,18 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             sender.sendMessage(plugin.getPrefixedMessage("no-player-specified", "&cYou must specify a player."));
             return true;
         }
 
-        if (args.length < 3) {
+        if (args.length < 2) {
             sender.sendMessage(plugin.getPrefixedMessage("no-time-specified", "&cYou must specify a time in seconds."));
             return true;
         }
 
-        String targetName = args[1];
-        String secondsStr = args[2];
+        String targetName = args[0];
+        String secondsStr = args[1];
 
         int secondsToRemove;
         try {

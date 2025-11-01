@@ -1,6 +1,7 @@
 # Mensajes de jugador
 actionbar-fly-time: "&eTiempo de vuelo: &6{time}s"
 bossbar-fly-time: "&eTiempo de vuelo: &6{time}s"
+fly-time-warning: "&6⚠ &eQuedan &c10s &ede vuelo!"
 fly-time-ended: "&cEl tiempo de vuelo ha terminado."
 fly-cooldown: "&cHas gastado tu tiempo de vuelo, espera &f{seconds}s &apara volver a volar."
 fly-enabled: "&aSe ha habilitado el vuelo."

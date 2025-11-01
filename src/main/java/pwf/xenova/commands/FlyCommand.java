@@ -3,9 +3,9 @@ package pwf.xenova.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -19,259 +19,253 @@ import java.util.*;
 
 public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
-    private static final Map<UUID, BukkitRunnable> flyTimers = new HashMap<>();
-    private static final Map<UUID, BossBar> flyBossBars = new HashMap<>();
+    private static final Map<UUID, BukkitRunnable> FLY_TIMERS = new HashMap<>();
+    private static final Map<UUID, BossBar> FLY_BOSSBARS = new HashMap<>();
+    private static final String PERMISSION_ADMIN = "powerfly.admin";
+    private static final String PERMISSION_FLY = "powerfly.fly";
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
                              @NotNull String[] args) {
 
-        List<Player> targets = new ArrayList<>();
-        String action = "toggle";
+        List<Player> targets = getTargets(sender, args);
+        if (targets.isEmpty()) return true;
 
-        int nameArgIndex = 0;
-        if (args.length > 0 && args[0].equalsIgnoreCase("fly")) {
-            nameArgIndex = 1;
-        }
-
-        if (args.length > nameArgIndex) {
-            String name = args[nameArgIndex];
-
-            if (args.length > nameArgIndex + 1) {
-                String act = args[nameArgIndex + 1].toLowerCase();
-                if (act.equals("on") || act.equals("off")) action = act;
-            }
-
-            if (name.equalsIgnoreCase("all")) {
-                if (!sender.hasPermission("powerfly.admin")) {
-                    sender.sendMessage(plugin.getPrefixedMessage("no-permission",
-                            "&cYou do not have permission to fly all players."));
-                    return true;
-                }
-                targets.addAll(Bukkit.getOnlinePlayers());
-            } else {
-                Player p = Bukkit.getPlayerExact(name);
-                if (p == null) {
-                    for (Player pl : Bukkit.getOnlinePlayers()) {
-                        if (pl.getName().equalsIgnoreCase(name)) {
-                            p = pl;
-                            break;
-                        }
-                    }
-                }
-                if (p != null) targets.add(p);
-            }
-
-            if (targets.isEmpty()) {
-                sender.sendMessage(plugin.getPrefixedMessage("player-not-found",
-                        "&cPlayer not found or offline."));
-                return true;
-            }
-
-        } else if (sender instanceof Player player) {
-            targets.add(player);
-        } else {
-            sender.sendMessage(plugin.getPrefixedMessage("no-console",
-                    "&cOnly players can use this command."));
-            return true;
-        }
+        String action = parseAction(args);
+        boolean isAll = args.length > 0 && args[0].equalsIgnoreCase("all");
+        int activatedCount = 0;
+        int deactivatedCount = 0;
 
         for (Player target : targets) {
-            if (target.equals(sender) && !target.hasPermission("powerfly.fly")) {
-                target.sendMessage(plugin.getPrefixedMessage("no-permission",
-                        "&cYou do not have permission to use this command."));
+            if (target.equals(sender) && !target.hasPermission(PERMISSION_FLY)) {
+                sendMessage(target, "no-permission", "&cYou do not have permission to use this command.");
                 continue;
             }
-            toggleFly(target, sender, action);
+
+            boolean wasEnabled = toggleFly(target, sender, action);
+            if (wasEnabled) activatedCount++;
+            else deactivatedCount++;
+        }
+
+        if (!targets.isEmpty() && args.length > 0) {
+            if (isAll) {
+                if (activatedCount > 0) sendMessage(sender, "fly-enabled-all", "&aFly activated for all players.");
+                if (deactivatedCount > 0) sendMessage(sender, "fly-disabled-all", "&cFly disabled for all players.");
+            } else if (targets.size() == 1) {
+                Player target = targets.getFirst();
+                boolean isEnabled = target.getAllowFlight();
+                String messageKey = isEnabled ? "fly-enabled-target" : "fly-disabled-target";
+                String defaultMsg = isEnabled
+                        ? "&aFly activated for {player}"
+                        : "&cFly disabled for {player}";
+                String msg = plugin.getMessages().getString(messageKey, defaultMsg)
+                        .replace("{player}", target.getName());
+                sender.sendMessage(LegacyComponentSerializer.legacyAmpersand()
+                        .deserialize(plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r") + msg));
+            }
         }
 
         return true;
     }
 
-    private void toggleFly(Player player, CommandSender sender, String action) {
-        CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
-        SoundEffectsManager soundManager = plugin.getSoundEffectsManager();
-
-        int availableFlyTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
-        if (availableFlyTime <= 0) {
-            player.sendMessage(plugin.getPrefixedMessage("no-fly-time",
-                    "&cYou don't have any fly time available."));
-            return;
+    private List<Player> getTargets(CommandSender sender, String[] args) {
+        List<Player> targets = new ArrayList<>();
+        if (args.length == 0 && sender instanceof Player player) {
+            targets.add(player);
+            return targets;
         }
 
-        boolean enable;
-        if (action.equals("toggle")) {
-            enable = !player.getAllowFlight();
-        } else enable = action.equals("on");
-
-        if (enable) {
-            enableFly(player, soundManager, availableFlyTime);
-        } else {
-            disableFly(player, soundManager, false);
+        String name = args.length > 0 ? args[0] : "";
+        if (name.equalsIgnoreCase("all")) {
+            if (!sender.hasPermission(PERMISSION_ADMIN)) {
+                sendMessage(sender, "no-permission", "&cYou do not have permission to fly all players.");
+                return targets;
+            }
+            targets.addAll(Bukkit.getOnlinePlayers());
+            return targets;
         }
 
-        if (!player.equals(sender)) {
-            sender.sendMessage(plugin.getPrefixedMessage("fly-other",
-                    "&aFly toggled for &f" + player.getName()));
+        Player player = Bukkit.getPlayerExact(name);
+        if (player == null) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p.getName().equalsIgnoreCase(name)) {
+                    player = p;
+                    break;
+                }
+            }
         }
+        if (player != null) targets.add(player);
+        else sendMessage(sender, "player-not-found", "&cPlayer not found or offline.");
+
+        return targets;
     }
 
-    private void disableFly(Player player, SoundEffectsManager soundManager, boolean fromEnd) {
+    private String parseAction(String[] args) {
+        if (args.length < 2) return "toggle";
+        String act = args[1].toLowerCase();
+        return act.equals("on") || act.equals("off") ? act : "toggle";
+    }
+
+    private boolean toggleFly(Player player, CommandSender sender, String action) {
+        int remainingTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+        if (remainingTime <= 0) {
+            sendMessage(player, "no-fly-time", "&cYou don't have any fly time available.");
+            return false;
+        }
+
+        boolean enable = action.equals("toggle") ? !player.getAllowFlight() : action.equals("on");
+        if (enable) enableFly(player, remainingTime);
+        else disableFly(player, false);
+        return enable;
+    }
+
+    private void enableFly(Player player, int maxTime) {
+        UUID uuid = player.getUniqueId();
+
         stopFlyTimer(player);
         removeFlyBar(player);
 
-        if (fromEnd) {
-            UUID uuid = player.getUniqueId();
-            CooldownFlyManager cooldownManager = plugin.getCooldownFlyManager();
-            if (!cooldownManager.isOnCooldown(uuid)) cooldownManager.startCooldown(uuid);
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        plugin.getSoundEffectsManager().playActivationEffects(player);
+        sendMessage(player, "fly-enabled", "&aFly activated.");
 
-            if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
-                plugin.getNoFallDamageSet().add(uuid);
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        plugin.getNoFallDamageSet().remove(uuid);
-                    }
-                }.runTaskLater(plugin, 40L);
-            }
+        if (plugin.getConfig().getBoolean("show-bossbar", true)) showFlyBar(player, maxTime);
+        startFlyTimer(player, maxTime);
+    }
 
-            String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
-            Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
-            player.sendActionBar(message);
-        }
+    private void disableFly(Player player, boolean fromEnd) {
+        stopFlyTimer(player);
+        removeFlyBar(player);
+
+        if (fromEnd) handleFlyEnd(player);
 
         player.setAllowFlight(false);
         player.setFlying(false);
-        soundManager.playDeactivationEffects(player);
-        player.sendMessage(plugin.getPrefixedMessage("fly-disabled", "&cFly disabled."));
+        plugin.getSoundEffectsManager().playDeactivationEffects(player);
+        sendMessage(player, "fly-disabled", "&cFly disabled.");
     }
 
-    private void enableFly(Player player, SoundEffectsManager soundManager, int maxFlyTime) {
-        stopFlyTimer(player);
+    private void handleFlyEnd(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!plugin.getCooldownFlyManager().isOnCooldown(uuid)) plugin.getCooldownFlyManager().startCooldown(uuid);
 
-        player.setAllowFlight(true);
-        player.setFlying(true);
-        soundManager.playActivationEffects(player);
-        player.sendMessage(plugin.getPrefixedMessage("fly-enabled", "&aFly activated."));
-
-        if (plugin.getConfig().getBoolean("show-bossbar", true)) {
-            showFlyBar(player, maxFlyTime);
+        if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
+            plugin.getNoFallDamageSet().add(uuid);
+            new BukkitRunnable() {
+                public void run() { plugin.getNoFallDamageSet().remove(uuid); }
+            }.runTaskLater(plugin, 40L);
         }
 
-        startFlyTimer(player, maxFlyTime);
+        String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
+        Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
+        player.sendActionBar(message);
     }
 
     private void startFlyTimer(Player player, int maxTime) {
         UUID uuid = player.getUniqueId();
-        BukkitRunnable timer = new BukkitRunnable() {
-            long lastSecond = System.currentTimeMillis();
 
+        if (plugin.getConfig().getBoolean("show-actionbar", true)) {
+            String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{time}s")
+                    .replace("{time}", String.valueOf(maxTime));
+            player.sendActionBar(LegacyComponentSerializer.legacyAmpersand().deserialize(raw));
+        }
+
+        BukkitRunnable timer = new BukkitRunnable() {
             public void run() {
                 if (!player.isOnline() || !player.getAllowFlight()) {
                     cancel();
                     return;
                 }
 
-                if (System.currentTimeMillis() - lastSecond >= 1000) {
-                    lastSecond = System.currentTimeMillis();
+                int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
 
-                    plugin.getFlyTimeManager().delFlyTime(uuid, 1);
-                    int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
+                if (remaining <= 0) {
+                    endFly(player);
+                    return;
+                }
 
-                    if (plugin.getConfig().getBoolean("show-actionbar", true)) {
-                        String raw = plugin.getConfig().getString("actionbar-fly-time", "&eFly time: &6{time}s")
-                                .replace("{time}", String.valueOf(remaining));
-                        Component message = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
-                        player.sendActionBar(message);
-                    }
+                if (plugin.getConfig().getBoolean("show-actionbar", true)) {
+                    String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{time}s")
+                            .replace("{time}", String.valueOf(remaining));
+                    player.sendActionBar(LegacyComponentSerializer.legacyAmpersand().deserialize(raw));
+                }
 
-                    if (plugin.getConfig().getBoolean("show-bossbar", true)) {
-                        String rawBar = plugin.getConfig().getString("bossbar-fly-time", "&eFly time: &6{time}s")
-                                .replace("{time}", String.valueOf(remaining));
-                        updateFlyBar(player, remaining, maxTime, rawBar);
-                    }
-
-                    if (remaining <= 0) {
-                        endFly(player);
-                    }
+                if (plugin.getConfig().getBoolean("show-bossbar", true)) {
+                    String rawBar = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s")
+                            .replace("{time}", String.valueOf(remaining));
+                    updateFlyBar(player, remaining, maxTime, rawBar);
                 }
             }
         };
 
-        timer.runTaskTimer(plugin, 0L, 20L);
-        flyTimers.put(uuid, timer);
+        timer.runTaskTimer(plugin, 20L, 20L);
+        FLY_TIMERS.put(uuid, timer);
     }
 
     private void endFly(Player player) {
         plugin.getSoundEffectsManager().playTimeEndEffects(player);
+        disableFly(player, true);
 
         if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
             UUID uuid = player.getUniqueId();
             plugin.getNoFallDamageSet().add(uuid);
-
             new BukkitRunnable() {
-                @Override
-                public void run() {
-                    plugin.getNoFallDamageSet().remove(uuid);
-                }
+                public void run() { plugin.getNoFallDamageSet().remove(uuid); }
             }.runTaskLater(plugin, 200L);
         }
-
-        disableFly(player, plugin.getSoundEffectsManager(), true);
     }
 
     private void stopFlyTimer(Player player) {
         UUID uuid = player.getUniqueId();
-        BukkitRunnable timer = flyTimers.remove(uuid);
+        BukkitRunnable timer = FLY_TIMERS.remove(uuid);
         if (timer != null) timer.cancel();
     }
 
     private void showFlyBar(Player player, int maxTime) {
         UUID uuid = player.getUniqueId();
-        if (flyBossBars.containsKey(uuid)) return;
+        if (FLY_BOSSBARS.containsKey(uuid)) return;
 
-        String raw = plugin.getConfig().getString("bossbar-fly-time", "&eFly time: &6{time}s")
+        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s")
                 .replace("{time}", String.valueOf(maxTime));
 
-        String colorName = plugin.getConfig().getString("bossbar-color", "BLUE").toUpperCase();
-        String styleName = plugin.getConfig().getString("bossbar-style", "SOLID").toUpperCase();
+        BarColor color = BarColor.valueOf(plugin.getConfig().getString("bossbar-color", "BLUE").toUpperCase());
+        BarStyle style = BarStyle.valueOf(plugin.getConfig().getString("bossbar-style", "SOLID").toUpperCase());
 
-        BarColor color = BarColor.valueOf(colorName);
-        BarStyle style = BarStyle.valueOf(styleName);
-
-        String title = LegacyComponentSerializer.legacySection().serialize(
-                LegacyComponentSerializer.legacyAmpersand().deserialize(raw)
-        );
-
-        BossBar bar = Bukkit.createBossBar(title, color, style);
+        BossBar bar = Bukkit.createBossBar(serialize(raw), color, style);
         bar.addPlayer(player);
         bar.setProgress(1.0);
-        flyBossBars.put(uuid, bar);
+        FLY_BOSSBARS.put(uuid, bar);
     }
 
     private void updateFlyBar(Player player, int remainingTime, int maxTime, String rawMessage) {
-        BossBar bar = flyBossBars.get(player.getUniqueId());
+        BossBar bar = FLY_BOSSBARS.get(player.getUniqueId());
         if (bar != null) {
-            double progress = Math.max(0, (double) remainingTime / maxTime);
-            bar.setProgress(progress);
-
-            String title = LegacyComponentSerializer.legacySection().serialize(
-                    LegacyComponentSerializer.legacyAmpersand().deserialize(rawMessage)
-            );
-            bar.setTitle(title);
+            bar.setProgress(Math.max(0, (double) remainingTime / maxTime));
+            bar.setTitle(serialize(rawMessage));
         }
     }
 
     private void removeFlyBar(Player player) {
         UUID uuid = player.getUniqueId();
-        BossBar bar = flyBossBars.remove(uuid);
-        if (bar != null) {
-            bar.removeAll();
-        }
+        BossBar bar = FLY_BOSSBARS.remove(uuid);
+        if (bar != null) bar.removeAll();
+    }
+
+    private Component deserialize(String raw) {
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
+    }
+
+    private String serialize(String raw) {
+        return LegacyComponentSerializer.legacySection().serialize(deserialize(raw));
+    }
+
+    private void sendMessage(CommandSender sender, String path, String fallback) {
+        sender.sendMessage(plugin.getPrefixedMessage(path, fallback));
     }
 
     public void resumeFly(Player player, int remainingTime) {
-        enableFly(player, plugin.getSoundEffectsManager(), remainingTime);
+        enableFly(player, remainingTime);
     }
 }
