@@ -1,16 +1,17 @@
 package pwf.xenova.commands;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.UUID;
 
 public record CheckCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -19,24 +20,30 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
                              @NotNull String label,
                              String @NotNull [] args) {
 
-        if (!sender.hasPermission("powerfly.check")) {
+        if (!sender.hasPermission("powerfly.check") && !sender.hasPermission("powerfly.admin")) {
             sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
             return true;
         }
 
-        if (args.length < 1) {
-            sender.sendMessage(plugin.getPrefixedMessage("no-player-specified", "&cYou must specify a player name."));
-            return true;
-        }
+        OfflinePlayer target;
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sender.sendMessage(plugin.getPrefixedMessage("player-not-found", "&cPlayer not found."));
-            return true;
+        if (args.length < 1) {
+            if (sender instanceof Player player) {
+                target = player;
+            } else {
+                sendWithPrefix(sender, "&cYou must specify a player name.");
+                return true;
+            }
+        } else {
+            target = Bukkit.getOfflinePlayer(args[0]);
+            if (!target.hasPlayedBefore() && !target.isOnline()) {
+                sendWithPrefix(sender, "&cPlayer not found or offline.");
+                return true;
+            }
         }
 
         UUID uuid = target.getUniqueId();
-        String playerName = Objects.requireNonNullElse(target.getName(), args[0]);
+        String playerName = Objects.requireNonNullElse(target.getName(), args.length > 0 ? args[0] : "Unknown");
 
         int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
@@ -49,10 +56,10 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
 
         String raw = plugin.getMessages().getString("check-info",
                 """
-                        &8&m-&r &b{player} Info &8&m-
-                        
-                        &bTime fly: &7{fly_minutes}m {fly_seconds}s
-                        &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s"""
+                &8&m-&r &b{player} Info &8&m-
+                
+                &bTime fly: &7{fly_minutes}m {fly_seconds}s
+                &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s"""
         );
 
         raw = raw.replace("{player}", playerName)
@@ -61,9 +68,17 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{cooldown_minutes}", String.valueOf(cooldownMinutes))
                 .replace("{cooldown_seconds}", String.valueOf(cooldownRemSeconds));
 
-        Component msg = LegacyComponentSerializer.legacyAmpersand().deserialize(raw);
-        sender.sendMessage(msg);
+        send(sender, raw);
 
         return true;
+    }
+
+    private void send(CommandSender sender, String message) {
+        sender.sendMessage(MessageFormat.parseMessage(message));
+    }
+
+    private void sendWithPrefix(CommandSender sender, String message) {
+        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 }

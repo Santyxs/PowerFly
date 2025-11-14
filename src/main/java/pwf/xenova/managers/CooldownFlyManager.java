@@ -23,7 +23,6 @@ public class CooldownFlyManager {
         load();
 
         new BukkitRunnable() {
-            @Override
             public void run() {
                 long now = System.currentTimeMillis();
 

@@ -4,8 +4,9 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import pwf.xenova.managers.*;
+import pwf.xenova.utils.*;
 import pwf.xenova.PowerFly;
 
 import java.io.File;
@@ -15,30 +16,24 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             String @NotNull [] args) {
+                             @NotNull String[] args) {
 
-        if (sender instanceof Player player) {
-            if (!player.isOp() && !player.hasPermission("powerfly.reload")) {
-                sender.sendMessage(plugin.getPrefixedMessage("no-permission",
-                        "&cYou do not have permission to use this command."));
-                return true;
-            }
+        if (!sender.hasPermission("powerfly.reload") && !sender.hasPermission("powerfly.admin")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
         }
 
         try {
-            sender.sendMessage(Component.text("§eReloading PowerFly..."));
+            sendWithPrefix(sender, "&eReloading PowerFly...");
 
             reloadConfigFiles();
             reloadTranslations();
             reloadManagers();
 
-            sender.sendMessage(plugin.getPrefixedMessage("reload-success",
-                    "&aPowerFly reloaded successfully."));
+            sendWithPrefix(sender, "&aPowerFly reloaded successfully.");
 
         } catch (Exception e) {
-            sender.sendMessage(plugin.getPrefixedMessage("reload-error",
-                    "&cError reloading PowerFly: " + e.getMessage()));
-
+            sendWithPrefix(sender, "&cError reloading PowerFly: " + e.getMessage());
             logException(e);
         }
 
@@ -82,6 +77,7 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void reloadManagers() {
+        plugin.getControlFlyManager().reload();
         plugin.getFlyTimeManager().reload();
         plugin.getSoundEffectsManager().reload();
     }
@@ -92,13 +88,15 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getLogger().severe("=======================================");
         plugin.getLogger().severe("Message: " + e.getMessage());
         plugin.getLogger().severe("Type: " + e.getClass().getName());
-
         plugin.getLogger().severe("Stack trace:");
+
         int maxLines = 10;
         StackTraceElement[] stackTrace = e.getStackTrace();
+
         for (int i = 0; i < Math.min(stackTrace.length, maxLines); i++) {
             plugin.getLogger().severe("  " + stackTrace[i].toString());
         }
+
         if (stackTrace.length > maxLines) {
             plugin.getLogger().severe("  ... " + (stackTrace.length - maxLines) + " more lines omitted");
         }
@@ -108,5 +106,11 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         plugin.getLogger().severe("=====================================");
+    }
+
+    private void sendWithPrefix(CommandSender sender, String message) {
+        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
+        sender.sendMessage(component);
     }
 }

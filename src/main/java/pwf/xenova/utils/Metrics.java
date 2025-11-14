@@ -400,7 +400,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             JsonObjectBuilder valuesBuilder = new JsonObjectBuilder();
             Map<String, int[]> map = callable.call();
@@ -474,7 +473,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         public JsonObjectBuilder.JsonObject getChartData() throws Exception {
             JsonObjectBuilder valuesBuilder = new JsonObjectBuilder();
             Map<String, Map<String, Integer>> map = callable.call();
@@ -518,7 +516,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             JsonObjectBuilder valuesBuilder = new JsonObjectBuilder();
             Map<String, Integer> map = callable.call();
@@ -558,7 +555,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             JsonObjectBuilder valuesBuilder = new JsonObjectBuilder();
             Map<String, Integer> map = callable.call();
@@ -588,7 +584,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             int value = callable.call();
             if (value == 0) {
@@ -614,7 +609,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             JsonObjectBuilder valuesBuilder = new JsonObjectBuilder();
             Map<String, Integer> map = callable.call();
@@ -654,7 +648,6 @@ public class Metrics {
             this.callable = callable;
         }
 
-        @Override
         protected JsonObjectBuilder.JsonObject getChartData() throws Exception {
             String value = callable.call();
             if (value == null || value.isEmpty()) {
@@ -864,7 +857,6 @@ public class Metrics {
                 this.value = value;
             }
 
-            @Override
             public String toString() {
                 return value;
             }

@@ -170,12 +170,10 @@ public class SoundEffectsManager {
         effectsEnabled = plugin.getConfig().getBoolean("enable-effects", false);
         soundsEnabled = plugin.getConfig().getBoolean("enable-sounds", false);
 
-        // Partículas
         activationParticle = plugin.getConfig().getString("particles.activation.type", "CLOUD");
         flyingParticle = plugin.getConfig().getString("particles.flying.type", "END_ROD");
         deactivationParticle = plugin.getConfig().getString("particles.deactivation.type", "SMOKE");
 
-        // Sonidos
         activationSound = plugin.getConfig().getString("sounds.activation.type", "BLOCK_BEACON_ACTIVATE");
         deactivationSound = plugin.getConfig().getString("sounds.deactivation.type", "BLOCK_BEACON_DEACTIVATE");
         timeEndedSound = plugin.getConfig().getString("sounds.time-ended.type", "BLOCK_PORTAL_TRAVEL");
@@ -221,7 +219,6 @@ public class SoundEffectsManager {
         stopFlightLoop(player);
 
         BukkitRunnable task = new BukkitRunnable() {
-            @Override
             public void run() {
                 if (!player.isOnline() || !player.getAllowFlight()) {
                     cancel();

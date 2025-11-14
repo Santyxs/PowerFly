@@ -12,9 +12,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
-import pwf.xenova.utils.MessageFormat;
-import pwf.xenova.utils.Metrics;
-import pwf.xenova.utils.UpdateChecker;
+import pwf.xenova.utils.*;
 
 import java.io.File;
 import java.util.HashSet;
@@ -29,12 +27,14 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Managers -----------------
 
     private YamlConfiguration messages;
+    private LuckPerms luckPerms;
     private UpdateChecker updateChecker;
     private FlyTimeManager flyTimeManager;
-    private CooldownFlyManager cooldownManager;
     private GroupFlyTimeManager groupFlyTimeManager;
+    private CooldownFlyManager cooldownManager;
     private SoundEffectsManager soundEffectsManager;
-    private LuckPerms luckPerms;
+    private CombatFlyManager combatFlyManager;
+    private ControlFlyManager controlFlyManager;
     private Economy economy;
 
     // ----------------- Plugin Enable -----------------
@@ -51,7 +51,7 @@ public class PowerFly extends JavaPlugin {
         saveDefaultConfig();
         saveDefaultMessages();
 
-        // LuckPerms and managers
+        // LuckPerms
         try {
             luckPerms = LuckPermsProvider.get();
             groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
@@ -61,13 +61,26 @@ public class PowerFly extends JavaPlugin {
             return;
         }
 
-        flyTimeManager = new FlyTimeManager(this);
-        cooldownManager = new CooldownFlyManager(this);
-        soundEffectsManager = new SoundEffectsManager(this);
-
+        // CommandManager
         CommandManager.registerCommands(this);
 
-        // Register events
+        // FlyTimeManager
+        flyTimeManager = new FlyTimeManager(this);
+
+        // CooldownManager
+        cooldownManager = new CooldownFlyManager(this);
+
+        // SoundEffectsManager
+        soundEffectsManager = new SoundEffectsManager(this);
+
+        // ControlFlyManager
+        controlFlyManager = new ControlFlyManager(this);
+        getServer().getPluginManager().registerEvents(controlFlyManager, this);
+
+        // CombatFlyManager
+        combatFlyManager = new CombatFlyManager(this);
+        getConfig().getBoolean("disable-fly-in-combat", true);
+
         registerPlayerJoinEvent();
         registerNoFallDamageEvent();
 
@@ -88,7 +101,7 @@ public class PowerFly extends JavaPlugin {
         handleOnlinePlayersFlyTime();
         checkForUpdates();
 
-        getLogger().info("PowerFly plugin has been enabled.");
+        getLogger().info("\u001B[32mPowerFly plugin has been enabled.\u001B[0m");
     }
 
     // ----------------- Plugin Disable -----------------
@@ -96,7 +109,7 @@ public class PowerFly extends JavaPlugin {
     public void onDisable() {
         if (flyTimeManager != null) flyTimeManager.save();
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
-        getLogger().info("PowerFly plugin has been disabled.");
+        getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
     }
 
     // ----------------- Events -----------------
@@ -185,6 +198,10 @@ public class PowerFly extends JavaPlugin {
         return instance;
     }
 
+    public LuckPerms getLuckPerms() {
+        return luckPerms;
+    }
+
     public YamlConfiguration getMessages() {
         return messages;
     }
@@ -205,8 +222,12 @@ public class PowerFly extends JavaPlugin {
         return soundEffectsManager;
     }
 
-    public LuckPerms getLuckPerms() {
-        return luckPerms;
+    public ControlFlyManager getControlFlyManager() {
+        return controlFlyManager;
+    }
+
+    public CombatFlyManager getCombatFlyManager() {
+        return combatFlyManager;
     }
 
     public Economy getEconomy() {
@@ -291,10 +312,10 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Error Handling -----------------
 
     public void handleLuckPermsError(Exception e) {
-        getLogger().log(Level.SEVERE, "[PowerFly] LuckPerms is not loaded. PowerFly will not manage group times.", e);
+        getLogger().log(Level.SEVERE, "LuckPerms is not loaded. PowerFly will not manage group times.", e);
     }
 
     public void handleMissingMessagesFile(String language) {
-        getLogger().warning("[PowerFly] Messages file for language " + language + " does not exist.");
+        getLogger().warning("Messages file for language " + language + " does not exist.");
     }
 }
