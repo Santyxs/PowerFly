@@ -22,7 +22,9 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (!plugin.getConfig().getBoolean("use-economy", false)) {
-            player.sendMessage(MessageFormat.parseMessage("&cEconomy support is disabled. You cannot buy fly time."));
+            player.sendMessage(MessageFormat.parseMessage(
+                    plugin.getMessageString("economy-disabled", "&cEconomy support is disabled. You cannot buy fly time.")
+            ));
             return true;
         }
 
@@ -34,7 +36,7 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         int timeArgIndex = (args.length > 0 && args[0].equalsIgnoreCase("buyflytime")) ? 1 : 0;
 
         if (args.length <= timeArgIndex) {
-            sendWithPrefix(player, "&cYou must specify a time in seconds.");
+            sendWithPrefix(player, plugin.getMessageString("no-time-specified", "&cYou must specify a time in seconds."));
             return true;
         }
 
@@ -43,7 +45,7 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             seconds = Integer.parseInt(args[timeArgIndex].trim());
             if (seconds <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            sendWithPrefix(player, "&cInvalid time.");
+            sendWithPrefix(player, plugin.getMessageString("invalid-time", "&cInvalid time."));
             return true;
         }
 
@@ -52,8 +54,12 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         String currencySymbol = plugin.getConfig().getString("currency-symbol", "$");
 
         if (!plugin.getEconomy().has(player, totalPrice)) {
-            String msg = "&cYou need &e" + String.format("%.2f", totalPrice) + currencySymbol +
-                    " &cto buy &f" + seconds + "s &cof fly time.";
+
+            String msg = plugin.getMessageString("not-enough-money", "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &cof fly time.")
+                    .replace("{price}", String.format("%.2f", totalPrice))
+                    .replace("{currency}", currencySymbol)
+                    .replace("{secondstobuy}", String.valueOf(seconds));
+
             sendWithPrefix(player, msg);
             return true;
         }
@@ -61,10 +67,12 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getEconomy().withdrawPlayer(player, totalPrice);
         plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), seconds);
 
-        String boughtMsg = "&aYou bought &f" + seconds + "s &aof fly time for &e" +
-                String.format("%.2f", totalPrice) + currencySymbol + "&a.";
-        sendWithPrefix(player, boughtMsg);
+        String boughtMsg = plugin.getMessageString("flytime-bought", "&aYou bought &f{secondstobuy}s &aof fly time for &e{price}{currency}&a.")
+                .replace("{secondstobuy}", String.valueOf(seconds))
+                .replace("{price}", String.format("%.2f", totalPrice))
+                .replace("{currency}", currencySymbol);
 
+        sendWithPrefix(player, boughtMsg);
         return true;
     }
 

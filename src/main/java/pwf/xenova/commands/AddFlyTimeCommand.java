@@ -26,12 +26,12 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (args.length < 1) {
-            sendWithPrefix(sender, "&cYou must specify a player.");
+            sendWithPrefix(sender, plugin.getMessageString("no-player-specified", "&cYou must specify a player."));
             return true;
         }
 
         if (args.length < 2) {
-            sendWithPrefix(sender, "&cYou must specify a time in seconds.");
+            sendWithPrefix(sender, plugin.getMessageString("no-time-specified", "&cYou must specify a time in seconds."));
             return true;
         }
 
@@ -44,38 +44,46 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             secondsToAdd = Integer.parseInt(secondsStr.trim());
             if (secondsToAdd <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            sendWithPrefix(sender, "&cInvalid time.");
+            sendWithPrefix(sender, plugin.getMessageString("invalid-time", "&cInvalid time."));
             return true;
         }
 
         if (targetName.equalsIgnoreCase("all")) {
+
             int affected = 0;
+
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!plugin.getConfig().getStringList("allowed-worlds").contains(player.getWorld().getName()))
+
+                if (!plugin.getConfig().getStringList("allowed-worlds")
+                        .contains(player.getWorld().getName()))
                     continue;
 
                 plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
                 affected++;
             }
 
-            String msg = "&aAdded &f" + secondsToAdd + "s &aof fly time to &e" + affected + " &aplayers.";
+            String msg = plugin.getMessageString("fly-time-added-all", "&aAdded &f{seconds}s &aof fly time to all players.")
+                    .replace("{seconds}", String.valueOf(secondsToAdd));
+
             sendWithPrefix(sender, msg);
             return true;
         }
 
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+
         if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, "&cPlayer not found.");
+            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
             return true;
         }
 
         UUID uuid = target.getUniqueId();
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
-        String msg = "&aAdded &f" + secondsToAdd + "s &aof fly time to &e" +
-                (target.getName() != null ? target.getName() : targetName) + "&a.";
-        sendWithPrefix(sender, msg);
+        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time to {player}.")
+                .replace("{seconds}", String.valueOf(secondsToAdd))
+                .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
+        sendWithPrefix(sender, msg);
         return true;
     }
 

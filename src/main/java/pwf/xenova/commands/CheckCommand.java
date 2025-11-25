@@ -28,22 +28,28 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
         OfflinePlayer target;
 
         if (args.length < 1) {
+
             if (sender instanceof Player player) {
                 target = player;
             } else {
-                sendWithPrefix(sender, "&cYou must specify a player name.");
+                sendWithPrefix(sender, plugin.getMessageString("no-player-specified", "&cYou must specify a player name."));
                 return true;
             }
+
         } else {
             target = Bukkit.getOfflinePlayer(args[0]);
+
             if (!target.hasPlayedBefore() && !target.isOnline()) {
-                sendWithPrefix(sender, "&cPlayer not found or offline.");
+                sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found or offline."));
                 return true;
             }
         }
 
         UUID uuid = target.getUniqueId();
-        String playerName = Objects.requireNonNullElse(target.getName(), args.length > 0 ? args[0] : "Unknown");
+        String playerName = Objects.requireNonNullElse(
+                target.getName(),
+                args.length > 0 ? args[0] : "Unknown"
+        );
 
         int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
@@ -69,7 +75,6 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{cooldown_seconds}", String.valueOf(cooldownRemSeconds));
 
         send(sender, raw);
-
         return true;
     }
 

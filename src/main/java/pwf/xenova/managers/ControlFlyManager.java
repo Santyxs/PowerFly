@@ -12,8 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
-import pwf.xenova.PowerFly;
 import pwf.xenova.commands.FlyCommand;
+import pwf.xenova.utils.MessageFormat;
+import pwf.xenova.PowerFly;
 
 import java.util.*;
 
@@ -22,6 +23,8 @@ public class ControlFlyManager implements Listener {
     private final PowerFly plugin;
     private final Set<String> blacklistWorlds = new HashSet<>();
     private final Map<String, Set<String>> blacklistRegions = new HashMap<>();
+    private final Map<UUID, Long> messageCooldowns = new HashMap<>();
+    private static final long MESSAGE_COOLDOWN_MS = 3000;
 
     public ControlFlyManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -50,9 +53,9 @@ public class ControlFlyManager implements Listener {
             if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) continue;
 
             if (isFlightBlockedInWorld(player.getWorld())) {
-                disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.");
+                disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.", true);
             } else if (isFlightBlockedInRegion(player)) {
-                disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.");
+                disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.", true);
             }
         }
     }
@@ -62,32 +65,47 @@ public class ControlFlyManager implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
+        if (!player.isFlying() && !player.getAllowFlight()) return;
+
         if (FlyCommand.hasPluginFlyActive(uuid)) return;
 
         if (isFlightBlockedInWorld(player.getWorld())) {
-            disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.");
+            disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.", false);
             return;
         }
 
         if (isFlightBlockedInRegion(player)) {
-            disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.");
+            disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.", false);
         }
     }
 
-    private void disableFlight(Player player, String messageKey, String defaultMessage) {
+    private void disableFlight(Player player, String messageKey, String defaultMessage, boolean forceMessage) {
         UUID uuid = player.getUniqueId();
+
+        boolean shouldNotify = forceMessage || canSendMessage(uuid);
 
         player.setAllowFlight(false);
         player.setFlying(false);
 
-        plugin.getSoundEffectsManager().playDeactivationEffects(player);
+        if (shouldNotify) {
+            plugin.getSoundEffectsManager().playDeactivationEffects(player);
+        }
 
         FlyCommand flyCommand = new FlyCommand(plugin);
         flyCommand.cleanupFlyData(player);
 
-        String message = plugin.getMessages().getString(messageKey, defaultMessage);
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        player.sendMessage(pwf.xenova.utils.MessageFormat.parseMessageWithPrefix(prefix, message));
+        if (shouldNotify) {
+            String message = plugin.getMessages().getString(messageKey, defaultMessage);
+            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+            player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            messageCooldowns.put(uuid, System.currentTimeMillis());
+        }
+    }
+
+    private boolean canSendMessage(UUID uuid) {
+        Long lastMessage = messageCooldowns.get(uuid);
+        if (lastMessage == null) return true;
+        return (System.currentTimeMillis() - lastMessage) >= MESSAGE_COOLDOWN_MS;
     }
 
     public boolean isFlightBlockedInWorld(World world) {
@@ -114,5 +132,9 @@ public class ControlFlyManager implements Listener {
             if (blockedRegions.contains(region.getId())) return true;
         }
         return false;
+    }
+
+    public void removePlayerCooldown(UUID uuid) {
+        messageCooldowns.remove(uuid);
     }
 }

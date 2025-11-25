@@ -1,12 +1,10 @@
 package pwf.xenova.commands;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import pwf.xenova.managers.*;
-import pwf.xenova.utils.*;
+import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
 import java.io.File;
@@ -19,21 +17,20 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
                              @NotNull String[] args) {
 
         if (!sender.hasPermission("powerfly.reload") && !sender.hasPermission("powerfly.admin")) {
-            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            sendWithPrefix(sender, plugin.getMessageString("no-permission", "&cYou do not have permission to use this command."));
             return true;
         }
 
         try {
-            sendWithPrefix(sender, "&eReloading PowerFly...");
 
             reloadConfigFiles();
             reloadTranslations();
             reloadManagers();
 
-            sendWithPrefix(sender, "&aPowerFly reloaded successfully.");
+            sendWithPrefix(sender, plugin.getMessageString("reload-success", "&Configuration reloaded!"));
 
         } catch (Exception e) {
-            sendWithPrefix(sender, "&cError reloading PowerFly: " + e.getMessage());
+            sendWithPrefix(sender, plugin.getMessageString("reload-error", "&cAn error occurred while reloading configuration or messages: " + e.getMessage()));
             logException(e);
         }
 
@@ -110,7 +107,6 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
 
     private void sendWithPrefix(CommandSender sender, String message) {
         String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
-        sender.sendMessage(component);
+        sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 }

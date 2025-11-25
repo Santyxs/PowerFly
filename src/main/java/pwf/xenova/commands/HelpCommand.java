@@ -19,7 +19,7 @@ public record HelpCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            send(sender, "&8&m----§r §bPowerFly Help &8&m----");
+            send(sender, "&8&m----&r &bPowerFly Help &8&m----");
             send(sender, "");
             send(sender, "&e/fly &7- Enable or disable fly for a limited time.");
             send(sender, "&e/powerfly fly <player | all> <on | off> &7- Enable or disable fly for a limited time to other players.");

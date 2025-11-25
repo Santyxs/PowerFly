@@ -9,6 +9,7 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -28,33 +29,51 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                              @NotNull String label,
                              @NotNull String[] args) {
 
-        if (sender instanceof Player player) {
-            if (!player.hasPermission("powerfly.fly") && !player.hasPermission("powerfly.admin") && !player.isOp()) {
-                sendMessage(sender, "no-permission", "&cYou do not have permission to use this command.");
-                return true;
+        if (!(sender instanceof ConsoleCommandSender)) {
+            if (sender instanceof Player player) {
+                if (!player.hasPermission("powerfly.fly") && !player.hasPermission("powerfly.admin") && !player.isOp()) {
+                    sendMessage(sender, "no-permission", "&cYou do not have permission to use this command.");
+                    return true;
+                }
             }
         }
 
         List<Player> targets = getTargets(sender, args);
-        if (targets.isEmpty()) return true;
+
+        if (targets.isEmpty()) {
+            if (args.length > 0 && !args[0].equalsIgnoreCase("all")) {
+                sendMessage(sender, "player-not-found", "&cPlayer not found.");
+                return true;
+            }
+            sendMessage(sender, "no-player-specified", "&cYou must specify a player name.");
+            return true;
+        }
 
         String action = parseAction(args);
         boolean isAll = args.length > 0 && args[0].equalsIgnoreCase("all");
 
         int activatedCount = 0;
         int deactivatedCount = 0;
+        boolean singleTargetSuccess = false;
 
         for (Player target : targets) {
             boolean enable = action.equals("toggle") ? !target.getAllowFlight() : action.equals("on");
-            boolean result = toggleFly(target, enable);
-            if (result) activatedCount++;
-            else deactivatedCount++;
+            boolean result = toggleFly(target, enable, sender, isAll);
+            if (result) {
+                boolean wasEnabled = target.getAllowFlight();
+                if (wasEnabled) activatedCount++;
+                else deactivatedCount++;
+                singleTargetSuccess = true;
+            }
         }
 
         if (isAll) {
             if (activatedCount > 0) sendMessage(sender, "fly-enabled-all", "&aFly activated for all players.");
             if (deactivatedCount > 0) sendMessage(sender, "fly-disabled-all", "&cFly disabled for all players.");
-        } else if (targets.size() == 1) {
+            if (activatedCount == 0 && deactivatedCount == 0) {
+                sendMessage(sender, "no-players-with-fly-time", "&cNo players have fly time remaining.");
+            }
+        } else if (targets.size() == 1 && singleTargetSuccess) {
             Player target = targets.getFirst();
             boolean isSenderTarget = sender instanceof Player player && player.equals(target);
             if (!isSenderTarget) sendTargetFeedback(sender, target);
@@ -63,11 +82,25 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         return true;
     }
 
-    private boolean toggleFly(Player player, boolean enable) {
+    private boolean toggleFly(Player player, boolean enable, CommandSender sender, boolean isAllCommand) {
         UUID uuid = player.getUniqueId();
         int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
 
         if (enable && remaining <= 0) {
+            boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
+
+            if (isAllCommand) {
+                return false;
+            }
+
+            if (!isSameSender) {
+                String message = plugin.getMessageString("no-player-fly-time", "&c{player} has no fly time remaining.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+                return false;
+            }
+
             int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
             String message = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{seconds}s &cto fly again.")
                     .replace("{seconds}", String.valueOf(cooldownSeconds));
@@ -77,35 +110,50 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (enable) {
-            enableFly(player, remaining);
+            enableFly(player, remaining, sender);
         } else {
             disableFly(player, false);
         }
 
-        return enable;
+        return true;
     }
 
-    private void enableFly(Player player, int maxTime) {
+    private void enableFly(Player player, int maxTime, CommandSender sender) {
         UUID uuid = player.getUniqueId();
-
-        if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
-                player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
-            sendMessage(player, "fly-creative-mode", "&cYou already have flight in this game mode.");
-            return;
-        }
 
         if (plugin.getControlFlyManager().isFlightBlockedInWorld(player.getWorld())) {
             sendMessage(player, "blacklist-worlds", "&cYou cannot fly in this world.");
+            boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
+            if (!isSameSender) {
+                String message = plugin.getMessageString("blacklist-worlds-target", "&c{player} cannot fly in this world.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            }
             return;
         }
 
         if (plugin.getControlFlyManager().isFlightBlockedInRegion(player)) {
             sendMessage(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.");
+            boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
+            if (!isSameSender) {
+                String message = plugin.getMessageString("fly-not-allowed-in-region-target", "&c{player} cannot fly in this region.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            }
             return;
         }
 
         if (plugin.getCombatFlyManager().isInCombat(player)) {
             sendMessage(player, "fly-in-combat", "&cYou cannot fly while in combat.");
+            boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
+            if (!isSameSender) {
+                String message = plugin.getMessageString("fly-in-combat-target", "&c{player} cannot fly while in combat.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            }
             return;
         }
 
@@ -248,20 +296,33 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
     private List<Player> getTargets(CommandSender sender, String[] args) {
         List<Player> targets = new ArrayList<>();
-        if (args.length == 0 && sender instanceof Player player) {
-            targets.add(player);
+
+        if (args.length == 0) {
+            if (sender instanceof ConsoleCommandSender) {
+                return targets;
+            }
+            if (sender instanceof Player player) {
+                targets.add(player);
+            }
             return targets;
         }
 
         String name = args[0];
+
         if (name.equalsIgnoreCase("all")) {
-            if (!sender.hasPermission("powerfly.admin") && !sender.isOp()) return targets;
-            targets.addAll(Bukkit.getOnlinePlayers());
+            if (sender instanceof ConsoleCommandSender ||
+                    sender.hasPermission("powerfly.admin") ||
+                    sender.isOp()) {
+                targets.addAll(Bukkit.getOnlinePlayers());
+            }
             return targets;
         }
 
         Player target = Bukkit.getPlayerExact(name);
-        if (target != null) targets.add(target);
+        if (target != null) {
+            targets.add(target);
+        }
+
         return targets;
     }
 
@@ -277,8 +338,10 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
     private void sendTargetFeedback(CommandSender sender, Player target) {
         boolean enabled = target.getAllowFlight();
+        String messageKey = enabled ? "fly-enabled-target" : "fly-disabled-target";
+        String fallback = enabled ? "&aFly activated for &e{player}" : "&cFly disabled for &e{player}";
+        String message = plugin.getMessageString(messageKey, fallback).replace("{player}", target.getName());
         String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        String message = enabled ? "&aFly activated for &e" + target.getName() : "&cFly disabled for &e" + target.getName();
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 
@@ -303,6 +366,6 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     public static boolean hasPluginFlyActive(UUID uuid) {
-        return !PLUGIN_FLY_ACTIVE.contains(uuid);
+        return PLUGIN_FLY_ACTIVE.contains(uuid);
     }
 }
