@@ -1,0 +1,65 @@
+name: PowerFly
+version: ${project.version}
+description: A simple fly plugin
+authors:
+  - Santysx
+api-version: 1.20
+main: pwf.xenova.PowerFly
+depend: [LuckPerms]
+softdepend: [Vault, WorldGuard, PlaceholderAPI]
+loadbefore: [EssentialsX, CMI]
+
+commands:
+  powerfly:
+    description: Main command for PowerFly plugin.
+    usage: Use /powerfly help to see the list of commands
+    aliases: [pwf]
+  fly:
+    description: Enable or disable fly for a limited time.
+    usage: /fly [player] [on/off]
+    permission: powerfly.fly
+  buyflytime:
+    description: Buy fly time.
+    usage: /buyflytime
+    permission: powerfly.buyflytime
+
+permissions:
+  powerfly.admin:
+    description: Gives access to all admin commands of PowerFly
+    default: op
+    children:
+      powerfly.addflytime: true
+      powerfly.delflytime: true
+      powerfly.reload: true
+      powerfly.check: true
+      powerfly.fly: true
+      powerfly.buyflytime: true
+      powerfly.help: true
+
+  powerfly.addflytime:
+    description: Allows using /powerfly addflytime
+    default: false
+
+  powerfly.delflytime:
+    description: Allows using /powerfly delflytime
+    default: false
+
+  powerfly.reload:
+    description: Allows using /powerfly reload
+    default: false
+
+  powerfly.check:
+    description: Allows using /powerfly check
+    default: false
+
+  powerfly.fly:
+    description: Allows using /fly
+    default: op
+
+  powerfly.buyflytime:
+    description: Allows using /buyflytime
+    default: op
+
+  powerfly.help:
+    description: Allows using /powerfly help
+    default: op

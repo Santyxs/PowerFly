@@ -1,0 +1,45 @@
+# Сообщения игрока
+actionbar-fly-time: "&eВашего времени полёта: &6{time}s"
+bossbar-fly-time: "&eВашего времени полёта: &6{time}s"
+fly-time-warning: "&6⚠ &eОсталось &c10s &eполета!"
+fly-time-ended: "&cВремя полёта истекло"
+fly-cooldown: "&cВы уже потратили ваше время полёта, подождите &6{seconds}s &cчтобы летать снова."
+fly-enabled: "&aПолёт включен."
+fly-disabled: "&cПолёт отключён."
+fly-time-recharged: "&aВаше время полёта было автоматически восстановлено."
+fly-not-allowed-in-world: "&cВы не можете использовать полёт в этом мире."
+fly-not-allowed-in-region: "&cВы не можете использовать полёт в этом регионе."
+fly-not-allowed-in-world-target: "&c{player} не может летать в этом мире."
+fly-not-allowed-in-region-target: "&c{player} не может летать в этом регионе."
+fly-not-allowed-in-claim: "&cВы не можете использовать полёт в этом запрещены."
+fly-in-combat: "&cВо время боя летать нельзя."
+no-permission: "&cУ вас нет прав для использования этой команды."
+not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купить &f{secondstobuy}s &cвремени полёта."
+flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}&a."
+
+# Сообщения Администратора
+no-player-specified: "&cВы не указали имя игрока."
+player-not-found: "&cИгрок не найден."
+no-time-specified: "&cВы не установили конкретного времени."
+invalid-time: "&cВремя выбрано неверно."
+no-player-fly-time: "&cИгрок {player} не имеет времени полёта."
+no-players-with-fly-time: "&cНи у одного игрока нет времени полета."
+
+check-info: |
+  &8&m-&r &bИнформация об {player} &8&m- 
+
+  &bВремя полёта: &7{fly_minutes}m {fly_seconds}s 
+  &bВремя восстановления: &7{cooldown_minutes}m {cooldown_seconds}s
+
+fly-enabled-target: "&aИгрок &e{player} &aтеперь может летать."
+fly-disabled-target: "&cИгрок &e{player} &aбольше не может летать."
+fly-enabled-all: "&eВсе игроки &aтеперь могут летать."
+fly-disabled-all: "&cПолёт был запрещён &eдля всех игроков."
+
+fly-time-added: "&aИгроку &e{player} &aбыло добавлено время полёта в размере &f{seconds}s."
+fly-time-deleted: "&aУ игрока &e{player} &aбыло отнято &f{seconds}s &aвремени полёта."
+fly-time-added-all: "&eВсем &eигрокам было добавлено &f{seconds}s &aвремени полёта."
+fly-time-deleted-all: "&eУ всех &eигроков было отнято &f{seconds}s &aвремени полёта."
+
+reload-success: "&aКонфигурация была перезагружена успешно."
+reload-error: "&cВозникла ошибка при перезагрузке конфигурации."

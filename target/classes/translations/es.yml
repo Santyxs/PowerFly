@@ -1,0 +1,45 @@
+# Mensajes de jugador
+actionbar-fly-time: "&eTiempo de vuelo: &6{time}s"
+bossbar-fly-time: "&eTiempo de vuelo: &6{time}s"
+fly-time-warning: "&6⚠ &eQuedan &c10s &ede vuelo!"
+fly-time-ended: "&cEl tiempo de vuelo ha terminado."
+fly-cooldown: "&cHas gastado tu tiempo de vuelo, espera &6{seconds}s &cpara volver a volar."
+fly-enabled: "&aSe ha habilitado el vuelo."
+fly-disabled: "&cSe ha deshabilitado el vuelo."
+fly-time-recharged: "&aTu tiempo de vuelo ha sido recargado automáticamente."
+fly-not-allowed-in-world: "&cNo puedes volar en este mundo."
+fly-not-allowed-in-region: "&cNo puedes volar en esta región."
+fly-not-allowed-in-world-target: "&c{player} no puede volar en ese mundo."
+fly-not-allowed-in-region-target: "&c{player} no puede volar en esa región."
+fly-not-allowed-in-claim: "&cNo puedes volar en esta claim."
+fly-in-combat: "&cNo puedes volar mientras estás en combate."
+no-permission: "&cNo tienes permiso para usar este comando."
+not-enough-money: "&cNecesitas &e{price}{currency} &cpara comprar &f{secondstobuy}s &cde tiempo de vuelo."
+flytime-bought: "&aHas comprado &f{secondstobuy}s &ade tiempo de vuelo por &e{price}{currency}&a."
+
+# Mensajes de admin
+no-player-specified: "&cDebes especificar el nombre de un jugador."
+player-not-found: "&cJugador no encontrado."
+no-time-specified: "&cDebes especificar el tiempo en segundos."
+invalid-time: "&cTiempo inválido."
+no-player-fly-time: "&c{player} no tiene tiempo de vuelo restante."
+no-players-with-fly-time: "&cNo hay ningún jugador con tiempo de vuelo restante."
+
+check-info: |
+  &8&m-&r &bInformación de {player} &8&m-
+
+  &bTiempo de vuelo: &7{fly_minutes}m {fly_seconds}s
+  &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s
+
+fly-enabled-target: "&aVuelo habilitado para &e{player}"
+fly-disabled-target: "&cVuelo deshabilitado para &e{player}"
+fly-enabled-all: "&aVuelo habilitado para &etodos los jugadores."
+fly-disabled-all: "&cVuelo deshabilitado para &etodos los jugadores."
+
+fly-time-added: "&aSe añadieron &f{seconds}s &ade tiempo de vuelo a &e{player}."
+fly-time-deleted: "&aSe eliminaron &f{seconds}s &ade tiempo de vuelo a &e{player}."
+fly-time-added-all: "&aSe han añadido &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
+fly-time-deleted-all: "&aSe han eliminado &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
+
+reload-success: "&aConfiguración recargada!"
+reload-error: "&cSe produjo un error al recargar la configuración o los mensajes."
