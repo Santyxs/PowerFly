@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
@@ -14,7 +15,7 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             @NotNull String[] args) {
+                             @NotNull String @NonNull [] args) {
 
         if (!sender.hasPermission("powerfly.reload") && !sender.hasPermission("powerfly.admin")) {
             sendWithPrefix(sender, plugin.getMessageString("no-permission", "&cYou do not have permission to use this command."));
@@ -74,8 +75,9 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void reloadManagers() {
-        plugin.getControlFlyManager().reload();
         plugin.getFlyTimeManager().reload();
+        plugin.getControlFlyManager().reload();
+        plugin.getClaimFlyManager().reload();
         plugin.getSoundEffectsManager().reload();
     }
 

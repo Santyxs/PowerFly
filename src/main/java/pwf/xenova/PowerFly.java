@@ -33,8 +33,9 @@ public class PowerFly extends JavaPlugin {
     private GroupFlyTimeManager groupFlyTimeManager;
     private CooldownFlyManager cooldownManager;
     private SoundEffectsManager soundEffectsManager;
-    private CombatFlyManager combatFlyManager;
     private ControlFlyManager controlFlyManager;
+    private ClaimFlyManager claimFlyManager;
+    private CombatFlyManager combatFlyManager;
     private Economy economy;
 
     // ----------------- Plugin Enable -----------------
@@ -76,6 +77,10 @@ public class PowerFly extends JavaPlugin {
         // ControlFlyManager
         controlFlyManager = new ControlFlyManager(this);
         getServer().getPluginManager().registerEvents(controlFlyManager, this);
+
+        // ClaimFlyManager
+        claimFlyManager = new ClaimFlyManager(this);
+        getServer().getPluginManager().registerEvents(claimFlyManager, this);
 
         // CombatFlyManager
         combatFlyManager = new CombatFlyManager(this);
@@ -224,6 +229,10 @@ public class PowerFly extends JavaPlugin {
 
     public ControlFlyManager getControlFlyManager() {
         return controlFlyManager;
+    }
+
+    public ClaimFlyManager getClaimFlyManager() {
+        return claimFlyManager;
     }
 
     public CombatFlyManager getCombatFlyManager() {

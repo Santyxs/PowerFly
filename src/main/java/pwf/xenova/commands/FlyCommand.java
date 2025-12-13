@@ -13,6 +13,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
@@ -27,7 +28,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
                              @NotNull String label,
-                             @NotNull String[] args) {
+                             @NotNull String @NonNull [] args) {
 
         if (!(sender instanceof ConsoleCommandSender)) {
             if (sender instanceof Player player) {
@@ -120,6 +121,12 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
     private void enableFly(Player player, int maxTime, CommandSender sender) {
         UUID uuid = player.getUniqueId();
+
+        if (plugin.getClaimFlyManager().cannotFlyHere(player, player.getLocation())) {
+            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim or town."
+            ));
+            return;
+        }
 
         if (plugin.getControlFlyManager().isFlightBlockedInWorld(player.getWorld())) {
             sendMessage(player, "blacklist-worlds", "&cYou cannot fly in this world.");
