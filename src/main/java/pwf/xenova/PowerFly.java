@@ -74,6 +74,10 @@ public class PowerFly extends JavaPlugin {
         // SoundEffectsManager
         soundEffectsManager = new SoundEffectsManager(this);
 
+        // CombatFlyManager
+        combatFlyManager = new CombatFlyManager(this);
+        getConfig().getBoolean("disable-fly-in-combat", true);
+
         // ControlFlyManager
         controlFlyManager = new ControlFlyManager(this);
         getServer().getPluginManager().registerEvents(controlFlyManager, this);
@@ -81,10 +85,6 @@ public class PowerFly extends JavaPlugin {
         // ClaimFlyManager
         claimFlyManager = new ClaimFlyManager(this);
         getServer().getPluginManager().registerEvents(claimFlyManager, this);
-
-        // CombatFlyManager
-        combatFlyManager = new CombatFlyManager(this);
-        getConfig().getBoolean("disable-fly-in-combat", true);
 
         registerPlayerJoinEvent();
         registerNoFallDamageEvent();
