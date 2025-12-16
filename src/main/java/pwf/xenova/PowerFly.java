@@ -227,16 +227,16 @@ public class PowerFly extends JavaPlugin {
         return soundEffectsManager;
     }
 
+    public CombatFlyManager getCombatFlyManager() {
+        return combatFlyManager;
+    }
+
     public ControlFlyManager getControlFlyManager() {
         return controlFlyManager;
     }
 
     public ClaimFlyManager getClaimFlyManager() {
         return claimFlyManager;
-    }
-
-    public CombatFlyManager getCombatFlyManager() {
-        return combatFlyManager;
     }
 
     public Economy getEconomy() {
