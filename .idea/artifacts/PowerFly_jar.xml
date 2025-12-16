@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" name="PowerFly:jar">
-    <output-path>$PROJECT_DIR$</output-path>
+    <output-path>$PROJECT_DIR$/../../Minecraft Servers/MoonWolf/plugins</output-path>
     <root id="archive" name="PowerFly.jar">
       <element id="module-output" name="PowerFly" />
     </root>
