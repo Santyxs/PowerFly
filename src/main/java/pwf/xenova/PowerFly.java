@@ -33,9 +33,9 @@ public class PowerFly extends JavaPlugin {
     private GroupFlyTimeManager groupFlyTimeManager;
     private CooldownFlyManager cooldownManager;
     private SoundEffectsManager soundEffectsManager;
+    private CombatFlyManager combatFlyManager;
     private ControlFlyManager controlFlyManager;
     private ClaimFlyManager claimFlyManager;
-    private CombatFlyManager combatFlyManager;
     private Economy economy;
 
     // ----------------- Plugin Enable -----------------
