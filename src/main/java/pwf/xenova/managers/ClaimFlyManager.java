@@ -9,10 +9,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import com.palmergames.bukkit.towny.TownyAPI;
-import com.palmergames.bukkit.towny.object.Town;
-import com.palmergames.bukkit.towny.object.TownBlock;
-import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import pwf.xenova.PowerFly;
 
 public class ClaimFlyManager implements Listener {
@@ -20,6 +16,7 @@ public class ClaimFlyManager implements Listener {
     private final PowerFly plugin;
     private boolean gpEnabled;
     private boolean townyEnabled;
+    private Object townyAPI;
 
     public ClaimFlyManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -34,7 +31,18 @@ public class ClaimFlyManager implements Listener {
         this.townyEnabled = Bukkit.getPluginManager().isPluginEnabled("Towny") &&
                 plugin.getConfig().getBoolean("enable-towny", true);
 
-        plugin.getLogger().info("ClaimFlyManager reloaded. (GP: " + gpEnabled + ", Towny: " + townyEnabled + ")");
+        if (townyEnabled) {
+            try {
+                Class<?> townyAPIClass = Class.forName("com.palmergames.bukkit.towny.TownyAPI");
+                townyAPI = townyAPIClass.getMethod("getInstance").invoke(null);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Towny is enabled but API could not be loaded: " + e.getMessage());
+                townyEnabled = false;
+            }
+        }
+
+        plugin.getLogger().info("GriefPrevention: " + (gpEnabled ? "enabled" : "disabled"));
+        plugin.getLogger().info("Towny: " + (townyEnabled ? "enabled" : "disabled"));
     }
 
     private boolean cannotFlyGP(Player player, Location location) {
@@ -47,16 +55,22 @@ public class ClaimFlyManager implements Listener {
     }
 
     private boolean cannotFlyTowny(Player player, Location location) {
-        if (!townyEnabled) return false;
-
-        TownyAPI api = TownyAPI.getInstance();
-        TownBlock townBlock = api.getTownBlock(location);
-        if (townBlock == null) return false;
+        if (!townyEnabled || townyAPI == null) return false;
 
         try {
-            Town town = townBlock.getTown();
-            return !town.hasResident(player.getName());
-        } catch (NotRegisteredException e) {
+            Class<?> townyAPIClass = townyAPI.getClass();
+            Object townBlock = townyAPIClass.getMethod("getTownBlock", Location.class).invoke(townyAPI, location);
+
+            if (townBlock == null) return false;
+
+            Object town = townBlock.getClass().getMethod("getTown").invoke(townBlock);
+            boolean hasResident = (boolean) town.getClass()
+                    .getMethod("hasResident", String.class)
+                    .invoke(town, player.getName());
+
+            return !hasResident;
+
+        } catch (Exception e) {
             return false;
         }
     }
@@ -79,7 +93,6 @@ public class ClaimFlyManager implements Listener {
     }
 
     public void sendClaimFlyMessage(Player player) {
-        player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim."
-        ));
+        player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim."));
     }
 }
