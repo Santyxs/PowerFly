@@ -28,8 +28,8 @@ no-players-with-fly-time: "&cНи у одного игрока нет време
 check-info: |
   &8&m-&r &bИнформация об {player} &8&m- 
 
-  &bВремя полёта: &7{fly_minutes}m {fly_seconds}s 
-  &bВремя восстановления: &7{cooldown_minutes}m {cooldown_seconds}s
+  &bВремя полёта: &7{fly_time}
+  &bВремя восстановления: &7{cooldown_time}
 
 fly-enabled-target: "&aИгрок &e{player} &aтеперь может летать."
 fly-disabled-target: "&cИгрок &e{player} &aбольше не может летать."

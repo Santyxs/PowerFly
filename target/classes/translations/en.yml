@@ -28,8 +28,8 @@ no-players-with-fly-time: "&cNo players have fly time remaining."
 check-info: |
   &8&m-&r &b{player} Info &8&m-
 
-  &bTime fly: &7{fly_minutes}m {fly_seconds}s
-  &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s
+  &bTime fly: &7{fly_time}
+  &bCooldown: &7{cooldown_time}
 
 fly-enabled-target: "&aFly enabled for &e{player}"
 fly-disabled-target: "&cFly disabled for &e{player}"
