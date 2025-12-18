@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 1.6
+config-version: 1.7
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -27,13 +27,16 @@ check-updates: true
 cooldown: 100
 
 # Fly time in seconds for new players
+# You can use a number (e.g: 500) or -1 for unlimited fly time
 fly-time: 100
 
 # Fly time in seconds for each group (can be customized based on LuckPerms groups)
+# You can use a number (e.g: 500) or -1 for unlimited fly time
 groups-fly-time:
   default: 100
   vip: 300
   mod: 600
+  admin: -1
 
 # Prevent fall damage when fly time ends (10s)
 no-fall-damage: false

@@ -55,6 +55,10 @@ public class ExpansionManager extends PlaceholderExpansion {
     }
 
     private String formatTime(long seconds) {
+        if (seconds == plugin.getFlyTimeManager().getInfiniteFlyTime()) {
+            return "∞";
+        }
+
         if (seconds <= 0) return "0s";
 
         long minutes = seconds / 60;

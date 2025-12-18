@@ -24,6 +24,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     private static final Map<UUID, BukkitRunnable> FLY_TIMERS = new HashMap<>();
     private static final Map<UUID, BossBar> FLY_BOSSBARS = new HashMap<>();
     private static final Set<UUID> PLUGIN_FLY_ACTIVE = new HashSet<>();
+    private static final int INFINITE_FLY_TIME = -1;
 
     public boolean onCommand(@NotNull CommandSender sender,
                              @NotNull Command command,
@@ -87,7 +88,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = player.getUniqueId();
         int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
 
-        if (enable && remaining <= 0) {
+        if (enable && remaining <= 0 && remaining != INFINITE_FLY_TIME) {
             boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
 
             if (isAllCommand) {
@@ -123,8 +124,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = player.getUniqueId();
 
         if (plugin.getClaimFlyManager().cannotFlyHere(player, player.getLocation())) {
-            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim or town."
-            ));
+            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim or town."));
             return;
         }
 
@@ -228,10 +228,12 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                     return;
                 }
 
-                remaining--;
-                plugin.getFlyTimeManager().setFlyTime(uuid, remaining);
+                if (remaining != INFINITE_FLY_TIME) {
+                    remaining--;
+                    plugin.getFlyTimeManager().setFlyTime(uuid, remaining);
+                }
 
-                if (remaining > 0) {
+                if (remaining > 0 || remaining == INFINITE_FLY_TIME) {
                     if (plugin.getConfig().getBoolean("show-actionbar", true))
                         sendFlyTimeActionBar(player, remaining);
 
@@ -274,8 +276,10 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = player.getUniqueId();
         if (FLY_BOSSBARS.containsKey(uuid)) return;
 
+        String display = (maxTime == INFINITE_FLY_TIME) ? "∞" : String.valueOf(maxTime);
         String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s")
-                .replace("{time}", String.valueOf(maxTime));
+                .replace("{time}", display);
+
         BarColor color = BarColor.valueOf(plugin.getConfig().getString("bossbar-color", "BLUE").toUpperCase());
         BarStyle style = BarStyle.valueOf(plugin.getConfig().getString("bossbar-style", "SOLID").toUpperCase());
 
@@ -290,9 +294,11 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         BossBar bar = FLY_BOSSBARS.get(player.getUniqueId());
         if (bar == null) return;
 
-        bar.setProgress(Math.max(0, (double) remaining / maxTime));
-        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s")
-                .replace("{time}", String.valueOf(remaining));
+        double progress = (remaining == INFINITE_FLY_TIME) ? 1.0 : Math.max(0, (double) remaining / maxTime);
+        bar.setProgress(progress);
+
+        String display = (remaining == INFINITE_FLY_TIME) ? "∞" : String.valueOf(remaining);
+        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s").replace("{time}", display);
         bar.setTitle(serialize(raw));
     }
 
@@ -353,8 +359,9 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendFlyTimeActionBar(Player player, int time) {
+        String display = (time == INFINITE_FLY_TIME) ? "∞" : String.valueOf(time);
         String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{time}s")
-                .replace("{time}", String.valueOf(time));
+                .replace("{time}", display);
         player.sendActionBar(deserialize(raw));
     }
 
