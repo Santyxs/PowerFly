@@ -28,8 +28,8 @@ no-players-with-fly-time: "&cNo hay ningún jugador con tiempo de vuelo restante
 check-info: |
   &8&m-&r &bInformación de {player} &8&m-
 
-  &bTiempo de vuelo: &7{fly_minutes}m {fly_seconds}s
-  &bCooldown: &7{cooldown_minutes}m {cooldown_seconds}s
+  &bTiempo de vuelo: &7{fly_time}
+  &bCooldown: &7{cooldown_time}
 
 fly-enabled-target: "&aVuelo habilitado para &e{player}"
 fly-disabled-target: "&cVuelo deshabilitado para &e{player}"
