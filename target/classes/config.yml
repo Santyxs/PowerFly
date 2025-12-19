@@ -87,9 +87,12 @@ flytime-price: 100
 #    BLACKLIST SETTINGS    #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
-# List of worlds where players not allowed to fly
+# List of worlds where players are not allowed to fly
+# Supports exact names and patterns with wildcards (*)
+# Examples: world_nether (exact) or dungeon* (starts with dungeon)
 blacklist-worlds:
   - world_the_end
+  - dungeon*
 
 # List of regions where players not allowed to fly
 blacklist-regions:

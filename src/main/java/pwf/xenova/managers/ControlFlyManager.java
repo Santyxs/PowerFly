@@ -21,7 +21,7 @@ import java.util.*;
 public class ControlFlyManager implements Listener {
 
     private final PowerFly plugin;
-    private final Set<String> blacklistWorlds = new HashSet<>();
+    private final List<String> blacklistWorlds = new ArrayList<>();
     private final Map<String, Set<String>> blacklistRegions = new HashMap<>();
     private final Map<UUID, Long> messageCooldowns = new HashMap<>();
     private static final long MESSAGE_COOLDOWN_MS = 3000;
@@ -109,7 +109,23 @@ public class ControlFlyManager implements Listener {
     }
 
     public boolean isFlightBlockedInWorld(World world) {
-        return blacklistWorlds.contains(world.getName());
+        String worldName = world.getName();
+
+        for (String pattern : blacklistWorlds) {
+            if (matchesPattern(worldName, pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchesPattern(String worldName, String pattern) {
+        if (pattern.contains("*")) {
+            String regex = pattern.replace("*", ".*");
+            return worldName.matches(regex);
+        }
+        return worldName.equals(pattern);
     }
 
     public boolean isFlightBlockedInRegion(Player player) {
