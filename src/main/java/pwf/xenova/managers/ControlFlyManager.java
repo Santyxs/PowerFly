@@ -22,7 +22,9 @@ public class ControlFlyManager implements Listener {
 
     private final PowerFly plugin;
     private final List<String> blacklistWorlds = new ArrayList<>();
+    private final List<String> whitelistWorlds = new ArrayList<>();
     private final Map<String, Set<String>> blacklistRegions = new HashMap<>();
+    private final Map<String, Set<String>> whitelistRegions = new HashMap<>();
     private final Map<UUID, Long> messageCooldowns = new HashMap<>();
     private static final long MESSAGE_COOLDOWN_MS = 3000;
 
@@ -34,15 +36,24 @@ public class ControlFlyManager implements Listener {
 
     public void loadConfig() {
         blacklistWorlds.clear();
+        whitelistWorlds.clear();
         blacklistRegions.clear();
+        whitelistRegions.clear();
 
-        List<String> worlds = plugin.getConfig().getStringList("blacklist-worlds");
-        blacklistWorlds.addAll(worlds);
+        blacklistWorlds.addAll(plugin.getConfig().getStringList("blacklist-worlds"));
+        whitelistWorlds.addAll(plugin.getConfig().getStringList("whitelist-worlds"));
 
-        var regionsSection = plugin.getConfig().getConfigurationSection("blacklist-regions");
-        if (regionsSection != null) {
-            for (String world : regionsSection.getKeys(false)) {
-                blacklistRegions.put(world, new HashSet<>(regionsSection.getStringList(world)));
+        var blacklistRegionsSection = plugin.getConfig().getConfigurationSection("blacklist-regions");
+        if (blacklistRegionsSection != null) {
+            for (String world : blacklistRegionsSection.getKeys(false)) {
+                blacklistRegions.put(world, new HashSet<>(blacklistRegionsSection.getStringList(world)));
+            }
+        }
+
+        var whitelistRegionsSection = plugin.getConfig().getConfigurationSection("whitelist-regions");
+        if (whitelistRegionsSection != null) {
+            for (String world : whitelistRegionsSection.getKeys(false)) {
+                whitelistRegions.put(world, new HashSet<>(whitelistRegionsSection.getStringList(world)));
             }
         }
     }
@@ -51,72 +62,40 @@ public class ControlFlyManager implements Listener {
         loadConfig();
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) continue;
-
-            if (isFlightBlockedInWorld(player.getWorld())) {
-                disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.", true);
-            } else if (isFlightBlockedInRegion(player)) {
-                disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.", true);
-            }
+            if (isFlightBlocked(player)) disableFlight(player, true);
         }
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-
         if (!player.isFlying() && !player.getAllowFlight()) return;
-
-        if (FlyCommand.hasPluginFlyActive(uuid)) return;
-
-        if (isFlightBlockedInWorld(player.getWorld())) {
-            disableFlight(player, "blacklist-worlds", "&cYou cannot fly in this world.", false);
-            return;
-        }
-
-        if (isFlightBlockedInRegion(player)) {
-            disableFlight(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.", false);
-        }
+        if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) return;
+        if (isFlightBlocked(player)) disableFlight(player, false);
     }
 
-    private void disableFlight(Player player, String messageKey, String defaultMessage, boolean forceMessage) {
-        UUID uuid = player.getUniqueId();
+    public boolean isFlightBlocked(Player player) {
+        World world = player.getWorld();
 
-        boolean shouldNotify = forceMessage || canSendMessage(uuid);
+        if (isWorldWhitelisted(world)) return false;
+        if (isWorldBlacklisted(world)) return true;
 
-        player.setAllowFlight(false);
-        player.setFlying(false);
-
-        if (shouldNotify) {
-            plugin.getSoundEffectsManager().playDeactivationEffects(player);
-        }
-
-        FlyCommand flyCommand = new FlyCommand(plugin);
-        flyCommand.cleanupFlyData(player);
-
-        if (shouldNotify) {
-            String message = plugin.getMessages().getString(messageKey, defaultMessage);
-            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-            player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
-            messageCooldowns.put(uuid, System.currentTimeMillis());
-        }
+        return isFlightBlockedInRegion(player);
     }
 
-    private boolean canSendMessage(UUID uuid) {
-        Long lastMessage = messageCooldowns.get(uuid);
-        if (lastMessage == null) return true;
-        return (System.currentTimeMillis() - lastMessage) >= MESSAGE_COOLDOWN_MS;
-    }
-
-    public boolean isFlightBlockedInWorld(World world) {
+    private boolean isWorldWhitelisted(World world) {
         String worldName = world.getName();
-
-        for (String pattern : blacklistWorlds) {
-            if (matchesPattern(worldName, pattern)) {
-                return true;
-            }
+        for (String pattern : whitelistWorlds) {
+            if (matchesPattern(worldName, pattern)) return true;
         }
+        return false;
+    }
 
+    private boolean isWorldBlacklisted(World world) {
+        String worldName = world.getName();
+        for (String pattern : blacklistWorlds) {
+            if (matchesPattern(worldName, pattern)) return true;
+        }
         return false;
     }
 
@@ -130,9 +109,6 @@ public class ControlFlyManager implements Listener {
 
     public boolean isFlightBlockedInRegion(Player player) {
         World world = player.getWorld();
-        Set<String> blockedRegions = blacklistRegions.get(world.getName());
-        if (blockedRegions == null || blockedRegions.isEmpty()) return false;
-
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionManager manager = container.get(BukkitAdapter.adapt(world));
         if (manager == null) return false;
@@ -144,10 +120,47 @@ public class ControlFlyManager implements Listener {
         );
 
         ApplicableRegionSet regions = manager.getApplicableRegions(vector);
-        for (ProtectedRegion region : regions) {
-            if (blockedRegions.contains(region.getId())) return true;
+
+        Set<String> whitelisted = whitelistRegions.get(world.getName());
+        if (whitelisted != null) {
+            for (ProtectedRegion region : regions) {
+                if (whitelisted.contains(region.getId())) return false;
+            }
         }
+
+        Set<String> blacklisted = blacklistRegions.get(world.getName());
+        if (blacklisted != null) {
+            for (ProtectedRegion region : regions) {
+                if (blacklisted.contains(region.getId())) return true;
+            }
+        }
+
         return false;
+    }
+
+    private void disableFlight(Player player, boolean forceMessage) {
+        UUID uuid = player.getUniqueId();
+        boolean shouldNotify = forceMessage || canSendMessage(uuid);
+
+        player.setAllowFlight(false);
+        player.setFlying(false);
+
+        if (shouldNotify) plugin.getSoundEffectsManager().playDeactivationEffects(player);
+
+        FlyCommand flyCommand = new FlyCommand(plugin);
+        flyCommand.cleanupFlyData(player);
+
+        if (shouldNotify) {
+            String message = plugin.getMessages().getString("blacklist-worlds", "&cYou cannot fly in this world or region.");
+            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+            player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            messageCooldowns.put(uuid, System.currentTimeMillis());
+        }
+    }
+
+    private boolean canSendMessage(UUID uuid) {
+        Long lastMessage = messageCooldowns.get(uuid);
+        return lastMessage == null || (System.currentTimeMillis() - lastMessage) >= MESSAGE_COOLDOWN_MS;
     }
 
     public void removePlayerCooldown(UUID uuid) {

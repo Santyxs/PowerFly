@@ -89,15 +89,30 @@ currency-symbol: $
 flytime-price: 100
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#    BLACKLIST SETTINGS    #
+#     WORLDS SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # List of worlds where players are not allowed to fly
 # Supports exact names and patterns with wildcards (*)
-# Examples: world_nether (exact) or dungeon* (starts with dungeon)
+# Examples:
+#   - world_nether    (exact match)
+#   - dungeon*        (any world starting with "dungeon")
 blacklist-worlds:
   - world_the_end
   - dungeon*
+
+# List of worlds where players are allowed to fly
+# Supports exact names and patterns with wildcards (*)
+# Examples:
+#   - survival    (exact match)
+#   - creative*   (any world starting with "creative")
+whitelist-worlds:
+  - world
+  - creative*
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
+#     REGIONS SETTINGS     #
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # List of regions where players not allowed to fly
 blacklist-regions:
@@ -111,8 +126,15 @@ blacklist-regions:
     - end_city
     - dragon_arena
 
+# List of regions where players allowed to fly
+whitelist-regions:
+   world:
+     - shops
+   world_nether:
+     - island
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
-#   CLAIM FLY SETTINGS     #
+#    CLAIM FLY SETTINGS    #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # Enable or disable GriefPrevention support
