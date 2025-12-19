@@ -18,6 +18,8 @@ not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купи
 flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}&a."
 
 # Сообщения Администратора
+fly-mode-error: "&cВы не можете летать в вашем текущем игровом режиме."
+fly-mode-error-target: "&c{player} не может использовать время полёта, так как находится в режиме Творчества или Наблюдателя."
 no-player-specified: "&cВы не указали имя игрока."
 player-not-found: "&cИгрок не найден."
 no-time-specified: "&cВы не установили конкретного времени."

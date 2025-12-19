@@ -3,6 +3,7 @@ package pwf.xenova.commands;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -85,6 +86,23 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private boolean toggleFly(Player player, boolean enable, CommandSender sender, boolean isAllCommand) {
+
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+            if (!isAllCommand) {
+                boolean isSameSender = sender instanceof Player senderPlayer && senderPlayer.equals(player);
+
+                if (isSameSender) {
+                    sendMessage(player, "fly-mode-error", "&cYou cannot use this command in Creative or Spectator mode.");
+                } else {
+                    String message = plugin.getMessageString("fly-mode-error-target", "&c{player} is in Creative or Spectator mode.")
+                            .replace("{player}", player.getName());
+                    String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                    sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+                }
+            }
+            return false;
+        }
+
         UUID uuid = player.getUniqueId();
         int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
 
@@ -219,8 +237,8 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             int remaining = maxTime;
 
             public void run() {
-                if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
-                        player.getGameMode() == org.bukkit.GameMode.SPECTATOR ||
+                if (player.getGameMode() == GameMode.CREATIVE ||
+                        player.getGameMode() == GameMode.SPECTATOR ||
                         !player.isOnline() || !player.getAllowFlight()) {
                     cancel();
                     FLY_TIMERS.remove(uuid);
@@ -231,6 +249,10 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 if (remaining != INFINITE_FLY_TIME) {
                     remaining--;
                     plugin.getFlyTimeManager().setFlyTime(uuid, remaining);
+                }
+
+                if (remaining == 10) {
+                    sendMessage(player, "fly-time-warning", "&6⚠ &eThere are &c10s &eof fly remaining!");
                 }
 
                 if (remaining > 0 || remaining == INFINITE_FLY_TIME) {

@@ -18,6 +18,8 @@ not-enough-money: "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &co
 flytime-bought: "&aYou bought &f{secondstobuy}s &aof fly time for &e{price}{currency}&a."
 
 # Admin messages
+fly-mode-error: "&cYou cannot fly in your current game mode."
+fly-mode-error-target: "&c{player} cannot use fly because they are in Creative or Spectator mode."
 no-player-specified: "&cYou must specify a player name."
 player-not-found: "&cPlayer not found."
 no-time-specified: "&cYou must specify a time in seconds."

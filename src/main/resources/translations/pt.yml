@@ -18,6 +18,8 @@ not-enough-money: "&cPrecisa de &e{price}{currency} &cpara comprar &f{secondstob
 flytime-bought: "&aVoce comprou &f{secondstobuy}s &ade tempo de voo por &e{price}{currency}&a."
 
 # Mensagens de admin
+fly-mode-error: "&cVocê não pode voar no seu modo de jogo atual."
+fly-mode-error-target: "&c{player} não pode usar o fly porque está no modo Criativo ou Espectador."
 no-player-specified: "&cVocê deve especificar o nome de um jogador."
 player-not-found: "&cJogador não encontrado."
 no-time-specified: "&cVocê deve especificar um tempo em segundos."

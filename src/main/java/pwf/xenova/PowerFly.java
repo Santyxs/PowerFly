@@ -39,17 +39,26 @@ public class PowerFly extends JavaPlugin {
     private SlowMiningManager slowMiningManager;
     private Economy economy;
 
-    // ----------------- Plugin Enable -----------------
-
     private final Set<UUID> noFallDamage = new HashSet<>();
 
-    public Set<UUID> getNoFallDamageSet() {
-        return noFallDamage;
-    }
+    public static PowerFly getInstance() { return instance; }
+    public Set<UUID> getNoFallDamageSet() { return noFallDamage; }
+    public FlyTimeManager getFlyTimeManager() { return flyTimeManager; }
+    public GroupFlyTimeManager getGroupFlyTimeManager() { return groupFlyTimeManager; }
+    public CooldownFlyManager getCooldownFlyManager() { return cooldownManager; }
+    public SoundEffectsManager getSoundEffectsManager() { return soundEffectsManager; }
+    public CombatFlyManager getCombatFlyManager() { return combatFlyManager; }
+    public ControlFlyManager getControlFlyManager() { return controlFlyManager; }
+    public ClaimFlyManager getClaimFlyManager() { return claimFlyManager; }
+    public Economy getEconomy() { return economy; }
+    public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
+    public LuckPerms getLuckPerms() { return luckPerms; }
+    public YamlConfiguration getMessages() { return messages; }
+
+    // ----------------- Plugin Enable -----------------
 
     public void onEnable() {
         instance = this;
-
         saveDefaultConfig();
         saveDefaultMessages();
 
@@ -66,29 +75,17 @@ public class PowerFly extends JavaPlugin {
         // CommandManager
         CommandManager.registerCommands(this);
 
-        // FlyTimeManager
+        // Managers
         flyTimeManager = new FlyTimeManager(this);
-
-        // CooldownManager
         cooldownManager = new CooldownFlyManager(this);
-
-        // SoundEffectsManager
         soundEffectsManager = new SoundEffectsManager(this);
-
-        // CombatFlyManager
         combatFlyManager = new CombatFlyManager(this);
-        getConfig().getBoolean("disable-fly-in-combat", true);
-
-        // ControlFlyManager
         controlFlyManager = new ControlFlyManager(this);
-        getServer().getPluginManager().registerEvents(controlFlyManager, this);
-
-        // ClaimFlyManager
         claimFlyManager = new ClaimFlyManager(this);
-        getServer().getPluginManager().registerEvents(claimFlyManager, this);
-
-        // SlowMiningManager
         slowMiningManager = new SlowMiningManager(this);
+
+        getServer().getPluginManager().registerEvents(controlFlyManager, this);
+        getServer().getPluginManager().registerEvents(claimFlyManager, this);
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
 
         registerPlayerJoinEvent();
@@ -98,11 +95,8 @@ public class PowerFly extends JavaPlugin {
         new Metrics(this, 26789);
 
         // Vault
-        if (setupEconomy()) {
-            getLogger().info("Economy hooked successfully: " + economy.getName());
-        } else {
-            getLogger().info("Economy features disabled (Vault not found or no provider).");
-        }
+        if (setupEconomy()) getLogger().info("Economy hooked: " + economy.getName());
+        else getLogger().info("Economy disabled (Vault not found).");
 
         // PlaceholderAPI
         setupExpansion();
@@ -148,25 +142,28 @@ public class PowerFly extends JavaPlugin {
                     EntityDamageEvent damageEvent = (EntityDamageEvent) event;
                     if (!(damageEvent.getEntity() instanceof Player player)) return;
                     if (damageEvent.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-                    if (noFallDamage.remove(player.getUniqueId())) {
-                        damageEvent.setCancelled(true);
-                    }
+                    if (noFallDamage.remove(player.getUniqueId())) damageEvent.setCancelled(true);
                 },
                 this
         );
     }
 
-    // ----------------- Fly Time Handling -----------------
+    // ----------------- Fly Handling -----------------
 
     private void handleOnlinePlayersFlyTime() {
         for (Player player : getServer().getOnlinePlayers()) {
+
+            if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
+                    player.getGameMode() == org.bukkit.GameMode.SPECTATOR) continue;
+
             UUID uuid = player.getUniqueId();
             int flyTime = flyTimeManager.getRemainingFlyTime(uuid);
             boolean onCooldown = cooldownManager.isOnCooldown(uuid);
 
             if (flyTime <= 0 && !onCooldown) {
                 cooldownManager.startCooldown(uuid);
-            } else if (onCooldown) {
+            }
+            else if (onCooldown) {
                 flyTimeManager.setFlyTime(uuid, 0);
             }
         }
@@ -175,83 +172,27 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Update Checker -----------------
 
     private void checkForUpdates() {
-        if (getConfig().getBoolean("check-updates", true)) {
-            updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
-            updateChecker.checkForUpdates(() -> {
-                if (updateChecker.isUpdateAvailable()) {
-                    getLogger().warning("=====================================");
-                    getLogger().warning("A new version of PowerFly is available!");
-                    logCurrentVersion();
-                    getLogger().warning("Latest version: " + updateChecker.getLatestVersion());
-                    getLogger().warning("Download: " + updateChecker.getDownloadUrl());
-                    getLogger().warning("=====================================");
+        if (!getConfig().getBoolean("check-updates", true)) return;
 
-                    Bukkit.getOnlinePlayers().forEach(player -> {
-                        if (player.isOp() || player.hasPermission("powerfly.admin")) {
-                            player.sendMessage(MessageFormat.parseMessage("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
-                        }
-                    });
-                } else {
-                    getLogger().info("You are running the latest version.");
-                }
-            });
-        }
+        updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
+        updateChecker.checkForUpdates(() -> {
+            if (updateChecker.isUpdateAvailable()) {
+                getLogger().warning("=====================================");
+                getLogger().warning("A new version of PowerFly is available!");
+                logCurrentVersion();
+                getLogger().warning("Latest version: " + updateChecker.getLatestVersion());
+                getLogger().warning("Download: " + updateChecker.getDownloadUrl());
+                getLogger().warning("=====================================");
+                Bukkit.getOnlinePlayers().forEach(player -> {
+                    if (player.isOp() || player.hasPermission("powerfly.admin"))
+                        player.sendMessage(MessageFormat.parseMessage("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
+                });
+            } else getLogger().info("You are running the latest version.");
+        });
     }
 
     @SuppressWarnings("deprecation")
-    private void logCurrentVersion() {
-        getLogger().warning("Current version: " + getDescription().getVersion());
-    }
-
-    // ----------------- Getters -----------------
-
-    public static PowerFly getInstance() {
-        return instance;
-    }
-
-    public LuckPerms getLuckPerms() {
-        return luckPerms;
-    }
-
-    public YamlConfiguration getMessages() {
-        return messages;
-    }
-
-    public FlyTimeManager getFlyTimeManager() {
-        return flyTimeManager;
-    }
-
-    public GroupFlyTimeManager getGroupFlyTimeManager() {
-        return groupFlyTimeManager;
-    }
-
-    public CooldownFlyManager getCooldownFlyManager() {
-        return cooldownManager;
-    }
-
-    public SoundEffectsManager getSoundEffectsManager() {
-        return soundEffectsManager;
-    }
-
-    public CombatFlyManager getCombatFlyManager() {
-        return combatFlyManager;
-    }
-
-    public ControlFlyManager getControlFlyManager() {
-        return controlFlyManager;
-    }
-
-    public ClaimFlyManager getClaimFlyManager() {
-        return claimFlyManager;
-    }
-
-    public Economy getEconomy() {
-        return economy;
-    }
-
-    public SlowMiningManager getSlowMiningManager() {
-        return slowMiningManager;
-    }
+    private void logCurrentVersion() { getLogger().warning("Current version: " + getDescription().getVersion()); }
 
     // ----------------- Economy -----------------
 
@@ -274,9 +215,7 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Messages -----------------
 
-    private String getDefaultPrefix() {
-        return getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-    }
+    private String getDefaultPrefix() { return getConfig().getString("prefix", "&7[&ePower&fFly&7] &r"); }
 
     public Component getPrefixedMessage(String key, String defaultMessage) {
         String prefix = getDefaultPrefix();
@@ -293,11 +232,6 @@ public class PowerFly extends JavaPlugin {
         return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
     }
 
-    public String getPrefixedConsoleMessage(String message) {
-        Component component = MessageFormat.parseMessageWithPrefix(getDefaultPrefix(), message);
-        return MessageFormat.toConsoleString(component);
-    }
-
     public void reloadMessages() {
         reloadConfig();
         String language = getConfig().getString("language", "en");
@@ -311,9 +245,7 @@ public class PowerFly extends JavaPlugin {
 
     public void saveDefaultMessages() {
         File translationsFolder = new File(getDataFolder(), "translations");
-        if (!translationsFolder.exists() && !translationsFolder.mkdirs()) {
-            getLogger().warning("Could not create translations folder.");
-        }
+        if (!translationsFolder.exists() && !translationsFolder.mkdirs()) getLogger().warning("Could not create translations folder.");
         saveIfNotExists(translationsFolder, "en.yml");
         saveIfNotExists(translationsFolder, "es.yml");
         saveIfNotExists(translationsFolder, "pt.yml");
@@ -323,9 +255,7 @@ public class PowerFly extends JavaPlugin {
     }
 
     private void saveIfNotExists(File folder, String fileName) {
-        if (!new File(folder, fileName).exists()) {
-            saveResource("translations/" + fileName, false);
-        }
+        if (!new File(folder, fileName).exists()) saveResource("translations/" + fileName, false);
     }
 
     // ----------------- Error Handling -----------------
