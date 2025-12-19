@@ -1,6 +1,6 @@
 # Сообщения игрока
-actionbar-fly-time: "&eВашего времени полёта: &6{time}s"
-bossbar-fly-time: "&eВашего времени полёта: &6{time}s"
+actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
+bossbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
 fly-time-warning: "&6⚠ &eОсталось &c10s &eполета!"
 fly-time-ended: "&cВремя полёта истекло"
 fly-cooldown: "&cВы уже потратили ваше время полёта, подождите &6{seconds}s &cчтобы летать снова."

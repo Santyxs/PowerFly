@@ -94,7 +94,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 if (isSameSender) {
                     sendMessage(player, "fly-mode-error", "&cYou cannot use this command in Creative or Spectator mode.");
                 } else {
-                    String message = plugin.getMessageString("fly-mode-error-target", "&c{player} is in Creative or Spectator mode.")
+                    String message = plugin.getMessageString("fly-mode-error-target", "&c{player} cannot use fly because they are in Creative or Spectator mode.")
                             .replace("{player}", player.getName());
                     String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                     sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
@@ -298,9 +298,9 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = player.getUniqueId();
         if (FLY_BOSSBARS.containsKey(uuid)) return;
 
-        String display = (maxTime == INFINITE_FLY_TIME) ? "∞" : String.valueOf(maxTime);
-        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s")
-                .replace("{time}", display);
+        String display = plugin.getFlyTimeManager().formatTime(maxTime);
+        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{fly_time}")
+                .replace("{fly_time}", display);
 
         BarColor color = BarColor.valueOf(plugin.getConfig().getString("bossbar-color", "BLUE").toUpperCase());
         BarStyle style = BarStyle.valueOf(plugin.getConfig().getString("bossbar-style", "SOLID").toUpperCase());
@@ -319,8 +319,8 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         double progress = (remaining == INFINITE_FLY_TIME) ? 1.0 : Math.max(0, (double) remaining / maxTime);
         bar.setProgress(progress);
 
-        String display = (remaining == INFINITE_FLY_TIME) ? "∞" : String.valueOf(remaining);
-        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{time}s").replace("{time}", display);
+        String display = plugin.getFlyTimeManager().formatTime(remaining);
+        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{fly_time}").replace("{fly_time}", display);
         bar.setTitle(serialize(raw));
     }
 
@@ -381,9 +381,9 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendFlyTimeActionBar(Player player, int time) {
-        String display = (time == INFINITE_FLY_TIME) ? "∞" : String.valueOf(time);
-        String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{time}s")
-                .replace("{time}", display);
+        String display = plugin.getFlyTimeManager().formatTime(time);
+        String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{fly_time}")
+                .replace("{fly_time}", display);
         player.sendActionBar(deserialize(raw));
     }
 

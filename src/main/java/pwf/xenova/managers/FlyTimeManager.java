@@ -81,6 +81,24 @@ public class FlyTimeManager {
         }
     }
 
+    public String formatTime(int totalSeconds) {
+        if (totalSeconds == -1) return "∞";
+        if (totalSeconds <= 0) return "0s";
+
+        int days = totalSeconds / 86400;
+        int hours = (totalSeconds % 86400) / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        StringBuilder builder = new StringBuilder();
+        if (days > 0) builder.append(days).append("d ");
+        if (hours > 0) builder.append(hours).append("h ");
+        if (minutes > 0) builder.append(minutes).append("m ");
+        if (seconds > 0 || totalSeconds < 60) builder.append(seconds).append("s");
+
+        return builder.toString().trim();
+    }
+
     public int getRemainingFlyTime(UUID playerUUID) {
         return flyTimeMap.getOrDefault(playerUUID, 0);
     }
@@ -96,7 +114,7 @@ public class FlyTimeManager {
     }
 
     public void setFlyTime(UUID playerUUID, int seconds) {
-        flyTimeMap.put(playerUUID, Math.max(-1, seconds)); // -1 = infinito
+        flyTimeMap.put(playerUUID, Math.max(-1, seconds));
         save();
     }
 
@@ -120,42 +138,25 @@ public class FlyTimeManager {
 
     public void handleJoin(Player player) {
         UUID uuid = player.getUniqueId();
-
         if (!flyTimeMap.containsKey(uuid)) {
-
             int flyTime;
-
             if (plugin.getConfig().getBoolean("use-group-fly-time")) {
                 String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
-
                 Object groupValue = plugin.getConfig().get("groups-fly-time." + group);
-
-                plugin.getLogger().info("[DEBUG] Group: " + group + ", Raw value: " + groupValue +
-                        ", Type: " + (groupValue != null ? groupValue.getClass().getSimpleName() : "null"));
-
                 if (groupValue instanceof Integer) {
                     flyTime = (Integer) groupValue;
-                    plugin.getLogger().info("[DEBUG] Direct integer read: " + flyTime);
                 } else if (groupValue instanceof String strValue) {
                     flyTime = parseFlyTime(strValue, plugin.getConfig().getString("fly-time", "100"));
-                    plugin.getLogger().info("[DEBUG] Parsed from string '" + strValue + "': " + flyTime);
                 } else {
-                    String value = plugin.getConfig().getString("fly-time", "100");
-                    flyTime = parseFlyTime(value, "100");
-                    plugin.getLogger().info("[DEBUG] Using default fly-time: " + flyTime);
+                    flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"), "100");
                 }
             } else {
-                String value = plugin.getConfig().getString("fly-time", "100");
-                flyTime = parseFlyTime(value, "100");
+                flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"), "100");
             }
-
-            plugin.getLogger().info("[DEBUG] Final fly time for " + player.getName() + ": " + flyTime);
             flyTimeMap.put(uuid, flyTime);
-
             config.set(uuid + ".name", player.getName());
             config.set(uuid + ".time", flyTime);
             config.set(uuid + ".cooldown", 0L);
-
             save();
         }
     }
@@ -163,15 +164,10 @@ public class FlyTimeManager {
     private int parseFlyTime(String value, String defaultValue) {
         if (value == null) value = defaultValue;
         value = value.trim().toLowerCase();
-
-        if (value.equals("-1")) {
-            return -1;
-        }
-
+        if (value.equals("-1")) return -1;
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            plugin.getLogger().warning("Invalid fly-time value: '" + value + "', using default: " + defaultValue);
             try {
                 return Integer.parseInt(defaultValue);
             } catch (NumberFormatException ex) {
