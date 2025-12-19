@@ -63,7 +63,7 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                 affected++;
             }
 
-            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds}s &aof fly time from all players.")
+            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds}s &aof fly time to all players.")
                     .replace("{seconds}", String.valueOf(secondsToRemove));
 
             sendWithPrefix(sender, msg);

@@ -80,7 +80,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = target.getUniqueId();
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
-        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time to {player}.")
+        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time from {player}.")
                 .replace("{seconds}", String.valueOf(secondsToAdd))
                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
