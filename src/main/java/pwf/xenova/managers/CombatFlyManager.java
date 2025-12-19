@@ -9,7 +9,9 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import pwf.xenova.PowerFly;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class CombatFlyManager implements Listener {
 
@@ -36,7 +38,7 @@ public class CombatFlyManager implements Listener {
         if (combatType.equals("players") && !pvp) return;
         if (combatType.equals("mobs") && !pve) return;
 
-        long combatDurationMillis = 7000;
+        long combatDurationMillis = plugin.getConfig().getLong("combat-duration", 7000);
         long expireTime = System.currentTimeMillis() + combatDurationMillis;
 
         combatLog.put(victim.getUniqueId(), expireTime);
@@ -49,10 +51,8 @@ public class CombatFlyManager implements Listener {
     }
 
     private void disableFly(Player player) {
-        if (isInCombat(player)) {
-            player.setFlying(false);
-            player.setAllowFlight(false);
-        }
+        player.setFlying(false);
+        player.setAllowFlight(false);
     }
 
     public boolean isInCombat(Player player) {
@@ -62,6 +62,11 @@ public class CombatFlyManager implements Listener {
 
         if (System.currentTimeMillis() > expireTime) {
             combatLog.remove(uuid);
+
+            if (plugin.getFlyTimeManager().getRemainingFlyTime(uuid) > 0) {
+                player.setAllowFlight(true);
+            }
+
             return false;
         }
 
@@ -75,8 +80,10 @@ public class CombatFlyManager implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (isInCombat(player) && player.isFlying()) {
-            player.setFlying(false);
-        }
+
+        if (!player.isFlying()) return;
+        if (!isInCombat(player)) return;
+
+        player.setFlying(false);
     }
 }

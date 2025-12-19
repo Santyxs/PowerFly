@@ -79,6 +79,7 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getControlFlyManager().reload();
         plugin.getClaimFlyManager().reload();
         plugin.getSoundEffectsManager().reload();
+        plugin.getSlowMiningManager().reload();
     }
 
     private void logException(Exception e) {

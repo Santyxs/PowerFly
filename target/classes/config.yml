@@ -41,6 +41,11 @@ groups-fly-time:
 # Prevent fall damage when fly time ends (10s)
 no-fall-damage: false
 
+# When players mine blocks while flying, they get mining fatigue effect
+slow-mining:
+  enabled: true
+  amplifier: 2  # 0 = Mining Fatigue I, 1 = Mining Fatigue II, 2 = Mining Fatigue III, etc.
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #     COMBAT SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #

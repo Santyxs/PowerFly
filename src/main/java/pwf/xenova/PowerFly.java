@@ -36,6 +36,7 @@ public class PowerFly extends JavaPlugin {
     private CombatFlyManager combatFlyManager;
     private ControlFlyManager controlFlyManager;
     private ClaimFlyManager claimFlyManager;
+    private SlowMiningManager slowMiningManager;
     private Economy economy;
 
     // ----------------- Plugin Enable -----------------
@@ -86,6 +87,10 @@ public class PowerFly extends JavaPlugin {
         claimFlyManager = new ClaimFlyManager(this);
         getServer().getPluginManager().registerEvents(claimFlyManager, this);
 
+        // SlowMiningManager
+        slowMiningManager = new SlowMiningManager(this);
+        getServer().getPluginManager().registerEvents(slowMiningManager, this);
+
         registerPlayerJoinEvent();
         registerNoFallDamageEvent();
 
@@ -114,6 +119,7 @@ public class PowerFly extends JavaPlugin {
     public void onDisable() {
         if (flyTimeManager != null) flyTimeManager.save();
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
+        if (slowMiningManager != null) slowMiningManager.shutdown();
         getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
     }
 
@@ -241,6 +247,10 @@ public class PowerFly extends JavaPlugin {
 
     public Economy getEconomy() {
         return economy;
+    }
+
+    public SlowMiningManager getSlowMiningManager() {
+        return slowMiningManager;
     }
 
     // ----------------- Economy -----------------
