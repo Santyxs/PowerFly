@@ -185,7 +185,7 @@ public class PowerFly extends JavaPlugin {
                 getLogger().warning("=====================================");
                 Bukkit.getOnlinePlayers().forEach(player -> {
                     if (player.isOp() || player.hasPermission("powerfly.admin"))
-                        player.sendMessage(MessageFormat.parseMessage("&e[PowerFly] &aNew version available: &f" + updateChecker.getLatestVersion()));
+                        player.sendMessage(MessageFormat.parseMessage("&7[&ePower&fFly&7]&r &aNew version available: &f" + updateChecker.getLatestVersion()));
                 });
             } else getLogger().info("You are running the latest version.");
         });

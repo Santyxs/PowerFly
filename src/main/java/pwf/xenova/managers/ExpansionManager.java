@@ -42,10 +42,7 @@ public class ExpansionManager extends PlaceholderExpansion {
                 long flyTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
                 yield formatTime(flyTime);
             }
-            case "cooldown" -> {
-                long cooldown = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(player.getUniqueId());
-                yield formatTime(cooldown);
-            }
+            case "cooldown" -> plugin.getCooldownFlyManager().getRemainingCooldownFormatted(player.getUniqueId());
             case "enabled" -> {
                 boolean flying = player.isFlying();
                 yield flying ? "yes" : "no";

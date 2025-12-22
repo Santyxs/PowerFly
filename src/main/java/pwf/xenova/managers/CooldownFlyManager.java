@@ -129,6 +129,16 @@ public class CooldownFlyManager {
         return cooldowns.containsKey(playerUUID) && cooldowns.get(playerUUID) > now;
     }
 
+    public String getRemainingCooldownFormatted(UUID playerUUID) {
+        long now = System.currentTimeMillis();
+        if (!cooldowns.containsKey(playerUUID)) return "0s";
+
+        long millisLeft = cooldowns.get(playerUUID) - now;
+        if (millisLeft <= 0) return "0s";
+
+        return formatTime(millisLeft);
+    }
+
     public int getRemainingCooldownSeconds(UUID playerUUID) {
         long now = System.currentTimeMillis();
         if (!cooldowns.containsKey(playerUUID)) return 0;
@@ -136,12 +146,50 @@ public class CooldownFlyManager {
         return (int) Math.max(0, millisLeft / 1000);
     }
 
+    private String formatTime(long millis) {
+        long seconds = millis / 1000;
+
+        long days = seconds / 86400;
+        seconds %= 86400;
+
+        long hours = seconds / 3600;
+        seconds %= 3600;
+
+        long minutes = seconds / 60;
+        seconds %= 60;
+
+        StringBuilder result = new StringBuilder();
+
+        if (days > 0) result.append(days).append("d ");
+        if (hours > 0) result.append(hours).append("h ");
+        if (minutes > 0) result.append(minutes).append("m ");
+        if (seconds > 0 || result.isEmpty()) result.append(seconds).append("s");
+
+        return result.toString().trim();
+    }
+
+    private long getCooldownMillis() {
+        if (plugin.getConfig().isConfigurationSection("cooldown")) {
+            int days = plugin.getConfig().getInt("cooldown.days", 0);
+            int hours = plugin.getConfig().getInt("cooldown.hours", 0);
+            int minutes = plugin.getConfig().getInt("cooldown.minutes", 0);
+            int seconds = plugin.getConfig().getInt("cooldown.seconds", 0);
+
+            long totalSeconds = (days * 86400L) + (hours * 3600L) + (minutes * 60L) + seconds;
+            return totalSeconds * 1000L;
+        }
+
+        int cooldownSeconds = plugin.getConfig().getInt("cooldown", 0);
+        return cooldownSeconds * 1000L;
+    }
+
     public void startCooldown(UUID playerUUID) {
         if (isOnCooldown(playerUUID)) return;
 
-        int cooldownSeconds = plugin.getConfig().getInt("cooldown", 0);
-        if (cooldownSeconds > 0) {
-            long cooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000L);
+        long cooldownMillis = getCooldownMillis();
+
+        if (cooldownMillis > 0) {
+            long cooldownUntil = System.currentTimeMillis() + cooldownMillis;
             cooldowns.put(playerUUID, cooldownUntil);
 
             plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
@@ -156,7 +204,7 @@ public class CooldownFlyManager {
             config.set(playerUUID + ".cooldown", cooldownUntil);
 
             save();
-            plugin.getLogger().info("Cooldown started for player " + playerUUID + " (" + name + ") for " + cooldownSeconds + " seconds.");
+            plugin.getLogger().info("Cooldown started for player " + playerUUID + " (" + name + ") for " + formatTime(cooldownMillis));
         }
     }
 

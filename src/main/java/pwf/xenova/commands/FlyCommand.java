@@ -121,9 +121,9 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 return false;
             }
 
-            int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
-            String message = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{seconds}s &cto fly again.")
-                    .replace("{seconds}", String.valueOf(cooldownSeconds));
+            String cooldownFormatted = plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
+            String message = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{cooldown_time} &cto fly again.")
+                    .replace("{cooldown_time}", cooldownFormatted);
             String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
             player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
             return false;
