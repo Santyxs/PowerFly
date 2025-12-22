@@ -61,17 +61,34 @@ public class ControlFlyManager implements Listener {
     public void reload() {
         loadConfig();
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
+                    player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+                continue;
+            }
+
             if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) continue;
-            if (isFlightBlocked(player)) disableFlight(player, true);
+            if (isFlightBlocked(player)) {
+                boolean inRegion = isFlightBlockedInRegion(player);
+                disableFlight(player, true, inRegion);
+            }
         }
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
+
+        if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
+                player.getGameMode() == org.bukkit.GameMode.SPECTATOR) {
+            return;
+        }
+
         if (!player.isFlying() && !player.getAllowFlight()) return;
         if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) return;
-        if (isFlightBlocked(player)) disableFlight(player, false);
+        if (isFlightBlocked(player)) {
+            boolean inRegion = isFlightBlockedInRegion(player);
+            disableFlight(player, false, inRegion);
+        }
     }
 
     public boolean isFlightBlocked(Player player) {
@@ -138,7 +155,7 @@ public class ControlFlyManager implements Listener {
         return false;
     }
 
-    private void disableFlight(Player player, boolean forceMessage) {
+    private void disableFlight(Player player, boolean forceMessage, boolean isRegionBlock) {
         UUID uuid = player.getUniqueId();
         boolean shouldNotify = forceMessage || canSendMessage(uuid);
 
@@ -151,11 +168,26 @@ public class ControlFlyManager implements Listener {
         flyCommand.cleanupFlyData(player);
 
         if (shouldNotify) {
-            String message = plugin.getMessages().getString("blacklist-worlds", "&cYou cannot fly in this world or region.");
-            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-            player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            sendBlockMessage(player, isRegionBlock);
             messageCooldowns.put(uuid, System.currentTimeMillis());
         }
+    }
+
+    private void sendBlockMessage(Player player, boolean isRegionBlock) {
+        String messageKey;
+        String fallbackMessage;
+
+        if (isRegionBlock) {
+            messageKey = "fly-not-allowed-in-region";
+            fallbackMessage = "&cYou cannot fly in this region.";
+        } else {
+            messageKey = "fly-not-allowed-in-world";
+            fallbackMessage = "&cYou cannot fly in this world.";
+        }
+
+        String message = plugin.getMessages().getString(messageKey, fallbackMessage);
+        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 
     private boolean canSendMessage(UUID uuid) {
