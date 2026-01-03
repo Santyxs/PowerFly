@@ -1,3 +1,5 @@
+config-version: 1
+
 # Mensajes de jugador
 actionbar-fly-time: "&eTiempo de vuelo: &6{fly_time}"
 bossbar-fly-time: "&eTiempo de vuelo: &6{fly_time}"

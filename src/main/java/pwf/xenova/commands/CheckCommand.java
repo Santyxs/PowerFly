@@ -61,7 +61,7 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
         int cooldownRemSeconds = cooldownSeconds % 60;
         String cooldownDisplay = cooldownMinutes + "m " + cooldownRemSeconds + "s";
 
-        String raw = plugin.getMessages().getString("check-info",
+        String raw = plugin.getMessageString("check-info",
                 """
                 &8&m-&r &b{player} Info &8&m-
                 
@@ -78,7 +78,7 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 }

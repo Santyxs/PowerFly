@@ -1,3 +1,5 @@
+config-version: 1
+
 # Сообщения игрока
 actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
 bossbar-fly-time: "&eВашего времени полёта: &6{fly_time}"

@@ -96,7 +96,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 } else {
                     String message = plugin.getMessageString("fly-mode-error-target", "&c{player} cannot use fly because they are in Creative or Spectator mode.")
                             .replace("{player}", player.getName());
-                    String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                    String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                     sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
                 }
             }
@@ -116,7 +116,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             if (!isSameSender) {
                 String message = plugin.getMessageString("no-player-fly-time", "&c{player} has no fly time remaining.")
                         .replace("{player}", player.getName());
-                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                 sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
                 return false;
             }
@@ -124,7 +124,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             String cooldownFormatted = plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
             String message = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{cooldown_time} &cto fly again.")
                     .replace("{cooldown_time}", cooldownFormatted);
-            String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+            String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
             player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
             return false;
         }
@@ -152,7 +152,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             if (!isSameSender) {
                 String message = plugin.getMessageString("blacklist-worlds-target", "&c{player} cannot fly in this world.")
                         .replace("{player}", player.getName());
-                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                 sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
             }
             return;
@@ -164,7 +164,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             if (!isSameSender) {
                 String message = plugin.getMessageString("fly-not-allowed-in-region-target", "&c{player} cannot fly in this region.")
                         .replace("{player}", player.getName());
-                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                 sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
             }
             return;
@@ -176,7 +176,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             if (!isSameSender) {
                 String message = plugin.getMessageString("fly-in-combat-target", "&c{player} cannot fly while in combat.")
                         .replace("{player}", player.getName());
-                String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
                 sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
             }
             return;
@@ -192,7 +192,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getSoundEffectsManager().playActivationEffects(player);
         sendMessage(player, "fly-enabled", "&aFly activated.");
 
-        if (plugin.getConfig().getBoolean("show-bossbar", true)) showFlyBar(player, maxTime);
+        if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true)) showFlyBar(player, maxTime);
         startFlyTimer(player, maxTime);
     }
 
@@ -217,7 +217,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             plugin.getCooldownFlyManager().startCooldown(uuid);
         }
 
-        if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
+        if (plugin.getFileManager().getConfig().getBoolean("no-fall-damage", true)) {
             plugin.getNoFallDamageSet().add(uuid);
             new BukkitRunnable() {
                 public void run() {
@@ -226,7 +226,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             }.runTaskLater(plugin, 40L);
         }
 
-        String raw = plugin.getMessages().getString("fly-time-ended", "&cFly time has ended.");
+        String raw = plugin.getMessageString("fly-time-ended", "&cFly time has ended.");
         player.sendActionBar(deserialize(raw));
     }
 
@@ -256,10 +256,10 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 }
 
                 if (remaining > 0 || remaining == INFINITE_FLY_TIME) {
-                    if (plugin.getConfig().getBoolean("show-actionbar", true))
+                    if (plugin.getFileManager().getConfig().getBoolean("show-actionbar", true))
                         sendFlyTimeActionBar(player, remaining);
 
-                    if (plugin.getConfig().getBoolean("show-bossbar", true))
+                    if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true))
                         updateFlyBar(player, remaining, maxTime);
                 } else {
                     endFly(player);
@@ -277,7 +277,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         disableFly(player, true);
         plugin.getSoundEffectsManager().playTimeEndEffects(player);
 
-        if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
+        if (plugin.getFileManager().getConfig().getBoolean("no-fall-damage", true)) {
             UUID uuid = player.getUniqueId();
             plugin.getNoFallDamageSet().add(uuid);
             new BukkitRunnable() {
@@ -299,11 +299,11 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         if (FLY_BOSSBARS.containsKey(uuid)) return;
 
         String display = plugin.getFlyTimeManager().formatTime(maxTime);
-        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{fly_time}")
+        String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}")
                 .replace("{fly_time}", display);
 
-        BarColor color = BarColor.valueOf(plugin.getConfig().getString("bossbar-color", "BLUE").toUpperCase());
-        BarStyle style = BarStyle.valueOf(plugin.getConfig().getString("bossbar-style", "SOLID").toUpperCase());
+        BarColor color = BarColor.valueOf(plugin.getFileManager().getConfig().getString("bossbar-color", "BLUE").toUpperCase());
+        BarStyle style = BarStyle.valueOf(plugin.getFileManager().getConfig().getString("bossbar-style", "SOLID").toUpperCase());
 
         BossBar bar = Bukkit.createBossBar(serialize(raw), color, style);
         bar.addPlayer(player);
@@ -320,7 +320,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         bar.setProgress(progress);
 
         String display = plugin.getFlyTimeManager().formatTime(remaining);
-        String raw = plugin.getMessages().getString("bossbar-fly-time", "&eFly time: &6{fly_time}").replace("{fly_time}", display);
+        String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}").replace("{fly_time}", display);
         bar.setTitle(serialize(raw));
     }
 
@@ -376,13 +376,13 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         String messageKey = enabled ? "fly-enabled-target" : "fly-disabled-target";
         String fallback = enabled ? "&aFly activated for &e{player}" : "&cFly disabled for &e{player}";
         String message = plugin.getMessageString(messageKey, fallback).replace("{player}", target.getName());
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 
     private void sendFlyTimeActionBar(Player player, int time) {
         String display = plugin.getFlyTimeManager().formatTime(time);
-        String raw = plugin.getMessages().getString("actionbar-fly-time", "&eFly time: &6{fly_time}")
+        String raw = plugin.getMessageString("actionbar-fly-time", "&eFly time: &6{fly_time}")
                 .replace("{fly_time}", display);
         player.sendActionBar(deserialize(raw));
     }

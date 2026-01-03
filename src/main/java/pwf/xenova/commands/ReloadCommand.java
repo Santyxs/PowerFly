@@ -8,8 +8,6 @@ import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
-import java.io.File;
-
 public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
 
     public boolean onCommand(@NotNull CommandSender sender,
@@ -23,55 +21,26 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         try {
+            plugin.getFileManager().reload();
 
-            reloadConfigFiles();
-            reloadTranslations();
             reloadManagers();
 
-            sendWithPrefix(sender, plugin.getMessageString("reload-success", "&Configuration reloaded!"));
+            plugin.reloadMessages();
+
+            sendWithPrefix(sender, plugin.getMessageString("reload-success", "&aConfiguration reloaded!"));
 
         } catch (Exception e) {
-            sendWithPrefix(sender, plugin.getMessageString("reload-error", "&cAn error occurred while reloading configuration or messages: " + e.getMessage()));
+            String errorMsg = plugin.getMessageString("reload-error", "&cAn error occurred while reloading: {error}")
+                    .replace("{error}", e.getMessage());
+            try {
+                sendWithPrefix(sender, errorMsg);
+            } catch (Exception ex) {
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix("&7[&ePower&fFly&7] &r", errorMsg));
+            }
             logException(e);
         }
 
         return true;
-    }
-
-    private void reloadConfigFiles() {
-        File configFile = new File(plugin.getDataFolder(), "config.yml");
-        if (!configFile.exists()) {
-            plugin.getLogger().warning("Config.yml not found, creating default one...");
-            plugin.saveDefaultConfig();
-        } else {
-            plugin.reloadConfig();
-        }
-    }
-
-    private void reloadTranslations() {
-        File translationsFolder = new File(plugin.getDataFolder(), "translations");
-        File[] requiredFiles = {
-                new File(translationsFolder, "en.yml"),
-                new File(translationsFolder, "es.yml"),
-                new File(translationsFolder, "pt.yml")
-        };
-
-        boolean missing = !translationsFolder.exists();
-        if (!missing) {
-            for (File file : requiredFiles) {
-                if (!file.exists()) {
-                    missing = true;
-                    break;
-                }
-            }
-        }
-
-        if (missing) {
-            plugin.getLogger().warning("Missing translation files, creating default ones...");
-            plugin.saveDefaultMessages();
-        } else {
-            plugin.reloadMessages();
-        }
     }
 
     private void reloadManagers() {
@@ -109,7 +78,7 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 }

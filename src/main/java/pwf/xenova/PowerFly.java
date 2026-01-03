@@ -5,7 +5,6 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -14,7 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -26,7 +24,7 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Managers -----------------
 
-    private YamlConfiguration messages;
+    private FileManager fileManager;
     private LuckPerms luckPerms;
     private UpdateChecker updateChecker;
     private FlyTimeManager flyTimeManager;
@@ -42,7 +40,10 @@ public class PowerFly extends JavaPlugin {
     private final Set<UUID> noFallDamage = new HashSet<>();
 
     public static PowerFly getInstance() { return instance; }
+
     public Set<UUID> getNoFallDamageSet() { return noFallDamage; }
+    public FileManager getFileManager() { return fileManager; }
+    public LuckPerms getLuckPerms() { return luckPerms; }
     public FlyTimeManager getFlyTimeManager() { return flyTimeManager; }
     public GroupFlyTimeManager getGroupFlyTimeManager() { return groupFlyTimeManager; }
     public CooldownFlyManager getCooldownFlyManager() { return cooldownManager; }
@@ -52,15 +53,14 @@ public class PowerFly extends JavaPlugin {
     public ClaimFlyManager getClaimFlyManager() { return claimFlyManager; }
     public Economy getEconomy() { return economy; }
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
-    public LuckPerms getLuckPerms() { return luckPerms; }
-    public YamlConfiguration getMessages() { return messages; }
 
     // ----------------- Plugin Enable -----------------
 
     public void onEnable() {
         instance = this;
-        saveDefaultConfig();
-        saveDefaultMessages();
+
+        // FileManager
+        fileManager = new FileManager(this);
 
         // LuckPerms
         try {
@@ -72,9 +72,6 @@ public class PowerFly extends JavaPlugin {
             return;
         }
 
-        // CommandManager
-        CommandManager.registerCommands(this);
-
         // Managers
         flyTimeManager = new FlyTimeManager(this);
         cooldownManager = new CooldownFlyManager(this);
@@ -84,6 +81,10 @@ public class PowerFly extends JavaPlugin {
         claimFlyManager = new ClaimFlyManager(this);
         slowMiningManager = new SlowMiningManager(this);
 
+        // CommandManager
+        CommandManager.registerCommands(this);
+
+        // Events
         getServer().getPluginManager().registerEvents(controlFlyManager, this);
         getServer().getPluginManager().registerEvents(claimFlyManager, this);
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
@@ -172,7 +173,7 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Update Checker -----------------
 
     private void checkForUpdates() {
-        if (!getConfig().getBoolean("check-updates", true)) return;
+        if (!fileManager.getConfig().getBoolean("check-updates", true)) return;
 
         updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
         updateChecker.checkForUpdates(() -> {
@@ -215,56 +216,38 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Messages -----------------
 
-    private String getDefaultPrefix() { return getConfig().getString("prefix", "&7[&ePower&fFly&7] &r"); }
+    public void reloadMessages() {
+        if (fileManager != null) {
+            fileManager.reload();
+        }
+    }
+
+    private String getDefaultPrefix() {
+        return fileManager.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+    }
+
+    private String getLangCode() {
+        return fileManager.getConfig().getString("language", "en");
+    }
 
     public Component getPrefixedMessage(String key, String defaultMessage) {
         String prefix = getDefaultPrefix();
-        String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
+        String message = fileManager.getLang(getLangCode()).getString(key, defaultMessage);
         return MessageFormat.parseMessageWithPrefix(prefix, message);
     }
 
     public Component getMessage(String key, String defaultMessage) {
-        String message = messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
+        String message = fileManager.getLang(getLangCode()).getString(key, defaultMessage);
         return MessageFormat.parseMessage(message);
     }
 
     public String getMessageString(String key, String defaultMessage) {
-        return messages != null ? messages.getString(key, defaultMessage) : defaultMessage;
-    }
-
-    public void reloadMessages() {
-        reloadConfig();
-        String language = getConfig().getString("language", "en");
-        File messagesFile = new File(getDataFolder(), "translations/" + language + ".yml");
-        if (messagesFile.exists()) messages = YamlConfiguration.loadConfiguration(messagesFile);
-        else {
-            handleMissingMessagesFile(language);
-            messages = null;
-        }
-    }
-
-    public void saveDefaultMessages() {
-        File translationsFolder = new File(getDataFolder(), "translations");
-        if (!translationsFolder.exists() && !translationsFolder.mkdirs()) getLogger().warning("Could not create translations folder.");
-        saveIfNotExists(translationsFolder, "en.yml");
-        saveIfNotExists(translationsFolder, "es.yml");
-        saveIfNotExists(translationsFolder, "pt.yml");
-        saveIfNotExists(translationsFolder, "rus.yml");
-        File messagesFile = new File(translationsFolder, "en.yml");
-        messages = YamlConfiguration.loadConfiguration(messagesFile);
-    }
-
-    private void saveIfNotExists(File folder, String fileName) {
-        if (!new File(folder, fileName).exists()) saveResource("translations/" + fileName, false);
+        return fileManager.getLang(getLangCode()).getString(key, defaultMessage);
     }
 
     // ----------------- Error Handling -----------------
 
     public void handleLuckPermsError(Exception e) {
         getLogger().log(Level.SEVERE, "LuckPerms is not loaded. PowerFly will not manage group times.", e);
-    }
-
-    public void handleMissingMessagesFile(String language) {
-        getLogger().warning("Messages file for language " + language + " does not exist.");
     }
 }

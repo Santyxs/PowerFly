@@ -13,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
 import pwf.xenova.commands.FlyCommand;
-import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
 import java.util.*;
@@ -40,20 +39,24 @@ public class ControlFlyManager implements Listener {
         blacklistRegions.clear();
         whitelistRegions.clear();
 
-        blacklistWorlds.addAll(plugin.getConfig().getStringList("blacklist-worlds"));
-        whitelistWorlds.addAll(plugin.getConfig().getStringList("whitelist-worlds"));
+        var config = plugin.getFileManager().getConfig();
 
-        var blacklistRegionsSection = plugin.getConfig().getConfigurationSection("blacklist-regions");
+        blacklistWorlds.addAll(config.getStringList("blacklist-worlds"));
+        whitelistWorlds.addAll(config.getStringList("whitelist-worlds"));
+
+        var blacklistRegionsSection = config.getSection("blacklist-regions");
         if (blacklistRegionsSection != null) {
-            for (String world : blacklistRegionsSection.getKeys(false)) {
-                blacklistRegions.put(world, new HashSet<>(blacklistRegionsSection.getStringList(world)));
+            for (Object world : blacklistRegionsSection.getKeys()) {
+                String worldName = String.valueOf(world);
+                blacklistRegions.put(worldName, new HashSet<>(blacklistRegionsSection.getStringList(worldName)));
             }
         }
 
-        var whitelistRegionsSection = plugin.getConfig().getConfigurationSection("whitelist-regions");
+        var whitelistRegionsSection = config.getSection("whitelist-regions");
         if (whitelistRegionsSection != null) {
-            for (String world : whitelistRegionsSection.getKeys(false)) {
-                whitelistRegions.put(world, new HashSet<>(whitelistRegionsSection.getStringList(world)));
+            for (Object world : whitelistRegionsSection.getKeys()) {
+                String worldName = String.valueOf(world);
+                whitelistRegions.put(worldName, new HashSet<>(whitelistRegionsSection.getStringList(worldName)));
             }
         }
     }
@@ -185,9 +188,7 @@ public class ControlFlyManager implements Listener {
             fallbackMessage = "&cYou cannot fly in this world.";
         }
 
-        String message = plugin.getMessages().getString(messageKey, fallbackMessage);
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
-        player.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+        player.sendMessage(plugin.getPrefixedMessage(messageKey, fallbackMessage));
     }
 
     private boolean canSendMessage(UUID uuid) {

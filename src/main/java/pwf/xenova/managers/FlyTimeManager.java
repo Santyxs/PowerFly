@@ -132,6 +132,8 @@ public class FlyTimeManager {
     }
 
     public void reload() {
+        save();
+
         flyTimeMap.clear();
         load();
     }
