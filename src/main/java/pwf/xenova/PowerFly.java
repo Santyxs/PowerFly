@@ -168,7 +168,7 @@ public class PowerFly extends JavaPlugin {
     private void checkForUpdates() {
         if (!fileManager.getConfig().getBoolean("check-updates", true)) return;
 
-        updateChecker = new UpdateChecker(this, "Santyxs", "PowerFly");
+        updateChecker = new UpdateChecker(this, "127043");
         updateChecker.checkForUpdates(() -> {
             if (updateChecker.isUpdateAvailable()) {
                 getLogger().warning("=====================================");

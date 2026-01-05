@@ -12,17 +12,15 @@ import java.util.concurrent.CompletableFuture;
 public class UpdateChecker {
 
     private final PowerFly plugin;
-    private final String repoOwner;
-    private final String repoName;
+    private final String resourceId;
 
     private String latestVersion;
     private String downloadUrl;
     private boolean updateAvailable;
 
-    public UpdateChecker(PowerFly plugin, String repoOwner, String repoName) {
+    public UpdateChecker(PowerFly plugin, String resourceId) {
         this.plugin = plugin;
-        this.repoOwner = repoOwner;
-        this.repoName = repoName;
+        this.resourceId = resourceId;
     }
 
     public void checkForUpdates() {
@@ -32,13 +30,13 @@ public class UpdateChecker {
     public void checkForUpdates(Runnable callback) {
         CompletableFuture.runAsync(() -> {
             try {
-                URI uri = new URI("https://api.github.com/repos/" + repoOwner + "/" + repoName + "/releases/latest");
+                URI uri = new URI("https://api.spiget.org/v2/resources/" + resourceId + "/versions/latest");
                 HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                conn.setRequestProperty("User-Agent", "PowerFly-UpdateChecker");
 
                 JsonObject json = JsonParser.parseReader(new InputStreamReader(conn.getInputStream())).getAsJsonObject();
-                latestVersion = json.get("tag_name").getAsString();
-                downloadUrl = json.get("html_url").getAsString();
+                latestVersion = json.get("name").getAsString();
+                downloadUrl = "https://www.spigotmc.org/resources/" + resourceId;
 
                 String normalizedLatest = latestVersion.startsWith("v") ? latestVersion.substring(1) : latestVersion;
                 String currentVersion = getCurrentVersion();
