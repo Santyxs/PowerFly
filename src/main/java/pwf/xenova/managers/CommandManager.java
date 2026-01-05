@@ -21,6 +21,7 @@ public class CommandManager {
         AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand(powerFly);
         DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(powerFly);
         BuyFlyTimeCommand buyFlyTimeCommand = new BuyFlyTimeCommand(powerFly);
+        ResetCommand resetCommand = new ResetCommand(powerFly);
 
         Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(flyCommand);
         Objects.requireNonNull(plugin.getCommand("buyflytime")).setExecutor(buyFlyTimeCommand);
@@ -37,6 +38,7 @@ public class CommandManager {
                 case "addflytime" -> addFlyTimeCommand.onCommand(sender, command, label, subArgs);
                 case "delflytime" -> delFlyTimeCommand.onCommand(sender, command, label, subArgs);
                 case "buyflytime" -> buyFlyTimeCommand.onCommand(sender, command, label, subArgs);
+                case "reset" -> resetCommand.onCommand(sender, command, label, subArgs);
                 default -> false;
             };
         });
@@ -44,7 +46,7 @@ public class CommandManager {
         Objects.requireNonNull(plugin.getCommand("powerfly")).setTabCompleter((sender, command, label, args) -> {
             if (args.length == 1) {
                 List<String> subcommands = List.of(
-                        "help", "reload", "fly", "check", "addflytime", "delflytime", "buyflytime"
+                        "help", "reload", "fly", "check", "addflytime", "delflytime", "buyflytime", "reset"
                 );
                 return StringUtil.copyPartialMatches(args[0], subcommands, new ArrayList<>());
             }
@@ -59,27 +61,40 @@ public class CommandManager {
                     return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
                 }
 
-                if ("check".equals(subcommand)) {
-                    List<String> options = new ArrayList<>();
-                    Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
-                    return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
+                switch (subcommand) {
+                    case "reset" -> {
+                        return StringUtil.copyPartialMatches(args[1], List.of("cooldown", "flytime"), new ArrayList<>());
+                    }
+                    case "check" -> {
+                        List<String> options = new ArrayList<>();
+                        Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                        return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
+                    }
+                    case "buyflytime" -> {
+                        return List.of("<seconds>");
+                    }
                 }
 
-                if ("buyflytime".equals(subcommand)) {
-                    return List.of("<seconds>");
-                }
             }
 
             if (args.length == 3) {
                 String subcommand = args[0].toLowerCase();
 
-                if ("fly".equals(subcommand)) {
-                    return StringUtil.copyPartialMatches(args[2], List.of("on", "off"), new ArrayList<>());
+                switch (subcommand) {
+                    case "fly" -> {
+                        return StringUtil.copyPartialMatches(args[2], List.of("on", "off"), new ArrayList<>());
+                    }
+                    case "addflytime", "delflytime" -> {
+                        return List.of("<seconds>");
+                    }
+                    case "reset" -> {
+                        List<String> options = new ArrayList<>();
+                        options.add("all");
+                        Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                        return StringUtil.copyPartialMatches(args[2], options, new ArrayList<>());
+                    }
                 }
 
-                if ("addflytime".equals(subcommand) || "delflytime".equals(subcommand)) {
-                    return List.of("<seconds>");
-                }
             }
 
             return new ArrayList<>();

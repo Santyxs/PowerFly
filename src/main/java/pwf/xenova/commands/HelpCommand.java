@@ -27,6 +27,7 @@ public record HelpCommand(PowerFly plugin) implements CommandExecutor {
             send(sender, "&e/powerfly check <player> &7- Check fly time and cooldown of a player.");
             send(sender, "&e/powerfly addflytime <player | all> <seconds> &7- Add fly time to a player or all.");
             send(sender, "&e/powerfly delflytime <player | all> <seconds> &7- Remove fly time from a player or all.");
+            send(sender, "&e/powerfly reset <cooldown | flytime> <player | all> &7- Reset cooldown or fly time of a player or all.");
             send(sender, "&e/powerfly reload &7- Reload the plugin configuration.");
             return true;
         }

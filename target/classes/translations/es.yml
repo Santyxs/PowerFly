@@ -28,6 +28,7 @@ no-time-specified: "&cDebes especificar el tiempo en segundos."
 invalid-time: "&cTiempo inválido."
 no-player-fly-time: "&c{player} no tiene tiempo de vuelo restante."
 no-players-with-fly-time: "&cNo hay ningún jugador con tiempo de vuelo restante."
+no-reset-type-specified": "&cDebes especificar 'cooldown' o 'flytime'."
 
 check-info: |
   &8&m-&r &bInformación de {player} &8&m-
@@ -44,6 +45,11 @@ fly-time-added: "&aSe añadieron &f{seconds}s &ade tiempo de vuelo a &e{player}.
 fly-time-deleted: "&aSe eliminaron &f{seconds}s &ade tiempo de vuelo a &e{player}."
 fly-time-added-all: "&aSe han añadido &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
 fly-time-deleted-all: "&aSe han eliminado &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
+
+fly-time-reset: "&fTiempo de vuelo &areseteado para &e{player}."
+fly-time-reset-all: "&fTiempo de vuelo &areseteado para &etodos los jugadores."
+cooldown-reset: "&fCooldown &areseteado para &e{player}."
+cooldown-reset-all: "&fCooldown &areseteado para &etodos los jugadores."
 
 reload-success: "&aConfiguración recargada!"
 reload-error: "&cSe produjo un error al recargar la configuración o los mensajes."

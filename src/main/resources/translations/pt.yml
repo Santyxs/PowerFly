@@ -18,6 +18,7 @@ fly-in-combat: "&cNão pode voar enquanto estiver em combate."
 no-permission: "&cVocê não tem permissão para usar este comando."
 not-enough-money: "&cPrecisa de &e{price}{currency} &cpara comprar &f{secondstobuy}s &cde tempo de voo."
 flytime-bought: "&aVoce comprou &f{secondstobuy}s &ade tempo de voo por &e{price}{currency}&a."
+no-reset-type-specified": "&cVocê deve especificar cooldown ou flytime."
 
 # Mensagens de admin
 fly-mode-error: "&cVocê não pode voar no seu modo de jogo atual."
@@ -28,6 +29,7 @@ no-time-specified: "&cVocê deve especificar um tempo em segundos."
 invalid-time: "&cTempo inválido."
 no-player-fly-time: "&c{player} não tem tempo de voo restante."
 no-players-with-fly-time: "&cNenhum jogador tem tempo de voo restante."
+no-reset-type-specified": "&cVocê deve especificar 'cooldown' ou 'flytime'."
 
 check-info: |
   &8&m-&r &bInformações de {player} &8&m-
@@ -44,6 +46,11 @@ fly-time-added: "&aForam adicionados {seconds}s de tempo de voo para &e{player}.
 fly-time-deleted: "&aForam removidos {seconds}s de tempo de voo para &e{player}."
 fly-time-added-all: "&aForam adicionados {seconds}s de tempo de voo para &etodos os jogadores."
 fly-time-deleted-all: "&aForam removidos {seconds}s de tempo de voo para &etodos os jogadores."
+
+fly-time-reset: "&fTempo de voo &aresetado para &e{player}."
+fly-time-reset-all: "&fTempo de voo &aresetado para &etodos os jogadores."
+cooldown-reset: "&fCooldown &aresetado para &e{player}."
+cooldown-reset-all: "&fCooldown &aresetado para &etodos os jogadores."
 
 reload-success: "&aConfiguração recarregada!"
 reload-error: "&cOcorreu um erro ao recarregar a configuração ou as mensagens."

@@ -29,6 +29,7 @@ permissions:
     children:
       powerfly.addflytime: true
       powerfly.delflytime: true
+      powerfly.reset: true
       powerfly.reload: true
       powerfly.check: true
       powerfly.fly: true
@@ -41,6 +42,10 @@ permissions:
 
   powerfly.delflytime:
     description: Allows using /powerfly delflytime
+    default: false
+
+  powerfly.reset:
+    description: Allows using /powerfly reset
     default: false
 
   powerfly.reload:
