@@ -1,11 +1,12 @@
 name: PowerFly
-version: ${project.version}
+version: 1.3
 description: A simple fly plugin
 authors:
   - Santysx
 api-version: 1.20
 main: pwf.xenova.PowerFly
-softdepend: [LuckPerms, Vault, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
+depend: [LuckPerms]
+softdepend: [Vault, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
 loadbefore: [EssentialsX, CMI]
 
 commands:

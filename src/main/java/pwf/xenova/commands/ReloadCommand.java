@@ -45,9 +45,11 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
 
     private void reloadManagers() {
         plugin.getFlyTimeManager().reload();
+        plugin.getGroupFlyTimeManager().reload();
+        plugin.getCooldownFlyManager().reload();
+        plugin.getSoundEffectsManager().reload();
         plugin.getControlFlyManager().reload();
         plugin.getClaimFlyManager().reload();
-        plugin.getSoundEffectsManager().reload();
         plugin.getSlowMiningManager().reload();
     }
 
