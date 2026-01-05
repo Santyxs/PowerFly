@@ -16,7 +16,6 @@ import pwf.xenova.utils.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class PowerFly extends JavaPlugin {
 
@@ -63,17 +62,11 @@ public class PowerFly extends JavaPlugin {
         fileManager = new FileManager(this);
 
         // LuckPerms
-        try {
-            luckPerms = LuckPermsProvider.get();
-            groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
-        } catch (IllegalStateException e) {
-            handleLuckPermsError(e);
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
+        luckPerms = LuckPermsProvider.get();
 
         // Managers
         flyTimeManager = new FlyTimeManager(this);
+        groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
         cooldownManager = new CooldownFlyManager(this);
         soundEffectsManager = new SoundEffectsManager(this);
         combatFlyManager = new CombatFlyManager(this);
@@ -243,11 +236,5 @@ public class PowerFly extends JavaPlugin {
 
     public String getMessageString(String key, String defaultMessage) {
         return fileManager.getLang(getLangCode()).getString(key, defaultMessage);
-    }
-
-    // ----------------- Error Handling -----------------
-
-    public void handleLuckPermsError(Exception e) {
-        getLogger().log(Level.SEVERE, "LuckPerms is not loaded. PowerFly will not manage group times.", e);
     }
 }

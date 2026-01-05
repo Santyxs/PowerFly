@@ -53,20 +53,26 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
             int affected = 0;
 
+            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+
             for (Player player : Bukkit.getOnlinePlayers()) {
 
-                if (!plugin.getConfig().getStringList("allowed-worlds")
-                        .contains(player.getWorld().getName()))
+                if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
+                }
 
                 plugin.getFlyTimeManager().delFlyTime(player.getUniqueId(), secondsToRemove);
                 affected++;
             }
 
-            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds}s &aof fly time to all players.")
-                    .replace("{seconds}", String.valueOf(secondsToRemove));
+            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds}s &aof fly time from all players.")
+                    .replace("{seconds}", String.valueOf(secondsToRemove))
+                    .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
+
+            plugin.getLogger().info("Removed " + secondsToRemove + "s from " + affected + " players");
+
             return true;
         }
 
