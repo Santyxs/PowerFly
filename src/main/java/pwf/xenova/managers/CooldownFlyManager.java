@@ -17,11 +17,11 @@ public class CooldownFlyManager {
     private final PowerFly plugin;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
     private File file;
-    private FileConfiguration config; // Este es database.yml
+    private FileConfiguration config;
 
     public CooldownFlyManager(PowerFly plugin) {
         this.plugin = plugin;
-        load(); // Carga la base de datos de cooldowns
+        load();
 
         new BukkitRunnable() {
             public void run() {
@@ -59,7 +59,6 @@ public class CooldownFlyManager {
         }.runTaskTimer(plugin, 20L, 20L);
     }
 
-    // NUEVO MÉTODO: Permite que el ReloadCommand llame aquí
     public void reload() {
         load();
     }

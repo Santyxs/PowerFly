@@ -5,8 +5,7 @@ authors:
   - Santysx
 api-version: 1.20
 main: pwf.xenova.PowerFly
-depend: [LuckPerms]
-softdepend: [Vault, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
+softdepend: [LuckPerms, Vault, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
 loadbefore: [EssentialsX, CMI]
 
 commands:

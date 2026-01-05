@@ -53,20 +53,26 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
             int affected = 0;
 
+            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+
             for (Player player : Bukkit.getOnlinePlayers()) {
 
-                if (!plugin.getConfig().getStringList("allowed-worlds")
-                        .contains(player.getWorld().getName()))
+                if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
+                }
 
                 plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
                 affected++;
             }
 
             String msg = plugin.getMessageString("fly-time-added-all", "&aAdded &f{seconds}s &aof fly time to all players.")
-                    .replace("{seconds}", String.valueOf(secondsToAdd));
+                    .replace("{seconds}", String.valueOf(secondsToAdd))
+                    .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
+
+            plugin.getLogger().info("Added " + secondsToAdd + "s fly time to " + affected + " players");
+
             return true;
         }
 
@@ -80,7 +86,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = target.getUniqueId();
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
-        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time from {player}.")
+        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time to {player}.")
                 .replace("{seconds}", String.valueOf(secondsToAdd))
                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
