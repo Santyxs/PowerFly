@@ -60,6 +60,10 @@ permissions:
     description: Allows using /fly
     default: op
 
+  powerfly.fly.others:
+    description: Allows using /fly on other players
+    default: op
+
   powerfly.buyflytime:
     description: Allows using /buyflytime
     default: op

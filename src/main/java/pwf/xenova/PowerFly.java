@@ -3,6 +3,7 @@ package pwf.xenova;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.event.user.UserDataRecalculateEvent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,6 +11,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import pwf.xenova.commands.*;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 
@@ -64,6 +66,29 @@ public class PowerFly extends JavaPlugin {
         // LuckPerms
         luckPerms = LuckPermsProvider.get();
 
+        LuckPermsProvider.get()
+                .getEventBus()
+                .subscribe(this, UserDataRecalculateEvent.class, event -> {
+                    Player player = Bukkit.getPlayer(event.getUser().getUniqueId());
+                    if (player == null) return;
+
+                    UUID uuid = player.getUniqueId();
+
+                    String newGroup = groupFlyTimeManager.getPrimaryGroup(uuid);
+                    int newFlyTime = groupFlyTimeManager.getGroupFlyTime(newGroup);
+
+                    boolean wasFlying = player.isFlying();
+
+                    flyTimeManager.setFlyTime(uuid, newFlyTime);
+
+                    if (wasFlying && newFlyTime > 0) {
+                        FlyCommand flyCmd = new FlyCommand(this);
+                        flyCmd.restartFlyTimer(player, newFlyTime);
+                    }
+
+                    getLogger().info("Fly time updated for " + player.getName() + " (" + newGroup + "): " + flyTimeManager.formatTime(newFlyTime));
+                });
+
         // Managers
         flyTimeManager = new FlyTimeManager(this);
         groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
@@ -96,7 +121,6 @@ public class PowerFly extends JavaPlugin {
         setupExpansion();
 
         reloadMessages();
-        handleOnlinePlayersFlyTime();
         checkForUpdates();
 
         getLogger().info("\u001B[32mPowerFly plugin has been enabled.\u001B[0m");
@@ -140,27 +164,6 @@ public class PowerFly extends JavaPlugin {
                 },
                 this
         );
-    }
-
-    // ----------------- Fly Handling -----------------
-
-    private void handleOnlinePlayersFlyTime() {
-        for (Player player : getServer().getOnlinePlayers()) {
-
-            if (player.getGameMode() == org.bukkit.GameMode.CREATIVE ||
-                    player.getGameMode() == org.bukkit.GameMode.SPECTATOR) continue;
-
-            UUID uuid = player.getUniqueId();
-            int flyTime = flyTimeManager.getRemainingFlyTime(uuid);
-            boolean onCooldown = cooldownManager.isOnCooldown(uuid);
-
-            if (flyTime <= 0 && !onCooldown) {
-                cooldownManager.startCooldown(uuid);
-            }
-            else if (onCooldown) {
-                flyTimeManager.setFlyTime(uuid, 0);
-            }
-        }
     }
 
     // ----------------- Update Checker -----------------

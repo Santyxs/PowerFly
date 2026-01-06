@@ -202,9 +202,21 @@ public class CooldownFlyManager {
         }
     }
 
+    public void setCooldown(UUID playerUUID, int seconds) {
+        long cooldownUntil = System.currentTimeMillis() + (seconds * 1000L);
+        cooldowns.put(playerUUID, cooldownUntil);
+
+        Player player = Bukkit.getPlayer(playerUUID);
+        String name = (player != null) ? player.getName() : config.getString(playerUUID + ".name", "Unknown");
+
+        config.set(playerUUID + ".name", name);
+        config.set(playerUUID + ".cooldown", cooldownUntil);
+        save();
+    }
+
     public void removeCooldown(UUID playerUUID) {
         cooldowns.remove(playerUUID);
-        config.set(playerUUID + ".cooldown", 0);
+        config.set(playerUUID + ".cooldown", 0L);
         save();
     }
 }

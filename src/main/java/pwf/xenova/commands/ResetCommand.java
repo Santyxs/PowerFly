@@ -61,9 +61,9 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
             UUID uuid = player.getUniqueId();
 
             if (type.equals("cooldown")) {
-                plugin.getCooldownFlyManager().removeCooldown(uuid);
+                plugin.getCooldownFlyManager().setCooldown(uuid, 1);
             } else if (type.equals("flytime")) {
-                plugin.getFlyTimeManager().setFlyTime(uuid, 0);
+                plugin.getFlyTimeManager().setFlyTime(uuid, 1);
 
                 if (player.isFlying() || player.getAllowFlight()) {
                     player.setAllowFlight(false);
@@ -98,9 +98,9 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = target.getUniqueId();
 
         if (type.equals("cooldown")) {
-            plugin.getCooldownFlyManager().removeCooldown(uuid);
+            plugin.getCooldownFlyManager().setCooldown(uuid, 1);
         } else if (type.equals("flytime")) {
-            plugin.getFlyTimeManager().setFlyTime(uuid, 0);
+            plugin.getFlyTimeManager().setFlyTime(uuid, 1);
 
             if (target.isOnline() && target.getPlayer() != null) {
                 Player player = target.getPlayer();
