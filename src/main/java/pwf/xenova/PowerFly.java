@@ -3,7 +3,6 @@ package pwf.xenova;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.event.user.UserDataRecalculateEvent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -65,29 +64,6 @@ public class PowerFly extends JavaPlugin {
 
         // LuckPerms
         luckPerms = LuckPermsProvider.get();
-
-        LuckPermsProvider.get()
-                .getEventBus()
-                .subscribe(this, UserDataRecalculateEvent.class, event -> {
-                    Player player = Bukkit.getPlayer(event.getUser().getUniqueId());
-                    if (player == null) return;
-
-                    UUID uuid = player.getUniqueId();
-
-                    String newGroup = groupFlyTimeManager.getPrimaryGroup(uuid);
-                    int newFlyTime = groupFlyTimeManager.getGroupFlyTime(newGroup);
-
-                    boolean wasFlying = player.isFlying();
-
-                    flyTimeManager.setFlyTime(uuid, newFlyTime);
-
-                    if (wasFlying && newFlyTime > 0) {
-                        FlyCommand flyCmd = new FlyCommand(this);
-                        flyCmd.restartFlyTimer(player, newFlyTime);
-                    }
-
-                    getLogger().info("Fly time updated for " + player.getName() + " (" + newGroup + "): " + flyTimeManager.formatTime(newFlyTime));
-                });
 
         // Managers
         flyTimeManager = new FlyTimeManager(this);
