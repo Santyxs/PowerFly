@@ -9,8 +9,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
-import pwf.xenova.PowerFly;
 import pwf.xenova.utils.MessageFormat;
+import pwf.xenova.PowerFly;
 
 import java.util.UUID;
 

@@ -33,6 +33,7 @@ permissions:
       powerfly.reload: true
       powerfly.check: true
       powerfly.fly: true
+      powerfly.fly.others: true
       powerfly.buyflytime: true
       powerfly.help: true
 
