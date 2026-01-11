@@ -27,6 +27,10 @@ public class ControlFlyManager implements Listener {
     private Object regionContainer;
     private Class<?> vectorClass;
     private Method atMethod;
+    private Method adaptMethod;
+    private Method getRegionManagerMethod;
+    private Method getApplicableRegionsMethod;
+    private Method getIdMethod;
 
     public ControlFlyManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -41,14 +45,19 @@ public class ControlFlyManager implements Listener {
             try {
                 Class<?> wgClass = Class.forName("com.sk89q.worldguard.WorldGuard");
                 Object wgInstance = wgClass.getMethod("getInstance").invoke(null);
-
                 Object platform = wgClass.getMethod("getPlatform").invoke(wgInstance);
                 regionContainer = platform.getClass().getMethod("getRegionContainer").invoke(platform);
 
                 vectorClass = Class.forName("com.sk89q.worldedit.math.BlockVector3");
                 atMethod = vectorClass.getMethod("at", int.class, int.class, int.class);
 
-                plugin.getLogger().info("WorldGuard: enabled.");
+                Class<?> bukkitAdapterClass = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
+                adaptMethod = bukkitAdapterClass.getMethod("adapt", World.class);
+
+                Class<?> wgWorldClass = Class.forName("com.sk89q.worldguard.world.World");
+                getRegionManagerMethod = regionContainer.getClass().getMethod("get", wgWorldClass);
+
+                plugin.getLogger().info("WorldGuard: Hooked successfully.");
             } catch (Exception e) {
                 plugin.getLogger().warning("Could not initialize WorldGuard hook: " + e.getMessage());
                 this.worldGuardEnabled = false;
@@ -56,67 +65,16 @@ public class ControlFlyManager implements Listener {
         }
     }
 
-    public void loadConfig() {
-        blacklistWorlds.clear();
-        whitelistWorlds.clear();
-        blacklistRegions.clear();
-        whitelistRegions.clear();
-
-        List<String> blacklistWorldsConfig = plugin.getConfig().getStringList("blacklist-worlds");
-        if (!blacklistWorldsConfig.isEmpty()) {
-            blacklistWorlds.addAll(blacklistWorldsConfig);
-        }
-
-        List<String> whitelistWorldsConfig = plugin.getConfig().getStringList("whitelist-worlds");
-        if (!whitelistWorldsConfig.isEmpty()) {
-            whitelistWorlds.addAll(whitelistWorldsConfig);
-        }
-
-        if (plugin.getConfig().isConfigurationSection("blacklist-regions")) {
-            var section = plugin.getConfig().getConfigurationSection("blacklist-regions");
-            if (section != null) {
-                for (String worldName : section.getKeys(false)) {
-                    List<String> regions = section.getStringList(worldName);
-                    if (!regions.isEmpty()) {
-                        blacklistRegions.put(worldName, new HashSet<>(regions));
-                    }
-                }
-            }
-        }
-
-        if (plugin.getConfig().isConfigurationSection("whitelist-regions")) {
-            var section = plugin.getConfig().getConfigurationSection("whitelist-regions");
-            if (section != null) {
-                for (String worldName : section.getKeys(false)) {
-                    List<String> regions = section.getStringList(worldName);
-                    if (!regions.isEmpty()) {
-                        whitelistRegions.put(worldName, new HashSet<>(regions));
-                    }
-                }
-            }
-        }
-    }
-
-    public void reload() {
-        loadConfig();
-    }
-
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-
-        if (!player.isFlying()) {
-            return;
-        }
-
-        if (player.hasPermission("powerfly.admin")) {
-            return;
-        }
-
         Location from = event.getFrom();
         Location to = event.getTo();
-
         if (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        if (!player.isFlying() || player.hasPermission("powerfly.admin")) {
             return;
         }
 
@@ -130,37 +88,8 @@ public class ControlFlyManager implements Listener {
         }
     }
 
-    public boolean isFlightBlockedInWorld(Player player) {
-        String worldName = player.getWorld().getName();
-
-        if (!whitelistWorlds.isEmpty()) {
-            for (String whitelistedWorld : whitelistWorlds) {
-                if (matchesPattern(worldName, whitelistedWorld)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        for (String blacklistedWorld : blacklistWorlds) {
-            if (matchesPattern(worldName, blacklistedWorld)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean matchesPattern(String worldName, String pattern) {
-        if (pattern.contains("*")) {
-            String regex = pattern.replace("*", ".*");
-            return worldName.matches(regex);
-        }
-        return worldName.equals(pattern);
-    }
-
     public boolean isFlightBlockedInRegion(Player player) {
-        if (!worldGuardEnabled || regionContainer == null || vectorClass == null || atMethod == null) {
+        if (!worldGuardEnabled || regionContainer == null || atMethod == null || adaptMethod == null) {
             return false;
         }
 
@@ -168,58 +97,86 @@ public class ControlFlyManager implements Listener {
             World world = player.getWorld();
             Location loc = player.getLocation();
 
-            Class<?> bukkitAdapterClass = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
-            Object adaptedWorld = bukkitAdapterClass.getMethod("adapt", World.class).invoke(null, world);
-
-            Class<?> wgWorldClass = Class.forName("com.sk89q.worldguard.world.World");
-            Method getMethod = regionContainer.getClass().getMethod("get", wgWorldClass);
-            Object regionManager = getMethod.invoke(regionContainer, adaptedWorld);
-
+            Object adaptedWorld = adaptMethod.invoke(null, world);
+            Object regionManager = getRegionManagerMethod.invoke(regionContainer, adaptedWorld);
             if (regionManager == null) return false;
 
             Object vector = atMethod.invoke(null, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 
-            Method applicableRegionsMethod = null;
-            for (Method method : regionManager.getClass().getMethods()) {
-                if (method.getName().equals("getApplicableRegions") &&
-                        method.getParameterCount() == 1) {
-                    applicableRegionsMethod = method;
-                    break;
-                }
+            if (getApplicableRegionsMethod == null) {
+                getApplicableRegionsMethod = regionManager.getClass().getMethod("getApplicableRegions", vectorClass);
             }
 
-            if (applicableRegionsMethod == null) return false;
-
-            Object applicableRegions = applicableRegionsMethod.invoke(regionManager, vector);
-
+            Object applicableRegions = getApplicableRegionsMethod.invoke(regionManager, vector);
             Iterable<?> regionsIterable = (Iterable<?>) applicableRegions;
 
             Set<String> whitelisted = whitelistRegions.get(world.getName());
-            if (whitelisted != null && !whitelisted.isEmpty()) {
-                for (Object region : regionsIterable) {
-                    String id = (String) region.getClass().getMethod("getId").invoke(region);
-                    if (whitelisted.contains(id)) {
-                        return false;
-                    }
-                }
-            }
-
             Set<String> blacklisted = blacklistRegions.get(world.getName());
-            if (blacklisted != null && !blacklisted.isEmpty()) {
-                for (Object region : regionsIterable) {
-                    String id = (String) region.getClass().getMethod("getId").invoke(region);
-                    if (blacklisted.contains(id)) {
-                        return true;
-                    }
+
+            for (Object region : regionsIterable) {
+                if (getIdMethod == null) {
+                    getIdMethod = region.getClass().getMethod("getId");
                 }
+                String id = (String) getIdMethod.invoke(region);
+
+                if (whitelisted != null && whitelisted.contains(id)) return false;
+                if (blacklisted != null && blacklisted.contains(id)) return true;
             }
 
-        } catch (Exception e) {
-            plugin.getLogger().warning("Error checking regions: " + e.getMessage());
-            return false;
+        } catch (Exception ignored) {
         }
-
         return false;
+    }
+
+    public void loadConfig() {
+        blacklistWorlds.clear();
+        whitelistWorlds.clear();
+        blacklistRegions.clear();
+        whitelistRegions.clear();
+
+        List<String> blacklistWorldsConfig = plugin.getConfig().getStringList("blacklist-worlds");
+        if (!blacklistWorldsConfig.isEmpty()) blacklistWorlds.addAll(blacklistWorldsConfig);
+
+        List<String> whitelistWorldsConfig = plugin.getConfig().getStringList("whitelist-worlds");
+        if (!whitelistWorldsConfig.isEmpty()) whitelistWorlds.addAll(whitelistWorldsConfig);
+
+        processRegionConfig("blacklist-regions", blacklistRegions);
+        processRegionConfig("whitelist-regions", whitelistRegions);
+    }
+
+    private void processRegionConfig(String path, Map<String, Set<String>> targetMap) {
+        if (plugin.getConfig().isConfigurationSection(path)) {
+            var section = plugin.getConfig().getConfigurationSection(path);
+            if (section != null) {
+                for (String worldName : section.getKeys(false)) {
+                    List<String> regions = section.getStringList(worldName);
+                    if (!regions.isEmpty()) targetMap.put(worldName, new HashSet<>(regions));
+                }
+            }
+        }
+    }
+
+    public void reload() { loadConfig(); }
+
+    public boolean isFlightBlockedInWorld(Player player) {
+        String worldName = player.getWorld().getName();
+        if (!whitelistWorlds.isEmpty()) {
+            for (String whitelistedWorld : whitelistWorlds) {
+                if (matchesPattern(worldName, whitelistedWorld)) return false;
+            }
+            return true;
+        }
+        for (String blacklistedWorld : blacklistWorlds) {
+            if (matchesPattern(worldName, blacklistedWorld)) return true;
+        }
+        return false;
+    }
+
+    private boolean matchesPattern(String worldName, String pattern) {
+        if (pattern.contains("*")) {
+            return worldName.matches(pattern.replace("*", ".*"));
+        }
+        return worldName.equalsIgnoreCase(pattern);
     }
 
     private void disableFlight(Player player, boolean isRegionBlock) {
@@ -260,25 +217,5 @@ public class ControlFlyManager implements Listener {
     private boolean canSendMessage(UUID uuid) {
         Long lastMessage = messageCooldowns.get(uuid);
         return lastMessage == null || (System.currentTimeMillis() - lastMessage) >= MESSAGE_COOLDOWN_MS;
-    }
-
-    public void removePlayerCooldown(UUID uuid) {
-        messageCooldowns.remove(uuid);
-    }
-
-    public List<String> getBlacklistWorlds() {
-        return new ArrayList<>(blacklistWorlds);
-    }
-
-    public List<String> getWhitelistWorlds() {
-        return new ArrayList<>(whitelistWorlds);
-    }
-
-    public Map<String, Set<String>> getBlacklistRegions() {
-        return new HashMap<>(blacklistRegions);
-    }
-
-    public Map<String, Set<String>> getWhitelistRegions() {
-        return new HashMap<>(whitelistRegions);
     }
 }
