@@ -150,7 +150,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             return;
         }
 
-        if (plugin.getControlFlyManager().isFlightBlocked(player)) {
+        if (plugin.getControlFlyManager().isFlightBlockedInWorld(player)) {
             sendMessage(player, "blacklist-worlds", "&cYou cannot fly in this world.");
             return;
         }

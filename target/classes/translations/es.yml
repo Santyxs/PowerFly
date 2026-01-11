@@ -1,4 +1,4 @@
-config-version: 1
+config-version: 2
 
 # Mensajes de jugador
 actionbar-fly-time: "&eTiempo de vuelo: &6{fly_time}"
@@ -15,6 +15,8 @@ fly-not-allowed-in-world-target: "&c{player} no puede volar en ese mundo."
 fly-not-allowed-in-region-target: "&c{player} no puede volar en esa región."
 fly-not-allowed-in-claim: "&cNo puedes volar en esta claim."
 fly-in-combat: "&cNo puedes volar mientras estás en combate."
+fly-disabled-combat: "&cVuelo deshabilitado en combate!"
+combat-ended: "&aYa no estás en combate."
 no-permission: "&cNo tienes permiso para usar este comando."
 not-enough-money: "&cNecesitas &e{price}{currency} &cpara comprar &f{secondstobuy}s &cde tiempo de vuelo."
 flytime-bought: "&aHas comprado &f{secondstobuy}s &ade tiempo de vuelo por &e{price}{currency}&a."

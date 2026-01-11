@@ -1,4 +1,4 @@
-config-version: 1
+config-version: 2
 
 # Сообщения игрока
 actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
@@ -15,6 +15,8 @@ fly-not-allowed-in-world-target: "&c{player} не может летать в э�
 fly-not-allowed-in-region-target: "&c{player} не может летать в этом регионе."
 fly-not-allowed-in-claim: "&cВы не можете использовать полёт в этом запрещены."
 fly-in-combat: "&cВо время боя летать нельзя."
+fly-disabled-combat: "&cПолёт отключён из-за боя!"
+combat-ended: "&aВы больше не в бою."
 no-permission: "&cУ вас нет прав для использования этой команды."
 not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купить &f{secondstobuy}s &cвремени полёта."
 flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}&a."

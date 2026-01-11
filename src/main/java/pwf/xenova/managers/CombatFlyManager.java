@@ -1,12 +1,16 @@
 package pwf.xenova.managers;
 
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
 
 import java.util.HashMap;
@@ -17,73 +21,188 @@ public class CombatFlyManager implements Listener {
 
     private final PowerFly plugin;
     private final Map<UUID, Long> combatLog = new HashMap<>();
+    private final Map<UUID, BukkitRunnable> combatTimers = new HashMap<>();
+
+    private boolean disableFlyInCombat;
+    private String combatType;
+    private int combatDuration;
 
     public CombatFlyManager(PowerFly plugin) {
         this.plugin = plugin;
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        loadConfig();
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler
+    public void loadConfig() {
+        this.disableFlyInCombat = plugin.getConfig().getBoolean("disable-fly-in-combat", true);
+        this.combatType = plugin.getConfig().getString("combat-type", "players").toLowerCase();
+        this.combatDuration = plugin.getConfig().getInt("combat-duration", 10);
+    }
+
+    public void reload() {
+        loadConfig();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player victim)) return;
+        if (!disableFlyInCombat) {
+            return;
+        }
 
-        if (!plugin.getConfig().getBoolean("disable-fly-in-combat", true)) return;
-
-        String combatType = plugin.getConfig().getString("combat-type", "players").toLowerCase();
         Entity damager = event.getDamager();
+        Entity victim = event.getEntity();
 
-        boolean pvp = damager instanceof Player;
-        boolean pve = damager instanceof LivingEntity && !(damager instanceof Player);
+        if (victim instanceof Player player) {
+            if (shouldEnterCombat(damager)) {
+                enterCombat(player);
+            }
+        }
 
-        if (combatType.equals("players") && !pvp) return;
-        if (combatType.equals("mobs") && !pve) return;
-
-        long combatDurationMillis = plugin.getConfig().getLong("combat-duration", 7000);
-        long expireTime = System.currentTimeMillis() + combatDurationMillis;
-
-        combatLog.put(victim.getUniqueId(), expireTime);
-        disableFly(victim);
-
-        if (damager instanceof Player attacker) {
-            combatLog.put(attacker.getUniqueId(), expireTime);
-            disableFly(attacker);
+        if (damager instanceof Player player) {
+            if (shouldEnterCombat(victim)) {
+                enterCombat(player);
+            }
         }
     }
 
-    private void disableFly(Player player) {
-        player.setFlying(false);
-        player.setAllowFlight(false);
+    private boolean shouldEnterCombat(Entity entity) {
+        if (!(entity instanceof LivingEntity)) {
+            return false;
+        }
+
+        return switch (combatType) {
+            case "players" -> entity instanceof Player;
+            case "mobs" -> !(entity instanceof Player);
+            case "all" -> true;
+            default -> {
+                plugin.getLogger().warning("Invalid combat-type: " + combatType + ". Using 'players' as default.");
+                yield entity instanceof Player;
+            }
+        };
     }
 
-    public boolean isInCombat(Player player) {
+    private void enterCombat(Player player) {
         UUID uuid = player.getUniqueId();
+
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
+            return;
+        }
+
+        BukkitRunnable oldTimer = combatTimers.remove(uuid);
+        if (oldTimer != null) {
+            oldTimer.cancel();
+        }
+
+        long expireTime = System.currentTimeMillis() + (combatDuration * 1000L);
+        combatLog.put(uuid, expireTime);
+
+        if (player.isFlying() && FlyCommand.hasPluginFlyActive(uuid)) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+
+            plugin.getSoundEffectsManager().playDeactivationEffects(player);
+
+            FlyCommand flyCommand = new FlyCommand(plugin);
+            flyCommand.cleanupFlyData(player);
+
+            player.sendMessage(plugin.getPrefixedMessage("fly-disabled-combat", "&cFly disabled due to combat!"));
+        }
+
+        startCombatTimer(player);
+    }
+
+    private void startCombatTimer(Player player) {
+        UUID uuid = player.getUniqueId();
+
+        BukkitRunnable timer = new BukkitRunnable() {
+            int remaining = combatDuration;
+
+            public void run() {
+                if (!player.isOnline()) {
+                    combatTimers.remove(uuid);
+                    combatLog.remove(uuid);
+                    cancel();
+                    return;
+                }
+
+                if (!isInCombat(uuid)) {
+                    combatTimers.remove(uuid);
+                    cancel();
+                    return;
+                }
+
+                remaining--;
+
+                if (remaining <= 0) {
+                    combatTimers.remove(uuid);
+                    combatLog.remove(uuid);
+
+                    player.sendMessage(plugin.getPrefixedMessage("combat-ended", "&aYou are no longer in combat."));
+
+                    cancel();
+                }
+            }
+        };
+
+        timer.runTaskTimer(plugin, 20L, 20L);
+        combatTimers.put(uuid, timer);
+    }
+
+    public boolean isInCombat(UUID uuid) {
+        if (!disableFlyInCombat) {
+            return false;
+        }
+
         Long expireTime = combatLog.get(uuid);
-        if (expireTime == null) return false;
+        if (expireTime == null) {
+            return false;
+        }
 
         if (System.currentTimeMillis() > expireTime) {
             combatLog.remove(uuid);
-
-            if (plugin.getFlyTimeManager().getRemainingFlyTime(uuid) > 0) {
-                player.setAllowFlight(true);
+            BukkitRunnable timer = combatTimers.remove(uuid);
+            if (timer != null) {
+                timer.cancel();
             }
-
             return false;
         }
 
         return true;
     }
 
-    public void cleanupPlayer(UUID uuid) {
-        combatLog.remove(uuid);
+    public boolean isInCombat(Player player) {
+        return isInCombat(player.getUniqueId());
     }
 
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
+    public int getRemainingCombatTime(UUID uuid) {
+        if (!isInCombat(uuid)) {
+            return 0;
+        }
 
-        if (!player.isFlying()) return;
-        if (!isInCombat(player)) return;
+        Long expireTime = combatLog.get(uuid);
+        if (expireTime == null) {
+            return 0;
+        }
 
-        player.setFlying(false);
+        long remaining = (expireTime - System.currentTimeMillis()) / 1000;
+        return (int) Math.max(0, remaining);
+    }
+
+    public void cleanupPlayer(UUID uuid) {
+        combatLog.remove(uuid);
+        BukkitRunnable timer = combatTimers.remove(uuid);
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    public void cleanup() {
+        for (BukkitRunnable timer : combatTimers.values()) {
+            if (timer != null) {
+                timer.cancel();
+            }
+        }
+        combatTimers.clear();
+        combatLog.clear();
     }
 }
