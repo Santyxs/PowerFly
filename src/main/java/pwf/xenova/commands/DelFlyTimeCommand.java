@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
-
 import java.util.UUID;
 
 public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {

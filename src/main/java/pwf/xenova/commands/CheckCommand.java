@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
-
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,29 +36,39 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
         } else {
             target = Bukkit.getOfflinePlayer(args[0]);
             if (!target.hasPlayedBefore() && !target.isOnline()) {
-                sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found or offline."));
+                sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
                 return true;
             }
         }
 
         UUID uuid = target.getUniqueId();
-        String playerName = Objects.requireNonNullElse(target.getName(), args.length > 0 ? args[0] : "Unknown");
+        String playerName = Objects.requireNonNullElse(target.getName(), "Unknown");
 
         int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         String flyTimeDisplay;
 
         if (flySeconds < 0) {
-            flyTimeDisplay = "∞";
+            flyTimeDisplay = plugin.getMessageString("time-infinite", "∞");
+        } else if (flySeconds == 0) {
+            flyTimeDisplay = plugin.getMessageString("time-empty", "0s");
         } else {
-            int flyMinutes = flySeconds / 60;
-            int flyRemSeconds = flySeconds % 60;
-            flyTimeDisplay = flyMinutes + "m " + flyRemSeconds + "s";
+            int h = flySeconds / 3600;
+            int m = (flySeconds % 3600) / 60;
+            int s = flySeconds % 60;
+
+            if (h > 0) {
+                flyTimeDisplay = h + "h " + m + "m " + s + "s";
+            } else {
+                flyTimeDisplay = m + "m " + s + "s";
+            }
         }
 
-        int cooldownSeconds = plugin.getCooldownFlyManager().getRemainingCooldownSeconds(uuid);
-        int cooldownMinutes = cooldownSeconds / 60;
-        int cooldownRemSeconds = cooldownSeconds % 60;
-        String cooldownDisplay = cooldownMinutes + "m " + cooldownRemSeconds + "s";
+        String cooldownDisplay;
+        if (!plugin.getCooldownFlyManager().isOnCooldown(uuid)) {
+            cooldownDisplay = plugin.getMessageString("cooldown-none", "&70s");
+        } else {
+            cooldownDisplay = "&7" + plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
+        }
 
         String raw = plugin.getMessageString("check-info",
                 """
