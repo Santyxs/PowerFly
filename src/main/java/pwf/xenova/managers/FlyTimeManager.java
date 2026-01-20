@@ -104,12 +104,29 @@ public class FlyTimeManager {
     }
 
     public void addFlyTime(UUID playerUUID, int seconds) {
-        flyTimeMap.put(playerUUID, getRemainingFlyTime(playerUUID) + seconds);
+        if (seconds == -1) {
+            setFlyTime(playerUUID, -1);
+            return;
+        }
+
+        int currentTime = getRemainingFlyTime(playerUUID);
+
+        if (currentTime == -1) {
+            return;
+        }
+
+        flyTimeMap.put(playerUUID, currentTime + seconds);
         save();
     }
 
     public void delFlyTime(UUID playerUUID, int seconds) {
-        flyTimeMap.put(playerUUID, Math.max(0, getRemainingFlyTime(playerUUID) - seconds));
+        int currentTime = getRemainingFlyTime(playerUUID);
+
+        if (currentTime == -1) {
+            return;
+        }
+
+        flyTimeMap.put(playerUUID, Math.max(0, currentTime - seconds));
         save();
     }
 
@@ -180,5 +197,9 @@ public class FlyTimeManager {
 
     public int getInfiniteFlyTime() {
         return -1;
+    }
+
+    public boolean hasInfiniteFlyTime(UUID playerUUID) {
+        return getRemainingFlyTime(playerUUID) == -1;
     }
 }

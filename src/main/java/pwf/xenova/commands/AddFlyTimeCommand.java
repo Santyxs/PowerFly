@@ -42,7 +42,10 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
         try {
             secondsToAdd = Integer.parseInt(secondsStr.trim());
-            if (secondsToAdd <= 0) throw new NumberFormatException();
+
+            if (secondsToAdd == 0 || (secondsToAdd < 0 && secondsToAdd != -1)) {
+                throw new NumberFormatException();
+            }
         } catch (NumberFormatException e) {
             sendWithPrefix(sender, plugin.getMessageString("invalid-time", "&cInvalid time."));
             return true;
@@ -64,13 +67,14 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                 affected++;
             }
 
-            String msg = plugin.getMessageString("fly-time-added-all", "&aAdded &f{seconds}s &aof fly time to all players.")
-                    .replace("{seconds}", String.valueOf(secondsToAdd))
+            String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
+            String msg = plugin.getMessageString("fly-time-added-all", "&aAdded &f{seconds} &aof fly time to all players.")
+                    .replace("{seconds}", timeDisplay)
                     .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
 
-            plugin.getLogger().info("Added " + secondsToAdd + "s fly time to " + affected + " players");
+            plugin.getLogger().info("Added " + timeDisplay + " fly time to " + affected + " players");
 
             return true;
         }
@@ -85,8 +89,9 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         UUID uuid = target.getUniqueId();
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
-        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds}s &aof fly time to {player}.")
-                .replace("{seconds}", String.valueOf(secondsToAdd))
+        String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
+        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds} &aof fly time to {player}.")
+                .replace("{seconds}", timeDisplay)
                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
         sendWithPrefix(sender, msg);

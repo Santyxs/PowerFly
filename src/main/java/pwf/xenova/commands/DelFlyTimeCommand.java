@@ -42,7 +42,9 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
         try {
             secondsToRemove = Integer.parseInt(secondsStr.trim());
-            if (secondsToRemove <= 0) throw new NumberFormatException();
+            if (secondsToRemove == 0 || (secondsToRemove < 0 && secondsToRemove != -1)) {
+                throw new NumberFormatException();
+            }
         } catch (NumberFormatException e) {
             sendWithPrefix(sender, plugin.getMessageString("invalid-time", "&cInvalid time."));
             return true;
@@ -60,17 +62,25 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                     continue;
                 }
 
-                plugin.getFlyTimeManager().delFlyTime(player.getUniqueId(), secondsToRemove);
-                affected++;
+                if (secondsToRemove == -1) {
+                    if (plugin.getFlyTimeManager().hasInfiniteFlyTime(player.getUniqueId())) {
+                        plugin.getFlyTimeManager().setFlyTime(player.getUniqueId(), 0);
+                        affected++;
+                    }
+                } else {
+                    plugin.getFlyTimeManager().delFlyTime(player.getUniqueId(), secondsToRemove);
+                    affected++;
+                }
             }
 
-            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds}s &aof fly time from all players.")
-                    .replace("{seconds}", String.valueOf(secondsToRemove))
+            String timeDisplay = secondsToRemove == -1 ? "∞" : secondsToRemove + "s";
+            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds} &afrom all players.")
+                    .replace("{seconds}", timeDisplay)
                     .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
 
-            plugin.getLogger().info("Removed " + secondsToRemove + "s from " + affected + " players");
+            plugin.getLogger().info("Removed " + timeDisplay + " from " + affected + " players");
 
             return true;
         }
@@ -83,13 +93,24 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         UUID uuid = target.getUniqueId();
-        plugin.getFlyTimeManager().delFlyTime(uuid, secondsToRemove);
 
-        String msg = plugin.getMessageString("fly-time-deleted", "&aRemoved &f{seconds}s &aof fly time from {player}.")
-                .replace("{seconds}", String.valueOf(secondsToRemove))
+        if (secondsToRemove == -1) {
+            if (plugin.getFlyTimeManager().hasInfiniteFlyTime(uuid)) {
+                plugin.getFlyTimeManager().setFlyTime(uuid, 1);
+            } else {
+                sendWithPrefix(sender, "&cPlayer does not have infinite fly time.");
+                return true;
+            }
+        } else {
+            plugin.getFlyTimeManager().delFlyTime(uuid, secondsToRemove);
+        }
+
+        String timeDisplay = secondsToRemove == -1 ? "∞" : secondsToRemove + "s";
+        String msg = plugin.getMessageString("fly-time-deleted", "&aRemoved &f{seconds} &aof fly time from {player}.")
+                .replace("{seconds}", timeDisplay)
                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
-
         sendWithPrefix(sender, msg);
+
         return true;
     }
 
