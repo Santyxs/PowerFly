@@ -17,13 +17,31 @@ public class SoundEffectsManager {
     private final Map<String, Particle> particleMap = new HashMap<>();
     private final Map<String, Sound> soundMap = new HashMap<>();
 
+    // Particle configuration
     private String activationParticle;
-    private String flyingParticle;
-    private String deactivationParticle;
+    private int activationParticleCount;
+    private double activationOffsetX, activationOffsetY, activationOffsetZ;
+    private double activationSpeed;
 
+    private String flyingParticle;
+    private int flyingParticleCount;
+    private double flyingOffsetX, flyingOffsetY, flyingOffsetZ;
+    private double flyingSpeed;
+
+    private String deactivationParticle;
+    private int deactivationParticleCount;
+    private double deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ;
+    private double deactivationSpeed;
+
+    // Sound configuration
     private String activationSound;
+    private float activationVolume, activationPitch;
+
     private String deactivationSound;
+    private float deactivationVolume, deactivationPitch;
+
     private String timeEndedSound;
+    private float timeEndedVolume, timeEndedPitch;
 
     public SoundEffectsManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -170,48 +188,84 @@ public class SoundEffectsManager {
         effectsEnabled = plugin.getConfig().getBoolean("enable-effects", false);
         soundsEnabled = plugin.getConfig().getBoolean("enable-sounds", false);
 
+        // Load activation particle settings
         activationParticle = plugin.getConfig().getString("particles.activation.type", "CLOUD");
-        flyingParticle = plugin.getConfig().getString("particles.flying.type", "END_ROD");
-        deactivationParticle = plugin.getConfig().getString("particles.deactivation.type", "SMOKE");
+        activationParticleCount = plugin.getConfig().getInt("particles.activation.count", 20);
+        activationOffsetX = plugin.getConfig().getDouble("particles.activation.offset-x", 0.5);
+        activationOffsetY = plugin.getConfig().getDouble("particles.activation.offset-y", 0.5);
+        activationOffsetZ = plugin.getConfig().getDouble("particles.activation.offset-z", 0.5);
+        activationSpeed = plugin.getConfig().getDouble("particles.activation.speed", 0.1);
 
+        // Load flying particle settings
+        flyingParticle = plugin.getConfig().getString("particles.flying.type", "END_ROD");
+        flyingParticleCount = plugin.getConfig().getInt("particles.flying.count", 3);
+        flyingOffsetX = plugin.getConfig().getDouble("particles.flying.offset-x", 0.3);
+        flyingOffsetY = plugin.getConfig().getDouble("particles.flying.offset-y", 0.1);
+        flyingOffsetZ = plugin.getConfig().getDouble("particles.flying.offset-z", 0.3);
+        flyingSpeed = plugin.getConfig().getDouble("particles.flying.speed", 0.05);
+
+        // Load deactivation particle settings
+        deactivationParticle = plugin.getConfig().getString("particles.deactivation.type", "SMOKE");
+        deactivationParticleCount = plugin.getConfig().getInt("particles.deactivation.count", 15);
+        deactivationOffsetX = plugin.getConfig().getDouble("particles.deactivation.offset-x", 0.4);
+        deactivationOffsetY = plugin.getConfig().getDouble("particles.deactivation.offset-y", 0.4);
+        deactivationOffsetZ = plugin.getConfig().getDouble("particles.deactivation.offset-z", 0.4);
+        deactivationSpeed = plugin.getConfig().getDouble("particles.deactivation.speed", 0.08);
+
+        // Load activation sound settings
         activationSound = plugin.getConfig().getString("sounds.activation.type", "BLOCK_BEACON_ACTIVATE");
+        activationVolume = (float) plugin.getConfig().getDouble("sounds.activation.volume", 1.0);
+        activationPitch = (float) plugin.getConfig().getDouble("sounds.activation.pitch", 1.0);
+
+        // Load deactivation sound settings
         deactivationSound = plugin.getConfig().getString("sounds.deactivation.type", "BLOCK_BEACON_DEACTIVATE");
+        deactivationVolume = (float) plugin.getConfig().getDouble("sounds.deactivation.volume", 1.0);
+        deactivationPitch = (float) plugin.getConfig().getDouble("sounds.deactivation.pitch", 1.0);
+
+        // Load time ended sound settings
         timeEndedSound = plugin.getConfig().getString("sounds.time-ended.type", "BLOCK_PORTAL_TRAVEL");
+        timeEndedVolume = (float) plugin.getConfig().getDouble("sounds.time-ended.volume", 0.8);
+        timeEndedPitch = (float) plugin.getConfig().getDouble("sounds.time-ended.pitch", 1.2);
     }
 
     public void playActivationEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, activationParticle);
-        if (soundsEnabled) playSound(player, activationSound);
+        if (effectsEnabled) spawnParticle(player, activationParticle, activationParticleCount,
+                activationOffsetX, activationOffsetY, activationOffsetZ, activationSpeed);
+        if (soundsEnabled) playSound(player, activationSound, activationVolume, activationPitch);
         if (effectsEnabled) startFlightLoop(player);
     }
 
     public void playDeactivationEffects(Player player) {
         stopFlightLoop(player);
-        if (effectsEnabled) spawnParticle(player, deactivationParticle);
-        if (soundsEnabled) playSound(player, deactivationSound);
+        if (effectsEnabled) spawnParticle(player, deactivationParticle, deactivationParticleCount,
+                deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ, deactivationSpeed);
+        if (soundsEnabled) playSound(player, deactivationSound, deactivationVolume, deactivationPitch);
     }
 
     public void playTimeEndEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, deactivationParticle);
-        if (soundsEnabled) playSound(player, timeEndedSound);
+        if (effectsEnabled) spawnParticle(player, deactivationParticle, deactivationParticleCount,
+                deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ, deactivationSpeed);
+        if (soundsEnabled) playSound(player, timeEndedSound, timeEndedVolume, timeEndedPitch);
     }
 
-    private void playSound(Player player, String soundName) {
+    private void playSound(Player player, String soundName, float volume, float pitch) {
         if (!soundMap.containsKey(soundName)) {
             plugin.getLogger().warning("Sound not found: " + soundName);
             return;
         }
-        player.playSound(player.getLocation(), soundMap.get(soundName), 0.5f, 1.0f);
+        player.playSound(player.getLocation(), soundMap.get(soundName), volume, pitch);
     }
 
-    private void spawnParticle(Player player, String particleName) {
+    private void spawnParticle(Player player, String particleName, int count,
+                               double offsetX, double offsetY, double offsetZ, double speed) {
         if (!particleMap.containsKey(particleName)) {
             plugin.getLogger().warning("Particle not found: " + particleName);
             return;
         }
         Location loc = player.getLocation();
         if (isOnGround(player)) loc.add(0, 0.5, 0);
-        player.getWorld().spawnParticle(particleMap.get(particleName), loc, 10, 0.5, 0, 0.5, 0);
+        player.getWorld().spawnParticle(particleMap.get(particleName), loc, count,
+                offsetX, offsetY, offsetZ, speed);
     }
 
     private void startFlightLoop(Player player) {
@@ -225,7 +279,8 @@ public class SoundEffectsManager {
                     activeLoops.remove(playerId);
                     return;
                 }
-                if (effectsEnabled) spawnParticle(player, flyingParticle);
+                if (effectsEnabled) spawnParticle(player, flyingParticle, flyingParticleCount,
+                        flyingOffsetX, flyingOffsetY, flyingOffsetZ, flyingSpeed);
             }
         };
 

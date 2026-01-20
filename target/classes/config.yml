@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 3
+config-version: 4
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -169,12 +169,29 @@ particles:
   # Particle shown when fly is activated
   activation:
     type: CLOUD
+    count: 20
+    offset-x: 0.5
+    offset-y: 0.5
+    offset-z: 0.5
+    speed: 0.1
+
   # Particle shown while the player is flying
   flying:
     type: END_ROD
+    count: 3
+    offset-x: 0.3
+    offset-y: 0.1
+    offset-z: 0.3
+    speed: 0.05
+
   # Particle shown when fly is deactivated
   deactivation:
     type: SMOKE
+    count: 15
+    offset-x: 0.4
+    offset-y: 0.4
+    offset-z: 0.4
+    speed: 0.08
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #      SOUND SETTINGS      #
@@ -188,9 +205,17 @@ sounds:
   # Sound when fly is activated
   activation:
     type: BLOCK_BEACON_ACTIVATE
+    volume: 1.0
+    pitch: 1.0
+
   # Sound when fly is deactivated
   deactivation:
     type: BLOCK_BEACON_DEACTIVATE
+    volume: 1.0
+    pitch: 1.0
+
   # Sound when fly time ends
   time-ended:
     type: BLOCK_PORTAL_TRAVEL
+    volume: 0.8
+    pitch: 1.2
