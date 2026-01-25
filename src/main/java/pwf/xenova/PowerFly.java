@@ -32,7 +32,7 @@ public class PowerFly extends JavaPlugin {
     private CooldownFlyManager cooldownManager;
     private SoundEffectsManager soundEffectsManager;
     private CombatFlyManager combatFlyManager;
-    private ControlFlyManager controlFlyManager;
+    private FlyRestrictionManager flyRestrictionManager;
     private ClaimFlyManager claimFlyManager;
     private SlowMiningManager slowMiningManager;
     private Economy economy;
@@ -49,7 +49,7 @@ public class PowerFly extends JavaPlugin {
     public CooldownFlyManager getCooldownFlyManager() { return cooldownManager; }
     public SoundEffectsManager getSoundEffectsManager() { return soundEffectsManager; }
     public CombatFlyManager getCombatFlyManager() { return combatFlyManager; }
-    public ControlFlyManager getControlFlyManager() { return controlFlyManager; }
+    public FlyRestrictionManager getFlyRestrictionManager() { return flyRestrictionManager; }
     public ClaimFlyManager getClaimFlyManager() { return claimFlyManager; }
     public Economy getEconomy() { return economy; }
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
@@ -71,7 +71,7 @@ public class PowerFly extends JavaPlugin {
         cooldownManager = new CooldownFlyManager(this);
         soundEffectsManager = new SoundEffectsManager(this);
         combatFlyManager = new CombatFlyManager(this);
-        controlFlyManager = new ControlFlyManager(this);
+        flyRestrictionManager = new FlyRestrictionManager(this);
         claimFlyManager = new ClaimFlyManager(this);
         slowMiningManager = new SlowMiningManager(this);
 
@@ -79,7 +79,7 @@ public class PowerFly extends JavaPlugin {
         CommandManager.registerCommands(this);
 
         // Events
-        getServer().getPluginManager().registerEvents(controlFlyManager, this);
+        getServer().getPluginManager().registerEvents(flyRestrictionManager, this);
         getServer().getPluginManager().registerEvents(claimFlyManager, this);
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
 

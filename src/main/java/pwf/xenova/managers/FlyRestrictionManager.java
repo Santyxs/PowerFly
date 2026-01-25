@@ -13,8 +13,7 @@ import pwf.xenova.PowerFly;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class ControlFlyManager implements Listener {
-
+public class FlyRestrictionManager implements Listener {
     private final PowerFly plugin;
     private final List<String> blacklistWorlds = new ArrayList<>();
     private final List<String> whitelistWorlds = new ArrayList<>();
@@ -32,7 +31,7 @@ public class ControlFlyManager implements Listener {
     private Method getApplicableRegionsMethod;
     private Method getIdMethod;
 
-    public ControlFlyManager(PowerFly plugin) {
+    public FlyRestrictionManager(PowerFly plugin) {
         this.plugin = plugin;
         loadConfig();
         setupWorldGuard();
@@ -69,11 +68,15 @@ public class ControlFlyManager implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Location from = event.getFrom();
         Location to = event.getTo();
-        if (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()) {
+
+        if (from.getBlockX() == to.getBlockX() &&
+                from.getBlockY() == to.getBlockY() &&
+                from.getBlockZ() == to.getBlockZ()) {
             return;
         }
 
         Player player = event.getPlayer();
+
         if (!player.isFlying() || player.hasPermission("powerfly.admin")) {
             return;
         }
@@ -99,6 +102,7 @@ public class ControlFlyManager implements Listener {
 
             Object adaptedWorld = adaptMethod.invoke(null, world);
             Object regionManager = getRegionManagerMethod.invoke(regionContainer, adaptedWorld);
+
             if (regionManager == null) return false;
 
             Object vector = atMethod.invoke(null, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
@@ -125,6 +129,7 @@ public class ControlFlyManager implements Listener {
 
         } catch (Exception ignored) {
         }
+
         return false;
     }
 
@@ -135,10 +140,16 @@ public class ControlFlyManager implements Listener {
         whitelistRegions.clear();
 
         List<String> blacklistWorldsConfig = plugin.getConfig().getStringList("blacklist-worlds");
-        if (!blacklistWorldsConfig.isEmpty()) blacklistWorlds.addAll(blacklistWorldsConfig);
+        if (!blacklistWorldsConfig.isEmpty()) {
+            blacklistWorlds.addAll(blacklistWorldsConfig);
+            plugin.getLogger().info("Loaded " + blacklistWorlds.size() + " blacklisted worlds: " + blacklistWorlds);
+        }
 
         List<String> whitelistWorldsConfig = plugin.getConfig().getStringList("whitelist-worlds");
-        if (!whitelistWorldsConfig.isEmpty()) whitelistWorlds.addAll(whitelistWorldsConfig);
+        if (!whitelistWorldsConfig.isEmpty()) {
+            whitelistWorlds.addAll(whitelistWorldsConfig);
+            plugin.getLogger().info("Loaded " + whitelistWorlds.size() + " whitelisted worlds: " + whitelistWorlds);
+        }
 
         processRegionConfig("blacklist-regions", blacklistRegions);
         processRegionConfig("whitelist-regions", whitelistRegions);
@@ -150,26 +161,70 @@ public class ControlFlyManager implements Listener {
             if (section != null) {
                 for (String worldName : section.getKeys(false)) {
                     List<String> regions = section.getStringList(worldName);
-                    if (!regions.isEmpty()) targetMap.put(worldName, new HashSet<>(regions));
+                    if (!regions.isEmpty()) {
+                        targetMap.put(worldName, new HashSet<>(regions));
+                        plugin.getLogger().info("Loaded regions for world '" + worldName + "': " + regions);
+                    }
                 }
             }
         }
     }
 
-    public void reload() { loadConfig(); }
+    public void reload() {
+        plugin.getLogger().info("Reloading FlyRestrictionManager...");
+
+        // Primero cargar la nueva configuración
+        loadConfig();
+
+        plugin.getLogger().info("Checking online players for flight restrictions...");
+
+        // Verificar a todos los jugadores que están volando
+        int playersChecked = 0;
+        int playersDisabled = 0;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!player.isFlying() || player.hasPermission("powerfly.admin")) {
+                continue;
+            }
+
+            playersChecked++;
+
+            // Si ahora están en un mundo/región bloqueada, desactivar vuelo
+            if (isFlightBlockedInWorld(player)) {
+                plugin.getLogger().info("Disabling flight for " + player.getName() + " (blocked world: " + player.getWorld().getName() + ")");
+                disableFlight(player, false);
+                playersDisabled++;
+            } else if (isFlightBlockedInRegion(player)) {
+                plugin.getLogger().info("Disabling flight for " + player.getName() + " (blocked region)");
+                disableFlight(player, true);
+                playersDisabled++;
+            }
+        }
+
+        plugin.getLogger().info("FlyRestrictionManager reload complete. Checked " + playersChecked + " flying players, disabled " + playersDisabled + " players.");
+    }
 
     public boolean isFlightBlockedInWorld(Player player) {
         String worldName = player.getWorld().getName();
+
+        // Si hay whitelist, solo se permite volar en los mundos de la whitelist
         if (!whitelistWorlds.isEmpty()) {
             for (String whitelistedWorld : whitelistWorlds) {
-                if (matchesPattern(worldName, whitelistedWorld)) return false;
+                if (matchesPattern(worldName, whitelistedWorld)) {
+                    return false; // Mundo permitido
+                }
             }
-            return true;
+            return true; // No está en whitelist, bloqueado
         }
+
+        // Si no hay whitelist, verificar blacklist
         for (String blacklistedWorld : blacklistWorlds) {
-            if (matchesPattern(worldName, blacklistedWorld)) return true;
+            if (matchesPattern(worldName, blacklistedWorld)) {
+                return true; // Mundo bloqueado
+            }
         }
-        return false;
+
+        return false; // No está en blacklist, permitido
     }
 
     private boolean matchesPattern(String worldName, String pattern) {

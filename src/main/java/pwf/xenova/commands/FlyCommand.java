@@ -149,13 +149,27 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             return;
         }
 
-        if (plugin.getControlFlyManager().isFlightBlockedInWorld(player)) {
-            sendMessage(player, "blacklist-worlds", "&cYou cannot fly in this world.");
+        if (plugin.getFlyRestrictionManager().isFlightBlockedInWorld(player)) {
+            sendMessage(player, "fly-not-allowed-in-world", "&cYou cannot fly in this world.");
+
+            if (!sender.equals(player)) {
+                String message = plugin.getMessageString("fly-not-allowed-in-world-target", "&c{player} cannot fly in that world.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            }
             return;
         }
 
-        if (plugin.getControlFlyManager().isFlightBlockedInRegion(player)) {
+        if (plugin.getFlyRestrictionManager().isFlightBlockedInRegion(player)) {
             sendMessage(player, "fly-not-allowed-in-region", "&cYou cannot fly in this region.");
+
+            if (!sender.equals(player)) {
+                String message = plugin.getMessageString("fly-not-allowed-in-region-target", "&c{player} cannot fly in that region.")
+                        .replace("{player}", player.getName());
+                String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+                sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
+            }
             return;
         }
 
@@ -291,8 +305,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         if (FLY_BOSSBARS.containsKey(uuid)) return;
 
         String display = plugin.getFlyTimeManager().formatTime(maxTime);
-        String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}")
-                .replace("{fly_time}", display);
+        String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}").replace("{fly_time}", display);
 
         BarColor color = BarColor.valueOf(plugin.getFileManager().getConfig().getString("bossbar-color", "BLUE").toUpperCase());
         BarStyle style = BarStyle.valueOf(plugin.getFileManager().getConfig().getString("bossbar-style", "SOLID").toUpperCase());
