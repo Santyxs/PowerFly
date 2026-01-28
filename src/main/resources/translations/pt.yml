@@ -1,4 +1,4 @@
-config-version: 2
+config-version: 3
 
 # Mensagens do jogador
 actionbar-fly-time: "&eTempo de voo: &6{fly_time}"
@@ -20,7 +20,6 @@ combat-ended: "&aVocê não está mais em combate."
 no-permission: "&cVocê não tem permissão para usar este comando."
 not-enough-money: "&cPrecisa de &e{price}{currency} &cpara comprar &f{secondstobuy}s &cde tempo de voo."
 flytime-bought: "&aVoce comprou &f{secondstobuy}s &ade tempo de voo por &e{price}{currency}&a."
-no-reset-type-specified": "&cVocê deve especificar cooldown ou flytime."
 
 # Mensagens de admin
 fly-mode-error: "&cVocê não pode voar no seu modo de jogo atual."
@@ -44,10 +43,10 @@ fly-disabled-target: "&cVoo desabilitado para &e{player}"
 fly-enabled-all: "&aVoo habilitado para &etodos os jogadores."
 fly-disabled-all: "&cVoo desabilitado para &etodos os jogadores."
 
-fly-time-added: "&aForam adicionados {seconds}s de tempo de voo para &e{player}."
-fly-time-deleted: "&aForam removidos {seconds}s de tempo de voo para &e{player}."
-fly-time-added-all: "&aForam adicionados {seconds}s de tempo de voo para &etodos os jogadores."
-fly-time-deleted-all: "&aForam removidos {seconds}s de tempo de voo para &etodos os jogadores."
+fly-time-added: "&aForam adicionados {seconds} de tempo de voo para &e{player}."
+fly-time-deleted: "&aForam removidos {seconds} de tempo de voo para &e{player}."
+fly-time-added-all: "&aForam adicionados {seconds} de tempo de voo para &etodos os jogadores."
+fly-time-deleted-all: "&aForam removidos {seconds} de tempo de voo para &etodos os jogadores."
 
 fly-time-reset: "&fTempo de voo &aresetado para &e{player}."
 fly-time-reset-all: "&fTempo de voo &aresetado para &etodos os jogadores."

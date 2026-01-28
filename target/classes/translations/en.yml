@@ -1,4 +1,4 @@
-config-version: 2
+config-version: 3
 
 # Player messages
 actionbar-fly-time: "&eFly time: &6{fly_time}"
@@ -43,10 +43,10 @@ fly-disabled-target: "&cFly disabled for &e{player}"
 fly-enabled-all: "&aFly enabled for &eall players."
 fly-disabled-all: "&cFly disabled for &eall players."
 
-fly-time-added: "&aAdded &f{seconds}s &aof fly time to &e{player}."
-fly-time-deleted: "&aRemoved &f{seconds}s &aof fly time from &e{player}."
-fly-time-added-all: "&aAdded &f{seconds}s &aof fly time to &eall players."
-fly-time-deleted-all: "&aRemoved &f{seconds}s &aof fly time from &eall players."
+fly-time-added: "&aAdded &f{seconds} &aof fly time to &e{player}."
+fly-time-deleted: "&aRemoved &f{seconds} &aof fly time from &e{player}."
+fly-time-added-all: "&aAdded &f{seconds} &aof fly time to &eall players."
+fly-time-deleted-all: "&aRemoved &f{seconds} &aof fly time from &eall players."
 
 fly-time-reset: "&aReset &ffly time &afor &e{player}."
 fly-time-reset-all: "&aReset &ffly time &afor &eall players."

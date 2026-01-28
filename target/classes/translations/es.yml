@@ -1,4 +1,4 @@
-config-version: 2
+config-version: 3
 
 # Mensajes de jugador
 actionbar-fly-time: "&eTiempo de vuelo: &6{fly_time}"
@@ -43,10 +43,10 @@ fly-disabled-target: "&cVuelo deshabilitado para &e{player}"
 fly-enabled-all: "&aVuelo habilitado para &etodos los jugadores."
 fly-disabled-all: "&cVuelo deshabilitado para &etodos los jugadores."
 
-fly-time-added: "&aSe añadieron &f{seconds}s &ade tiempo de vuelo a &e{player}."
-fly-time-deleted: "&aSe eliminaron &f{seconds}s &ade tiempo de vuelo a &e{player}."
-fly-time-added-all: "&aSe han añadido &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
-fly-time-deleted-all: "&aSe han eliminado &f{seconds}s &ade tiempo de vuelo a &etodos los jugadores."
+fly-time-added: "&aSe añadieron &f{seconds} &ade tiempo de vuelo a &e{player}."
+fly-time-deleted: "&aSe eliminaron &f{seconds} &ade tiempo de vuelo a &e{player}."
+fly-time-added-all: "&aSe han añadido &f{seconds} &ade tiempo de vuelo a &etodos los jugadores."
+fly-time-deleted-all: "&aSe han eliminado &f{seconds} &ade tiempo de vuelo a &etodos los jugadores."
 
 fly-time-reset: "&fTiempo de vuelo &areseteado para &e{player}."
 fly-time-reset-all: "&fTiempo de vuelo &areseteado para &etodos los jugadores."

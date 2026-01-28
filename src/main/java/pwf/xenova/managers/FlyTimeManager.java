@@ -45,19 +45,14 @@ public class FlyTimeManager {
 
                 if (!config.contains(uuid + ".name")) {
                     Player player = Bukkit.getPlayer(uuid);
-                    String name = (player != null) ? player.getName() : "Unknown";
-                    config.set(uuid + ".name", name);
-                }
-
-                if (!config.contains(uuid + ".cooldown")) {
-                    config.set(uuid + ".cooldown", 0L);
+                    if (player != null) {
+                        config.set(uuid + ".name", player.getName());
+                    }
                 }
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().warning("Invalid UUID in database.yml: " + key);
             }
         }
-
-        save();
     }
 
     public void save() {
@@ -66,12 +61,11 @@ public class FlyTimeManager {
         for (Map.Entry<UUID, Integer> entry : flyTimeMap.entrySet()) {
             UUID uuid = entry.getKey();
             int time = entry.getValue();
-            String name = config.getString(uuid + ".name", "Unknown");
-            long cooldown = config.getLong(uuid + ".cooldown", 0L);
 
-            config.set(uuid + ".name", name);
             config.set(uuid + ".time", time);
-            config.set(uuid + ".cooldown", cooldown);
+
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) config.set(uuid + ".name", p.getName());
         }
 
         try {
@@ -110,36 +104,38 @@ public class FlyTimeManager {
         }
 
         int currentTime = getRemainingFlyTime(playerUUID);
+        if (currentTime == -1) return;
 
-        if (currentTime == -1) {
-            return;
-        }
-
-        flyTimeMap.put(playerUUID, currentTime + seconds);
+        int newTime = currentTime + seconds;
+        flyTimeMap.put(playerUUID, newTime);
         save();
+
+        updateLiveFlight(playerUUID, newTime);
     }
 
     public void delFlyTime(UUID playerUUID, int seconds) {
         int currentTime = getRemainingFlyTime(playerUUID);
+        if (currentTime == -1) return;
 
-        if (currentTime == -1) {
-            return;
-        }
-
-        flyTimeMap.put(playerUUID, Math.max(0, currentTime - seconds));
+        int newTime = Math.max(0, currentTime - seconds);
+        flyTimeMap.put(playerUUID, newTime);
         save();
+
+        updateLiveFlight(playerUUID, newTime);
     }
 
     public void setFlyTime(UUID playerUUID, int seconds) {
-        flyTimeMap.put(playerUUID, Math.max(-1, seconds));
+        int newTime = Math.max(-1, seconds);
+        flyTimeMap.put(playerUUID, newTime);
         save();
+
+        updateLiveFlight(playerUUID, newTime);
     }
 
     public void reloadFlyTime(UUID playerUUID) {
         String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(playerUUID);
         int flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
-        flyTimeMap.put(playerUUID, flyTime);
-        save();
+        setFlyTime(playerUUID, flyTime);
     }
 
     public void removePlayer(UUID playerUUID) {
@@ -161,17 +157,11 @@ public class FlyTimeManager {
             int flyTime;
             if (plugin.getConfig().getBoolean("use-group-fly-time")) {
                 String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
-                Object groupValue = plugin.getConfig().get("groups-fly-time." + group);
-                if (groupValue instanceof Integer) {
-                    flyTime = (Integer) groupValue;
-                } else if (groupValue instanceof String strValue) {
-                    flyTime = parseFlyTime(strValue, plugin.getConfig().getString("fly-time", "100"));
-                } else {
-                    flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"), "100");
-                }
+                flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
             } else {
-                flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"), "100");
+                flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"));
             }
+
             flyTimeMap.put(uuid, flyTime);
             config.set(uuid + ".name", player.getName());
             config.set(uuid + ".time", flyTime);
@@ -180,15 +170,15 @@ public class FlyTimeManager {
         }
     }
 
-    private int parseFlyTime(String value, String defaultValue) {
-        if (value == null) value = defaultValue;
+    private int parseFlyTime(String value) {
+        if (value == null) value = "100";
         value = value.trim().toLowerCase();
         if (value.equals("-1")) return -1;
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             try {
-                return Integer.parseInt(defaultValue);
+                return Integer.parseInt("100");
             } catch (NumberFormatException ex) {
                 return 100;
             }
@@ -201,5 +191,13 @@ public class FlyTimeManager {
 
     public boolean hasInfiniteFlyTime(UUID playerUUID) {
         return getRemainingFlyTime(playerUUID) == -1;
+    }
+
+    private void updateLiveFlight(UUID uuid, int newTime) {
+        Player player = Bukkit.getPlayer(uuid);
+
+        if (player != null) {
+            player.isOnline();
+        }
     }
 }

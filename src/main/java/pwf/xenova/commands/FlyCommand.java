@@ -228,20 +228,16 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         player.sendActionBar(deserialize(raw));
     }
 
-    private void startFlyTimer(Player player, int maxTime) {
+    private void startFlyTimer(Player player, int initialMaxTime) {
         UUID uuid = player.getUniqueId();
 
         BukkitRunnable timer = new BukkitRunnable() {
-            int remaining = maxTime;
-
+            @Override
             public void run() {
                 if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
                     plugin.getSoundEffectsManager().playDeactivationEffects(player);
-
                     cleanupFlyData(player);
-
                     sendMessage(player, "fly-disabled", "&cFly disabled.");
-
                     cancel();
                     return;
                 }
@@ -252,21 +248,26 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                     return;
                 }
 
-                if (remaining != INFINITE_FLY_TIME) {
-                    remaining--;
-                    plugin.getFlyTimeManager().setFlyTime(uuid, remaining);
+                // --- SOLUCIÓN: Consultamos el tiempo real en cada segundo ---
+                int currentRemaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
+
+                if (currentRemaining != INFINITE_FLY_TIME) {
+                    currentRemaining--;
+                    // Guardamos la resta en el manager
+                    plugin.getFlyTimeManager().setFlyTime(uuid, currentRemaining);
                 }
 
-                if (remaining == 10) {
+                // Warning de 10 segundos
+                if (currentRemaining == 10) {
                     sendMessage(player, "fly-time-warning", "&6⚠ &eThere are &c10s &eof fly remaining!");
                 }
 
-                if (remaining > 0 || remaining == INFINITE_FLY_TIME) {
+                if (currentRemaining > 0 || currentRemaining == INFINITE_FLY_TIME) {
                     if (plugin.getFileManager().getConfig().getBoolean("show-actionbar", true))
-                        sendFlyTimeActionBar(player, remaining);
+                        sendFlyTimeActionBar(player, currentRemaining);
 
                     if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true))
-                        updateFlyBar(player, remaining, maxTime);
+                        updateFlyBar(player, currentRemaining, initialMaxTime);
                 } else {
                     endFly(player);
                     cancel();
@@ -321,7 +322,14 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         BossBar bar = FLY_BOSSBARS.get(player.getUniqueId());
         if (bar == null) return;
 
-        double progress = (remaining == INFINITE_FLY_TIME) ? 1.0 : Math.max(0, (double) remaining / maxTime);
+        // Si el tiempo restante es mayor al maxTime inicial (por comandos), ajustamos el progreso a 1.0 para evitar errores
+        double progress;
+        if (remaining == INFINITE_FLY_TIME) {
+            progress = 1.0;
+        } else {
+            progress = Math.max(0, Math.min(1.0, (double) remaining / maxTime));
+        }
+
         bar.setProgress(progress);
 
         String display = plugin.getFlyTimeManager().formatTime(remaining);

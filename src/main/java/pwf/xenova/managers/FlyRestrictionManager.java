@@ -58,7 +58,6 @@ public class FlyRestrictionManager implements Listener {
 
                 plugin.getLogger().info("WorldGuard: Hooked successfully.");
             } catch (Exception e) {
-                plugin.getLogger().warning("Could not initialize WorldGuard hook: " + e.getMessage());
                 this.worldGuardEnabled = false;
             }
         }
