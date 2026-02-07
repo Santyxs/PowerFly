@@ -1,4 +1,4 @@
-config-version: 3
+config-version: 4
 
 # Player messages
 actionbar-fly-time: "&eFly time: &6{fly_time}"
@@ -28,6 +28,7 @@ no-player-specified: "&cYou must specify a player name."
 player-not-found: "&cPlayer not found."
 no-time-specified: "&cYou must specify a time in seconds."
 invalid-time: "&cInvalid time."
+already-flytime-infinite: "&c{player} ya tiene tiempo de vuelo infinito."
 no-player-fly-time: "&c{player} has no fly time remaining."
 no-players-with-fly-time: "&cNo players have fly time remaining."
 no-reset-type-specified": "&cYou must specify 'cooldown' or 'flytime'."

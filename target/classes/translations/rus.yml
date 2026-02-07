@@ -1,4 +1,4 @@
-config-version: 2
+config-version: 4
 
 # Сообщения игрока
 actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
@@ -29,6 +29,7 @@ no-player-specified: "&cВы не указали имя игрока."
 player-not-found: "&cИгрок не найден."
 no-time-specified: "&cВы не установили конкретного времени."
 invalid-time: "&cВремя выбрано неверно."
+already-flytime-infinite: "&c{player} уже имеет бесконечное время полёта."
 no-player-fly-time: "&cИгрок {player} не имеет времени полёта."
 no-players-with-fly-time: "&cНи у одного игрока нет времени полета."
 no-reset-type-specified: "&cВы должны указать 'cooldown' или 'flytime'."

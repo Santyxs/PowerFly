@@ -63,8 +63,10 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                     continue;
                 }
 
-                plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
-                affected++;
+                if (!plugin.getFlyTimeManager().hasInfiniteFlyTime(player.getUniqueId())) {
+                    plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
+                    affected++;
+                }
             }
 
             String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
@@ -73,9 +75,6 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                     .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
-
-            plugin.getLogger().info("Added " + timeDisplay + " fly time to " + affected + " players");
-
             return true;
         }
 
@@ -87,6 +86,13 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         UUID uuid = target.getUniqueId();
+
+        if (plugin.getFlyTimeManager().hasInfiniteFlyTime(uuid)) {
+            String msg = plugin.getMessageString("already-flytime-infinite", "&c{player} already has infinite fly time.")
+                    .replace("{player}", target.getName() != null ? target.getName() : targetName);
+            sendWithPrefix(sender, msg);
+            return true;
+        }
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
         String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
