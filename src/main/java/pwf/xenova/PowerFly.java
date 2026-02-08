@@ -63,7 +63,13 @@ public class PowerFly extends JavaPlugin {
         fileManager = new FileManager(this);
 
         // LuckPerms
-        luckPerms = LuckPermsProvider.get();
+        if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
+            luckPerms = LuckPermsProvider.get();
+            getLogger().info("LuckPerms hooked.");
+        } else {
+            luckPerms = null;
+            getLogger().info("LuckPerms not found, group fly-time disabled.");
+        }
 
         // Managers
         flyTimeManager = new FlyTimeManager(this);

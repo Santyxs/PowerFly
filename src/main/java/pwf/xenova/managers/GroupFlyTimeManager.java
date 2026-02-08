@@ -46,12 +46,16 @@ public class GroupFlyTimeManager {
     }
 
     public String getPrimaryGroup(UUID uuid) {
+
+        if (luckPerms == null) {
+            return "default";
+        }
+
         User user = luckPerms.getUserManager().getUser(uuid);
         if (user != null) {
             return user.getPrimaryGroup();
-        } else {
-            return "default";
         }
+        return "default";
     }
 
     public LuckPerms getLuckPerms() {
