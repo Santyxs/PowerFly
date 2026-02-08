@@ -36,15 +36,10 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         String targetName = args[0];
-        String secondsStr = args[1];
-
-        int secondsToRemove;
+        int amount;
 
         try {
-            secondsToRemove = Integer.parseInt(secondsStr.trim());
-            if (secondsToRemove == 0 || (secondsToRemove < 0 && secondsToRemove != -1)) {
-                throw new NumberFormatException();
-            }
+            amount = Integer.parseInt(args[1].trim());
         } catch (NumberFormatException e) {
             sendWithPrefix(sender, plugin.getMessageString("invalid-time", "&cInvalid time."));
             return true;
@@ -57,31 +52,11 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-
-                if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
-                    continue;
-                }
-
-                if (secondsToRemove == -1) {
-                    if (plugin.getFlyTimeManager().hasInfiniteFlyTime(player.getUniqueId())) {
-                        plugin.getFlyTimeManager().setFlyTime(player.getUniqueId(), 0);
-                        affected++;
-                    }
-                } else {
-                    plugin.getFlyTimeManager().delFlyTime(player.getUniqueId(), secondsToRemove);
-                    affected++;
-                }
+                processReduction(player.getUniqueId(), amount);
+                refreshPlayer(player);
+                affected++;
             }
-
-            String timeDisplay = secondsToRemove == -1 ? "∞" : secondsToRemove + "s";
-            String msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds} &afrom all players.")
-                    .replace("{seconds}", timeDisplay)
-                    .replace("{affected}", String.valueOf(affected));
-
-            sendWithPrefix(sender, msg);
-
-            plugin.getLogger().info("Removed " + timeDisplay + " from " + affected + " players");
-
+            sendFeedback(sender, "all", amount, affected);
             return true;
         }
 
@@ -92,26 +67,48 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        UUID uuid = target.getUniqueId();
+        processReduction(target.getUniqueId(), amount);
 
-        if (secondsToRemove == -1) {
-            if (plugin.getFlyTimeManager().hasInfiniteFlyTime(uuid)) {
-                plugin.getFlyTimeManager().setFlyTime(uuid, 1);
-            } else {
-                sendWithPrefix(sender, "&cPlayer does not have infinite fly time.");
-                return true;
-            }
-        } else {
-            plugin.getFlyTimeManager().delFlyTime(uuid, secondsToRemove);
+        Player onlinePlayer = target.getPlayer();
+        if (onlinePlayer != null) {
+            refreshPlayer(onlinePlayer);
         }
 
-        String timeDisplay = secondsToRemove == -1 ? "∞" : secondsToRemove + "s";
-        String msg = plugin.getMessageString("fly-time-deleted", "&aRemoved &f{seconds} &aof fly time from {player}.")
-                .replace("{seconds}", timeDisplay)
-                .replace("{player}", target.getName() != null ? target.getName() : targetName);
-        sendWithPrefix(sender, msg);
-
+        sendFeedback(sender, target.getName() != null ? target.getName() : targetName, amount, 1);
         return true;
+    }
+
+    private void processReduction(UUID uuid, int amount) {
+        int current = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
+
+        if (amount == -1) {
+            plugin.getFlyTimeManager().setFlyTime(uuid, 1);
+            return;
+        }
+
+        if (current == -1) return;
+
+        int result = current - amount;
+        if (result < 1) {
+            result = 1;
+        }
+
+        plugin.getFlyTimeManager().setFlyTime(uuid, result);
+    }
+
+    private void refreshPlayer(Player player) {
+        if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) {
+            int newTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+            new FlyCommand(plugin).restartFlyTimer(player, newTime);
+        }
+    }
+
+    private void sendFeedback(CommandSender sender, String target, int amount, int affected) {
+        String display = (amount == -1) ? "∞" : amount + "s";
+        String msg = (target.equalsIgnoreCase("all"))
+                ? "&aRemoved &f" + display + " &afrom all online players."
+                : "&aRemoved &f" + display + " &aof fly time from &e" + target + ".";
+        sendWithPrefix(sender, msg);
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
