@@ -13,7 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.commands.*;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
-
+import pwf.xenova.storage.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +26,7 @@ public class PowerFly extends JavaPlugin {
 
     private FileManager fileManager;
     private LuckPerms luckPerms;
+    private Economy economy;
     private UpdateChecker updateChecker;
     private FlyTimeManager flyTimeManager;
     private GroupFlyTimeManager groupFlyTimeManager;
@@ -35,7 +36,7 @@ public class PowerFly extends JavaPlugin {
     private FlyRestrictionManager flyRestrictionManager;
     private ClaimFlyManager claimFlyManager;
     private SlowMiningManager slowMiningManager;
-    private Economy economy;
+    private StorageInterface storage;
 
     private final Set<UUID> noFallDamage = new HashSet<>();
 
@@ -53,6 +54,7 @@ public class PowerFly extends JavaPlugin {
     public ClaimFlyManager getClaimFlyManager() { return claimFlyManager; }
     public Economy getEconomy() { return economy; }
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
+    public StorageInterface getStorage() { return storage; }
 
     // ----------------- Plugin Enable -----------------
 
@@ -61,6 +63,16 @@ public class PowerFly extends JavaPlugin {
 
         // FileManager
         fileManager = new FileManager(this);
+
+        // Storage System
+        String storageType = getConfig().getString("storage-type", "yaml").toUpperCase();
+        if (storageType.equals("SQL")) {
+            storage = new SQLStorage(this);
+            getLogger().info("Using SQL storage.");
+        } else {
+            storage = new YAMLStorage(this);
+            getLogger().info("Using YAML storage.");
+        }
 
         // LuckPerms
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
@@ -111,7 +123,9 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Plugin Disable -----------------
 
     public void onDisable() {
-        if (flyTimeManager != null) flyTimeManager.save();
+        if (storage != null) {
+            storage.close();
+        }
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
         if (slowMiningManager != null) slowMiningManager.shutdown();
         getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");

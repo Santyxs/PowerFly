@@ -1,13 +1,9 @@
 package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import pwf.xenova.PowerFly;
-
-import java.io.File;
-import java.io.IOException;
+import pwf.xenova.storage.StorageInterface;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -16,63 +12,20 @@ public class FlyTimeManager {
 
     private final PowerFly plugin;
     private final Map<UUID, Integer> flyTimeMap = new HashMap<>();
-    private File file;
-    private FileConfiguration config;
+    private final StorageInterface storage;
 
     public FlyTimeManager(PowerFly plugin) {
         this.plugin = plugin;
+        this.storage = plugin.getStorage();
         load();
     }
 
     private void load() {
-        file = new File(plugin.getDataFolder(), "database.yml");
-        if (!file.exists()) {
-            try {
-                if (!file.createNewFile()) plugin.getLogger().warning("Could not create database.yml");
-            } catch (IOException e) {
-                plugin.getLogger().severe("Failed to create database.yml: " + e.getMessage());
-            }
-        }
-
-        config = YamlConfiguration.loadConfiguration(file);
         flyTimeMap.clear();
-
-        for (String key : config.getKeys(false)) {
-            try {
-                UUID uuid = UUID.fromString(key);
-                int time = config.getInt(uuid + ".time", 0);
-                flyTimeMap.put(uuid, time);
-
-                if (!config.contains(uuid + ".name")) {
-                    Player player = Bukkit.getPlayer(uuid);
-                    if (player != null) {
-                        config.set(uuid + ".name", player.getName());
-                    }
-                }
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in database.yml: " + key);
-            }
-        }
+        flyTimeMap.putAll(storage.loadAllFlyTimes());
     }
 
     public void save() {
-        if (config == null) config = YamlConfiguration.loadConfiguration(file);
-
-        for (Map.Entry<UUID, Integer> entry : flyTimeMap.entrySet()) {
-            UUID uuid = entry.getKey();
-            int time = entry.getValue();
-
-            config.set(uuid + ".time", time);
-
-            Player p = Bukkit.getPlayer(uuid);
-            if (p != null) config.set(uuid + ".name", p.getName());
-        }
-
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save database.yml: " + e.getMessage());
-        }
     }
 
     public String formatTime(int totalSeconds) {
@@ -108,7 +61,7 @@ public class FlyTimeManager {
 
         int newTime = currentTime + seconds;
         flyTimeMap.put(playerUUID, newTime);
-        save();
+        storage.addFlyTime(playerUUID, seconds);
 
         updateLiveFlight(playerUUID, newTime);
     }
@@ -119,7 +72,7 @@ public class FlyTimeManager {
 
         int newTime = Math.max(0, currentTime - seconds);
         flyTimeMap.put(playerUUID, newTime);
-        save();
+        storage.delFlyTime(playerUUID, seconds);
 
         updateLiveFlight(playerUUID, newTime);
     }
@@ -127,7 +80,7 @@ public class FlyTimeManager {
     public void setFlyTime(UUID playerUUID, int seconds) {
         int newTime = Math.max(-1, seconds);
         flyTimeMap.put(playerUUID, newTime);
-        save();
+        storage.setFlyTime(playerUUID, newTime);
 
         updateLiveFlight(playerUUID, newTime);
     }
@@ -140,13 +93,10 @@ public class FlyTimeManager {
 
     public void removePlayer(UUID playerUUID) {
         flyTimeMap.remove(playerUUID);
-        config.set(playerUUID.toString(), null);
-        save();
+        storage.removePlayer(playerUUID);
     }
 
     public void reload() {
-        save();
-
         flyTimeMap.clear();
         load();
     }
@@ -163,10 +113,7 @@ public class FlyTimeManager {
             }
 
             flyTimeMap.put(uuid, flyTime);
-            config.set(uuid + ".name", player.getName());
-            config.set(uuid + ".time", flyTime);
-            config.set(uuid + ".cooldown", 0L);
-            save();
+            storage.createPlayerIfNotExists(uuid, player.getName(), flyTime);
         }
     }
 
@@ -177,11 +124,7 @@ public class FlyTimeManager {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            try {
-                return Integer.parseInt("100");
-            } catch (NumberFormatException ex) {
-                return 100;
-            }
+            return 100;
         }
     }
 
@@ -191,6 +134,10 @@ public class FlyTimeManager {
 
     public boolean hasInfiniteFlyTime(UUID playerUUID) {
         return getRemainingFlyTime(playerUUID) == -1;
+    }
+
+    public StorageInterface getStorage() {
+        return storage;
     }
 
     private void updateLiveFlight(UUID uuid, int newTime) {
