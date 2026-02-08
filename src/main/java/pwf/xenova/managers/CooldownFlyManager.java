@@ -1,24 +1,21 @@
 package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.PowerFly;
-import java.io.File;
-import java.io.IOException;
+import pwf.xenova.storage.StorageInterface;
 import java.util.*;
 
 public class CooldownFlyManager {
 
     private final PowerFly plugin;
     private final Map<UUID, Long> cooldowns = new HashMap<>();
-    private File file;
-    private FileConfiguration config;
+    private final StorageInterface storage;
 
     public CooldownFlyManager(PowerFly plugin) {
         this.plugin = plugin;
+        this.storage = plugin.getStorage();
         load();
 
         BukkitRunnable task = new BukkitRunnable() {
@@ -38,9 +35,8 @@ public class CooldownFlyManager {
                     for (UUID uuid : toRemove) {
                         cooldowns.remove(uuid);
                         rechargePlayerFly(uuid);
-                        config.set(uuid + ".cooldown", 0);
+                        storage.removeCooldown(uuid);
                     }
-                    save();
                 }
             }
         };
@@ -48,44 +44,20 @@ public class CooldownFlyManager {
     }
 
     public void reload() {
-        save();
+        cooldowns.clear();
         load();
     }
 
     private void load() {
-        file = new File(plugin.getDataFolder(), "database.yml");
+        long now = System.currentTimeMillis();
 
-        if (!file.exists()) {
-            try {
-                if (file.createNewFile()) {
-                    plugin.getLogger().info("Created database.yml");
-                }
-            } catch (IOException e) {
-                plugin.getLogger().severe("Failed to create database.yml: " + e.getMessage());
-                return;
+        Map<UUID, Integer> allPlayers = storage.loadAllFlyTimes();
+        for (UUID uuid : allPlayers.keySet()) {
+            long cooldownUntil = storage.getCooldown(uuid);
+            if (cooldownUntil > now) {
+                cooldowns.put(uuid, cooldownUntil);
             }
         }
-
-        config = YamlConfiguration.loadConfiguration(file);
-
-        long now = System.currentTimeMillis();
-        boolean changed = false;
-
-        for (String key : config.getKeys(false)) {
-            try {
-                UUID uuid = UUID.fromString(key);
-                long cooldownUntil = config.getLong(key + ".cooldown", 0L);
-
-                if (cooldownUntil > now) {
-                    cooldowns.put(uuid, cooldownUntil);
-                } else if (cooldownUntil > 0) {
-                    rechargePlayerFly(uuid);
-                    config.set(key + ".cooldown", 0);
-                    changed = true;
-                }
-            } catch (Exception ignored) {}
-        }
-        if (changed) save();
     }
 
     private void rechargePlayerFly(UUID uuid) {
@@ -97,20 +69,6 @@ public class CooldownFlyManager {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {
             player.sendMessage(plugin.getPrefixedMessage("fly-time-recharged", "&aYour fly time has been recharged."));
-        }
-    }
-
-    public void save() {
-        if (config == null || file == null) return;
-
-        for (Map.Entry<UUID, Long> entry : cooldowns.entrySet()) {
-            config.set(entry.getKey().toString() + ".cooldown", entry.getValue());
-        }
-
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Could not save database.yml: " + e.getMessage());
         }
     }
 
@@ -136,16 +94,13 @@ public class CooldownFlyManager {
 
         cooldowns.put(playerUUID, cooldownUntil);
         plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
-
-        config.set(playerUUID + ".cooldown", cooldownUntil);
-        save();
+        storage.setCooldown(playerUUID, cooldownUntil);
     }
 
     public void setCooldown(UUID playerUUID, int seconds) {
         long cooldownUntil = System.currentTimeMillis() + (seconds * 1000L);
         cooldowns.put(playerUUID, cooldownUntil);
-        config.set(playerUUID + ".cooldown", cooldownUntil);
-        save();
+        storage.setCooldown(playerUUID, cooldownUntil);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -177,7 +132,6 @@ public class CooldownFlyManager {
 
     public void removeCooldown(UUID playerUUID) {
         cooldowns.remove(playerUUID);
-        config.set(playerUUID + ".cooldown", 0L);
-        save();
+        storage.removeCooldown(playerUUID);
     }
 }

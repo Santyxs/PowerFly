@@ -20,6 +20,17 @@ language: en
 check-updates: true
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
+#      STORAGE SETTINGS    #
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
+
+# Available options: YAML and SQL
+
+# YAML: Stores in a database.yml file (For servers with fewer than 100 players)
+# SQL: Stores in an SQLite database (For servers with more than 100 players)
+
+storage-type: YAML
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       FLY SETTINGS       #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 

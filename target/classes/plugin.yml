@@ -1,6 +1,6 @@
 name: PowerFly
 version: 1.5
-description: A simple fly plugin
+description: A fully customizable fly plugin featuring timed fly, cooldown control, and complete configuration.
 authors:
   - Santysx
 api-version: 1.20
