@@ -1,4 +1,4 @@
-config-version: 4
+config-version: 5
 
 # Сообщения игрока
 actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
@@ -21,6 +21,18 @@ no-permission: "&cУ вас нет прав для использования э
 not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купить &f{secondstobuy}s &cвремени полёта."
 flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}&a."
 no-reset-type-specified): "&cВы должны указать время перезарядки или время полета."
+
+help-message: |
+  &8&m----&r &bPowerFly Помощь &8&m----&r
+  
+  &e/fly &7- Включить или выключить полёт на ограниченное время.
+  &e/powerfly fly <игрок | all> <on | off> &7- Включить или выключить полёт другим игрокам.
+  &e/powerfly buyflytime <секунды> &7- Купить время полёта.
+  &e/powerfly check <игрок> &7- Проверить время полёта и кулдаун игрока.
+  &e/powerfly addflytime <игрок | all> <секунды> &7- Добавить время полёта.
+  &e/powerfly delflytime <игрок | all> <секунды> &7- Удалить время полёта.
+  &e/powerfly reset <cooldown | flytime> <игрок | all> &7- Сбросить кулдаун или время полёта.
+  &e/powerfly reload &7- Перезагрузить конфигурацию плагина.
 
 # Сообщения Администратора
 fly-mode-error: "&cВы не можете летать в вашем текущем игровом режиме."

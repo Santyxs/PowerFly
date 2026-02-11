@@ -1,4 +1,4 @@
-config-version: 4
+config-version: 5
 
 # Player messages
 actionbar-fly-time: "&eFly time: &6{fly_time}"
@@ -20,6 +20,17 @@ combat-ended: "&aYou are no longer in combat."
 no-permission: "&cYou do not have permission to use this command."
 not-enough-money: "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &cof fly time."
 flytime-bought: "&aYou bought &f{secondstobuy}s &aof fly time for &e{price}{currency}&a."
+
+help-message: |
+  &8&m----&r &bPowerFly Help &8&m----&r
+
+  &e/fly &7- Enable or disable fly for a limited time.
+  &e/powerfly fly <player | all> <on | off> &7- Enable or disable fly for other players.
+  &e/powerfly buyflytime <seconds> &7- Buy fly time.
+  &e/powerfly check <player> &7- Check fly time and cooldown of a player.
+  &e/powerfly addflytime <player | all> <seconds> &7- Add fly time.
+  &e/powerfly delflytime <player | all> <seconds> &7- Remove fly time.
+  &e/powerfly reload &7- Reload the plugin configuration.
 
 # Admin messages
 fly-mode-error: "&cYou cannot fly in your current game mode."

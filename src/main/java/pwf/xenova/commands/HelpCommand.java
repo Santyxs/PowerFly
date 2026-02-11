@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
 public record HelpCommand(PowerFly plugin) implements CommandExecutor {
@@ -19,24 +20,26 @@ public record HelpCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            send(sender, "&8&m----&r &bPowerFly Help &8&m----");
-            send(sender, "");
-            send(sender, "&e/fly &7- Enable or disable fly for a limited time.");
-            send(sender, "&e/powerfly fly <player | all> <on | off> &7- Enable or disable fly for a limited time to other players.");
-            send(sender, "&e/powerfly buyflytime <seconds> &7- Buy fly time.");
-            send(sender, "&e/powerfly check <player> &7- Check fly time and cooldown of a player.");
-            send(sender, "&e/powerfly addflytime <player | all> <seconds> &7- Add fly time to a player or all.");
-            send(sender, "&e/powerfly delflytime <player | all> <seconds> &7- Remove fly time from a player or all.");
-            send(sender, "&e/powerfly reset <cooldown | flytime> <player | all> &7- Reset cooldown or fly time of a player or all.");
-            send(sender, "&e/powerfly reload &7- Reload the plugin configuration.");
+
+            String raw = plugin.getMessageString("help-message",
+                    """
+                    &8&m----&r &bPowerFly Help &8&m----&r
+                    
+                    &e/fly &7- Enable or disable fly for a limited time.
+                    &e/powerfly fly <player | all> <on | off> &7- Enable or disable fly for other players.
+                    &e/powerfly buyflytime <seconds> &7- Buy fly time.
+                    &e/powerfly check <player> &7- Check fly time and cooldown of a player.
+                    &e/powerfly addflytime <player | all> <seconds> &7- Add fly time.
+                    &e/powerfly delflytime <player | all> <seconds> &7- Remove fly time.
+                    &e/powerfly reset <cooldown | flytime> <player | all> &7- Reset cooldown or fly time.
+                    &e/powerfly reload &7- Reload the plugin configuration.
+                    """);
+
+            sender.sendMessage(MessageFormat.parseMessage(raw));
             return true;
         }
 
-        send(sender, "&cUnknown subcommand. Use &e/powerfly help &c.");
+        sender.sendMessage(plugin.getPrefixedMessage("help-unknown", "&cUnknown subcommand. Use &e/powerfly help"));
         return true;
-    }
-
-    private void send(CommandSender sender, String message) {
-        sender.sendMessage(pwf.xenova.utils.MessageFormat.parseMessage(message));
     }
 }

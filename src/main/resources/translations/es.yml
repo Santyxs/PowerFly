@@ -1,4 +1,4 @@
-config-version: 4
+config-version: 5
 
 # Mensajes de jugador
 actionbar-fly-time: "&eTiempo de vuelo: &6{fly_time}"
@@ -20,6 +20,18 @@ combat-ended: "&aYa no estás en combate."
 no-permission: "&cNo tienes permiso para usar este comando."
 not-enough-money: "&cNecesitas &e{price}{currency} &cpara comprar &f{secondstobuy}s &cde tiempo de vuelo."
 flytime-bought: "&aHas comprado &f{secondstobuy}s &ade tiempo de vuelo por &e{price}{currency}&a."
+
+help-message: |
+  &8&m----&r &bPowerFly Ayuda &8&m----&r
+  
+  &e/fly &7- Activar o desactivar el vuelo por tiempo limitado.
+  &e/powerfly fly <jugador | all> <on | off> &7- Activar o desactivar el vuelo a otros jugadores.
+  &e/powerfly buyflytime <segundos> &7- Comprar tiempo de vuelo.
+  &e/powerfly check <jugador> &7- Ver el tiempo de vuelo y cooldown de un jugador.
+  &e/powerfly addflytime <jugador | all> <segundos> &7- Añadir tiempo de vuelo.
+  &e/powerfly delflytime <jugador | all> <segundos> &7- Quitar tiempo de vuelo.
+  &e/powerfly reset <cooldown | flytime> <jugador | all> &7- Reiniciar cooldown o tiempo de vuelo.
+  &e/powerfly reload &7- Recargar la configuración del plugin.
 
 # Mensajes de admin
 fly-mode-error: "&cNo puedes volar en tu modo de juego actual."
