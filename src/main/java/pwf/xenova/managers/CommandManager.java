@@ -22,6 +22,8 @@ public class CommandManager {
         DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(powerFly);
         BuyFlyTimeCommand buyFlyTimeCommand = new BuyFlyTimeCommand(powerFly);
         ResetCommand resetCommand = new ResetCommand(powerFly);
+        SetFlyTimeCommand setFlyTimeCommand = new SetFlyTimeCommand(powerFly);
+        SetCooldownCommand setCooldownCommand = new SetCooldownCommand(powerFly);
 
         Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(flyCommand);
         Objects.requireNonNull(plugin.getCommand("buyflytime")).setExecutor(buyFlyTimeCommand);
@@ -39,6 +41,8 @@ public class CommandManager {
                 case "delflytime" -> delFlyTimeCommand.onCommand(sender, command, label, subArgs);
                 case "buyflytime" -> buyFlyTimeCommand.onCommand(sender, command, label, subArgs);
                 case "reset" -> resetCommand.onCommand(sender, command, label, subArgs);
+                case "setflytime" -> setFlyTimeCommand.onCommand(sender, command, label, subArgs);
+                case "setcooldown" -> setCooldownCommand.onCommand(sender, command, label, subArgs);
                 default -> false;
             };
         });
@@ -46,7 +50,7 @@ public class CommandManager {
         Objects.requireNonNull(plugin.getCommand("powerfly")).setTabCompleter((sender, command, label, args) -> {
             if (args.length == 1) {
                 List<String> subcommands = List.of(
-                        "help", "reload", "fly", "check", "addflytime", "delflytime", "buyflytime", "reset"
+                        "help", "reload", "fly", "check", "addflytime", "delflytime", "buyflytime", "reset", "setflytime", "setcooldown"
                 );
                 return StringUtil.copyPartialMatches(args[0], subcommands, new ArrayList<>());
             }
@@ -54,14 +58,13 @@ public class CommandManager {
             if (args.length == 2) {
                 String subcommand = args[0].toLowerCase();
 
-                if (List.of("fly", "addflytime", "delflytime").contains(subcommand)) {
-                    List<String> options = new ArrayList<>();
-                    options.add("all");
-                    Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
-                    return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
-                }
-
                 switch (subcommand) {
+                    case "fly", "addflytime", "delflytime", "setflytime", "setcooldown" -> {
+                        List<String> options = new ArrayList<>();
+                        options.add("all");
+                        Bukkit.getOnlinePlayers().forEach(p -> options.add(p.getName()));
+                        return StringUtil.copyPartialMatches(args[1], options, new ArrayList<>());
+                    }
                     case "reset" -> {
                         return StringUtil.copyPartialMatches(args[1], List.of("cooldown", "flytime"), new ArrayList<>());
                     }
@@ -84,8 +87,8 @@ public class CommandManager {
                     case "fly" -> {
                         return StringUtil.copyPartialMatches(args[2], List.of("on", "off"), new ArrayList<>());
                     }
-                    case "addflytime", "delflytime" -> {
-                        return List.of("<seconds>");
+                    case "addflytime", "delflytime", "setflytime", "setcooldown" -> {
+                        return StringUtil.copyPartialMatches(args[2], List.of("60", "300", "600", "3600", "-1"), new ArrayList<>());
                     }
                     case "reset" -> {
                         List<String> options = new ArrayList<>();

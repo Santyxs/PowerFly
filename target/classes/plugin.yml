@@ -30,6 +30,8 @@ permissions:
       powerfly.addflytime: true
       powerfly.delflytime: true
       powerfly.reset: true
+      powerfly.setflytime: true
+      powerfly.setcooldown: true
       powerfly.reload: true
       powerfly.check: true
       powerfly.fly: true
@@ -47,6 +49,14 @@ permissions:
 
   powerfly.reset:
     description: Allows using /powerfly reset
+    default: false
+
+  powerfly.setflytime:
+    description: Allows using /powerfly setflytime
+    default: false
+
+  powerfly.setcooldown:
+    description: Allows using /powerfly setcooldown
     default: false
 
   powerfly.reload:

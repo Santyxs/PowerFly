@@ -30,6 +30,8 @@ help-message: |
   &e/powerfly check <jugador> &7- Ver el tiempo de vuelo y cooldown de un jugador.
   &e/powerfly addflytime <jugador | all> <segundos> &7- Añadir tiempo de vuelo.
   &e/powerfly delflytime <jugador | all> <segundos> &7- Quitar tiempo de vuelo.
+  &e/powerfly setflytime <jugador | all> <segundos> &7- Establecer tiempo de vuelo.
+  &e/powerfly setcooldown <jugador | all> <segundos> &7- Establecer tiempo de cooldown.
   &e/powerfly reset <cooldown | flytime> <jugador | all> &7- Reiniciar cooldown o tiempo de vuelo.
   &e/powerfly reload &7- Recargar la configuración del plugin.
 

@@ -30,6 +30,9 @@ help-message: |
   &e/powerfly check <player> &7- Check fly time and cooldown of a player.
   &e/powerfly addflytime <player | all> <seconds> &7- Add fly time.
   &e/powerfly delflytime <player | all> <seconds> &7- Remove fly time.
+  &e/powerfly setflytime <player | all> <seconds> &7- Set fly time.
+  &e/powerfly setcooldown <player | all> <seconds> &7- Set cooldown time.
+  &e/powerfly reset <player | all> <cooldown | flytime> &7- Reset fly time or cooldown.
   &e/powerfly reload &7- Reload the plugin configuration.
 
 # Admin messages
@@ -59,6 +62,11 @@ fly-time-added: "&aAdded &f{seconds} &aof fly time to &e{player}."
 fly-time-deleted: "&aRemoved &f{seconds} &aof fly time from &e{player}."
 fly-time-added-all: "&aAdded &f{seconds} &aof fly time to &eall players."
 fly-time-deleted-all: "&aRemoved &f{seconds} &aof fly time from &eall players."
+
+fly-time-set: "&aSet fly time to &f{seconds} &afor &e{player}."
+fly-cooldown-set: "&aSet cooldown time to &f{seconds} &afor &e{player}."
+fly-time-set-all: "&aSet fly time to &f{seconds} &afor &eall players."
+fly-cooldown-set-all: "&aSet cooldown time to &f{seconds} &afor &eall players."
 
 fly-time-reset: "&aReset &ffly time &afor &e{player}."
 fly-time-reset-all: "&aReset &ffly time &afor &eall players."

@@ -30,6 +30,9 @@ help-message: |
   &e/powerfly check <玩家> &7- 查看玩家的飞行时间和冷却时间
   &e/powerfly addflytime <玩家 | all> <秒数> &7- 为玩家添加飞行时间
   &e/powerfly delflytime <玩家 | all> <秒数> &7- 移除玩家的飞行时间
+  &e/powerfly setflytime <玩家 | all> <秒数> &7- 设置玩家的飞行时间
+  &e/powerfly setcooldown <玩家 | all> <秒数> &7- 设置玩家的冷却时间
+  &e/powerfly reset <玩家 | all> <cooldown | flytime> &7- 重置玩家的飞行时间或冷却时间
   &e/powerfly reload &7- 重载插件配置
 
 # 管理员消息
@@ -59,6 +62,11 @@ fly-time-added: "&a已为 &e{player} 添加 &f{seconds} 秒飞行时间"
 fly-time-deleted: "&a已从 &e{player} 移除 &f{seconds} 秒飞行时间"
 fly-time-added-all: "&a已为 &e所有玩家 添加 &f{seconds} 秒飞行时间"
 fly-time-deleted-all: "&a已从 &e所有玩家 移除 &f{seconds} 秒飞行时间"
+
+fly-time-set: "&a已为 &e{player} 设置飞行时间为 &f{seconds} 秒"
+fly-cooldown-set: "&a已为 &e{player} 设置冷却时间为 &f{seconds} 秒"
+fly-time-set-all: "&a已为 &e所有玩家 设置飞行时间为 &f{seconds} 秒"
+fly-cooldown-set-all: "&a已为 &e所有玩家 设置冷却时间为 &f{seconds} 秒"
 
 fly-time-reset: "&a已重置 &e{player} 的飞行时间"
 fly-time-reset-all: "&a已重置 &e所有玩家 的飞行时间"

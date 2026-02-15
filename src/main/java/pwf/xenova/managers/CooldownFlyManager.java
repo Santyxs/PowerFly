@@ -103,6 +103,11 @@ public class CooldownFlyManager {
         storage.setCooldown(playerUUID, cooldownUntil);
     }
 
+    public void removeCooldown(UUID playerUUID) {
+        cooldowns.remove(playerUUID);
+        storage.removeCooldown(playerUUID);
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isOnCooldown(UUID playerUUID) {
         return cooldowns.containsKey(playerUUID) && cooldowns.get(playerUUID) > System.currentTimeMillis();
@@ -128,10 +133,5 @@ public class CooldownFlyManager {
         long minutes = (totalSeconds % 3600) / 60;
         long seconds = totalSeconds % 60;
         return hours + "h " + minutes + "m " + seconds + "s";
-    }
-
-    public void removeCooldown(UUID playerUUID) {
-        cooldowns.remove(playerUUID);
-        storage.removeCooldown(playerUUID);
     }
 }

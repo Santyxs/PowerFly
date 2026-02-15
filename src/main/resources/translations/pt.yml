@@ -30,6 +30,8 @@ help-message: |
   &e/powerfly check <jogador> &7- Ver o tempo de voo e cooldown de um jogador.
   &e/powerfly addflytime <jogador | all> <segundos> &7- Adicionar tempo de voo.
   &e/powerfly delflytime <jogador | all> <segundos> &7- Remover tempo de voo.
+  &e/powerfly setflytime <jogador | all> <segundos> &7- Definir tempo de voo.
+  &e/powerfly setcooldown <jogador | all> <segundos> &7- Definir tempo de cooldown.
   &e/powerfly reset <cooldown | flytime> <jogador | all> &7- Resetar cooldown ou tempo de voo.
   &e/powerfly reload &7- Recarregar a configuração do plugin.
 
@@ -60,6 +62,11 @@ fly-time-added: "&aForam adicionados {seconds} de tempo de voo para &e{player}."
 fly-time-deleted: "&aForam removidos {seconds} de tempo de voo para &e{player}."
 fly-time-added-all: "&aForam adicionados {seconds} de tempo de voo para &etodos os jogadores."
 fly-time-deleted-all: "&aForam removidos {seconds} de tempo de voo para &etodos os jogadores."
+
+fly-time-set: "&aDefinido o tempo de voo de &f{seconds} &apara &e{player}."
+fly-cooldown-set: "&aDefinido o cooldown de &f{seconds} &apara &e{player}."
+fly-time-set-all: "&aDefinido o tempo de voo de &f{seconds} &apara &etodos os jogadores."
+fly-cooldown-set-all: "&aDefinido o cooldown de &f{seconds} &apara &etodos os jogadores."
 
 fly-time-reset: "&fTempo de voo &aresetado para &e{player}."
 fly-time-reset-all: "&fTempo de voo &aresetado para &etodos os jogadores."

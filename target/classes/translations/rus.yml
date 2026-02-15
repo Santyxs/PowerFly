@@ -31,6 +31,8 @@ help-message: |
   &e/powerfly check <игрок> &7- Проверить время полёта и кулдаун игрока.
   &e/powerfly addflytime <игрок | all> <секунды> &7- Добавить время полёта.
   &e/powerfly delflytime <игрок | all> <секунды> &7- Удалить время полёта.
+  &e/powerfly setflytime <игрок | all> <секунды> &7- Установить время полёта.
+  &e/powerfly setcooldown <игрок | all> <секунды> &7- Установить время перезарядки.
   &e/powerfly reset <cooldown | flytime> <игрок | all> &7- Сбросить кулдаун или время полёта.
   &e/powerfly reload &7- Перезагрузить конфигурацию плагина.
 
