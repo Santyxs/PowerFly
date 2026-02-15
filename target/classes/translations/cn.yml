@@ -1,0 +1,69 @@
+config-version: 5
+
+# 玩家消息
+actionbar-fly-time: "&e飞行时间: &6{fly_time}"
+bossbar-fly-time: "&e飞行时间: &6{fly_time}"
+fly-time-warning: "&6⚠ &e剩余 &c10秒 &e飞行时间!"
+fly-time-ended: "&c飞行时间已结束"
+fly-cooldown: "&c你已使用完飞行时间，请等待 &6{cooldown_time} &c才能再次飞行"
+fly-enabled: "&a飞行已启用"
+fly-disabled: "&c飞行已禁用"
+fly-time-recharged: "&a你的飞行时间已自动恢复"
+fly-not-allowed-in-world: "&c你无法在此世界飞行"
+fly-not-allowed-in-region: "&c你无法在此区域飞行"
+fly-not-allowed-in-world-target: "&c{player} 无法在那个世界飞行"
+fly-not-allowed-in-region-target: "&c{player} 无法在那个区域飞行"
+fly-not-allowed-in-claim: "&c你无法在此领地内飞行"
+fly-in-combat: "&c你无法在战斗中飞行"
+fly-disabled-combat: "&c因战斗，飞行已禁用!"
+combat-ended: "&a你已脱离战斗状态"
+no-permission: "&c你没有权限使用此命令"
+not-enough-money: "&c你需要 &e{price}{currency} &c来购买 &f{secondstobuy}秒 &c的飞行时间"
+flytime-bought: "&a你花费 &e{price}{currency} &a购买了 &f{secondstobuy}秒 &a的飞行时间"
+
+help-message: |
+  &8&m----&r &bPowerFly 帮助 &8&m----&r
+
+  &e/fly &7- 启用或禁用限时飞行
+  &e/powerfly fly <玩家 | all> <on | off> &7- 为其他玩家启用或禁用飞行
+  &e/powerfly buyflytime <秒数> &7- 购买飞行时间
+  &e/powerfly check <玩家> &7- 查看玩家的飞行时间和冷却时间
+  &e/powerfly addflytime <玩家 | all> <秒数> &7- 为玩家添加飞行时间
+  &e/powerfly delflytime <玩家 | all> <秒数> &7- 移除玩家的飞行时间
+  &e/powerfly reload &7- 重载插件配置
+
+# 管理员消息
+fly-mode-error: "&c你当前的游戏模式无法飞行"
+fly-mode-error-target: "&c{player} 无法使用飞行，因为他们处于创造模式或旁观模式"
+no-player-specified: "&c你必须指定一个玩家名称"
+player-not-found: "&c未找到玩家"
+no-time-specified: "&c你必须指定一个时间 (秒)"
+invalid-time: "&c无效的时间"
+already-flytime-infinite: "&c{player} 已经拥有无限飞行时间"
+no-player-fly-time: "&c{player} 没有剩余的飞行时间"
+no-players-with-fly-time: "&c没有玩家拥有剩余的飞行时间"
+no-reset-type-specified: "&c你必须指定 'cooldown' 或 'flytime'"
+
+check-info: |
+  &8&m-&r &b{player} 信息 &8&m-
+
+  &b飞行时间: &7{fly_time}
+  &b冷却时间: &7{cooldown_time}
+
+fly-enabled-target: "&a已为 &e{player} 启用飞行"
+fly-disabled-target: "&c已为 &e{player} 禁用飞行"
+fly-enabled-all: "&a已为 &e所有玩家 启用飞行"
+fly-disabled-all: "&c已为 &e所有玩家 禁用飞行"
+
+fly-time-added: "&a已为 &e{player} 添加 &f{seconds} 秒飞行时间"
+fly-time-deleted: "&a已从 &e{player} 移除 &f{seconds} 秒飞行时间"
+fly-time-added-all: "&a已为 &e所有玩家 添加 &f{seconds} 秒飞行时间"
+fly-time-deleted-all: "&a已从 &e所有玩家 移除 &f{seconds} 秒飞行时间"
+
+fly-time-reset: "&a已重置 &e{player} 的飞行时间"
+fly-time-reset-all: "&a已重置 &e所有玩家 的飞行时间"
+cooldown-reset: "&a已重置 &e{player} 的冷却时间"
+cooldown-reset-all: "&a已重置 &e所有玩家 的冷却时间"
+
+reload-success: "&a配置重载成功!"
+reload-error: "&c重载配置或消息时发生错误"

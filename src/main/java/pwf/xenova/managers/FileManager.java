@@ -54,7 +54,7 @@ public class FileManager {
 
             config.save();
 
-            String[] langFiles = {"es.yml", "en.yml", "rus.yml", "pt.yml"};
+            String[] langFiles = {"es.yml", "en.yml", "rus.yml", "pt.yml", "cn.yml"};
 
             for (String fileName : langFiles) {
                 try {

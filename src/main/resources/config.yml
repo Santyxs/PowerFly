@@ -13,7 +13,7 @@ config-version: 5
 # Prefix for the custom messages
 prefix: "&7[&ePower&fFly&7] &r"
 
-# Language for messages (en, es, pt, rus)
+# Language for messages (en, es, pt, rus, cn)
 language: en
 
 # Enable or disable update checking
