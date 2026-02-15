@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 4
+config-version: 5
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -62,6 +62,9 @@ groups-fly-time:
 
 # Prevent fall damage when fly time ends (10s)
 no-fall-damage: false
+
+# Decrease fly time when the player is on the ground
+decrease-flytime-on-ground: false
 
 # When players mine blocks while flying, they get mining fatigue effect
 slow-mining:

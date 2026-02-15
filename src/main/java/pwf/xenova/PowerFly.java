@@ -37,6 +37,7 @@ public class PowerFly extends JavaPlugin {
     private ClaimFlyManager claimFlyManager;
     private SlowMiningManager slowMiningManager;
     private StorageInterface storage;
+    private FlyTimeOnGroundManager flyTimeOnGroundManager;
 
     private final Set<UUID> noFallDamage = new HashSet<>();
 
@@ -55,6 +56,7 @@ public class PowerFly extends JavaPlugin {
     public Economy getEconomy() { return economy; }
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
     public StorageInterface getStorage() { return storage; }
+    public FlyTimeOnGroundManager getFlyTimeOnGroundManager() { return flyTimeOnGroundManager; }
 
     // ----------------- Plugin Enable -----------------
 
@@ -92,6 +94,7 @@ public class PowerFly extends JavaPlugin {
         flyRestrictionManager = new FlyRestrictionManager(this);
         claimFlyManager = new ClaimFlyManager(this);
         slowMiningManager = new SlowMiningManager(this);
+        flyTimeOnGroundManager = new FlyTimeOnGroundManager(this);
 
         // CommandManager
         CommandManager.registerCommands(this);

@@ -248,8 +248,10 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 int currentRemaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
 
                 if (currentRemaining != INFINITE_FLY_TIME) {
-                    currentRemaining--;
-                    plugin.getFlyTimeManager().setFlyTime(uuid, currentRemaining);
+                    if (plugin.getFlyTimeOnGroundManager().shouldDecreaseFlyTime(player)) {
+                        currentRemaining--;
+                        plugin.getFlyTimeManager().setFlyTime(uuid, currentRemaining);
+                    }
                 }
 
                 if (currentRemaining == 10) {
