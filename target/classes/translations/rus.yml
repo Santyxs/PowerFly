@@ -64,6 +64,12 @@ fly-time-deleted: "&aУ игрока &e{player} &aбыло отнято &f{secon
 fly-time-added-all: "&eВсем &eигрокам было добавлено &f{seconds} &aвремени полёта."
 fly-time-deleted-all: "&eУ всех &eигроков было отнято &f{seconds} &aвремени полёта."
 
+
+fly-time-set: "&aУстановлено время полёта &f{seconds} &aдля &e{player}."
+fly-cooldown-set: "&aУстановлено время восстановления &f{seconds} &aдля &e{player}."
+fly-time-set-all: "&aУстановлено время полёта &f{seconds} &aдля &eвсех игроков."
+fly-cooldown-set-all: "&aУстановлено время восстановления &f{seconds} &aдля &eвсех игроков."
+
 fly-time-reset: "&fВремя полёта &aсброшено для &e{player}."
 fly-time-reset-all: "&fВремя полёта &aсброшено для всех игроков."
 cooldown-reset: "&fКулдаун &aсброшен для &e{player}."

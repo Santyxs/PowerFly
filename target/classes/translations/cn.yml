@@ -63,6 +63,11 @@ fly-time-deleted: "&a已从 &e{player} 移除 &f{seconds} 秒飞行时间"
 fly-time-added-all: "&a已为 &e所有玩家 添加 &f{seconds} 秒飞行时间"
 fly-time-deleted-all: "&a已从 &e所有玩家 移除 &f{seconds} 秒飞行时间"
 
+fly-time-set: "&a已为 &e{player} 设置飞行时间为 &f{seconds} 秒"
+fly-cooldown-set: "&a已为 &e{player} 设置冷却时间为 &f{seconds} 秒"
+fly-time-set-all: "&a已为 &e所有玩家 设置飞行时间为 &f{seconds} 秒"
+fly-cooldown-set-all: "&a已为 &e所有玩家 设置冷却时间为 &f{seconds} 秒"
+
 fly-time-reset: "&a已重置 &e{player} 的飞行时间"
 fly-time-reset-all: "&a已重置 &e所有玩家 的飞行时间"
 cooldown-reset: "&a已重置 &e{player} 的冷却时间"
