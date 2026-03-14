@@ -259,7 +259,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 }
 
                 if (currentRemaining > 0 || currentRemaining == INFINITE_FLY_TIME) {
-                    if (plugin.getConfig().getBoolean("show-actionbar", true))
+                    if (plugin.getConfig().getBoolean("show-actionbar", true) && player.isFlying())
                         sendFlyTimeActionBar(player, currentRemaining);
 
                     if (plugin.getConfig().getBoolean("show-bossbar", true))
