@@ -35,18 +35,19 @@ storage-type: YAML
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
 # Global cooldown time in seconds for all players or players without a group
-# You can use a number (e.g: 500)
+# You can use a number (e.g: 500 or -1 for no cooldown)
 global-cooldown: 100
 
 # Enable or disable group-based cooldowns
 use-groups-cooldown: true
 
 # Cooldown time in seconds for each group (can be customized based on LuckPerms groups)
-# You can use a number (e.g: 500)
+# You can use a number (e.g: 500 or -1 for no cooldown)
 groups-cooldown:
   default: 100
   vip: 30
   mod: 60
+  admin: -1
 
 # Fly time in seconds for new players or players without a group
 # You can use a number (e.g: 500) or -1 for unlimited fly time

@@ -211,7 +211,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
     private void handleFlyEnd(Player player) {
         UUID uuid = player.getUniqueId();
-        if (!plugin.getCooldownFlyManager().isOnCooldown(uuid)) {
+        if (plugin.getCooldownFlyManager().isOnCooldown(uuid)) {
             plugin.getCooldownFlyManager().startCooldown(uuid);
         }
 

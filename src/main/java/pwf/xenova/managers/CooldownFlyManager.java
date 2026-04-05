@@ -25,7 +25,7 @@ public class CooldownFlyManager {
 
                 synchronized (cooldowns) {
                     for (Map.Entry<UUID, Long> entry : cooldowns.entrySet()) {
-                        if (now >= entry.getValue()) {
+                        if (entry.getValue() != -1L && now >= entry.getValue()) {
                             toRemove.add(entry.getKey());
                         }
                     }
@@ -54,7 +54,7 @@ public class CooldownFlyManager {
         Map<UUID, Integer> allPlayers = storage.loadAllFlyTimes();
         for (UUID uuid : allPlayers.keySet()) {
             long cooldownUntil = storage.getCooldown(uuid);
-            if (cooldownUntil > now) {
+            if (cooldownUntil == -1L || cooldownUntil > now) {
                 cooldowns.put(uuid, cooldownUntil);
             }
         }
@@ -79,7 +79,6 @@ public class CooldownFlyManager {
 
         if (useGroupCooldown) {
             String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(playerUUID);
-
             String path = "groups-cooldown." + group;
             if (plugin.getFileManager().getConfig().contains(path)) {
                 cooldownSeconds = plugin.getFileManager().getConfig().getInt(path, 50);
@@ -90,14 +89,28 @@ public class CooldownFlyManager {
             cooldownSeconds = plugin.getFileManager().getConfig().getInt("global-cooldown", 100);
         }
 
-        long cooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000L);
-
-        cooldowns.put(playerUUID, cooldownUntil);
         plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
+
+        if (cooldownSeconds == -1) {
+            long cooldownUntil = System.currentTimeMillis() + 1000L;
+            cooldowns.put(playerUUID, cooldownUntil);
+            storage.setCooldown(playerUUID, cooldownUntil);
+            return;
+        }
+
+        long cooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000L);
+        cooldowns.put(playerUUID, cooldownUntil);
         storage.setCooldown(playerUUID, cooldownUntil);
     }
 
     public void setCooldown(UUID playerUUID, int seconds) {
+        if (seconds == -1) {
+            long cooldownUntil = System.currentTimeMillis() + 1000L;
+            cooldowns.put(playerUUID, cooldownUntil);
+            storage.setCooldown(playerUUID, cooldownUntil);
+            return;
+        }
+
         long cooldownUntil = System.currentTimeMillis() + (seconds * 1000L);
         cooldowns.put(playerUUID, cooldownUntil);
         storage.setCooldown(playerUUID, cooldownUntil);
@@ -108,20 +121,26 @@ public class CooldownFlyManager {
         storage.removeCooldown(playerUUID);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isNotOnCooldown(UUID playerUUID) {
+        if (!cooldowns.containsKey(playerUUID)) return true;
+        long val = cooldowns.get(playerUUID);
+        return val <= System.currentTimeMillis();
+    }
+
     public boolean isOnCooldown(UUID playerUUID) {
-        return cooldowns.containsKey(playerUUID) && cooldowns.get(playerUUID) > System.currentTimeMillis();
+        return !isNotOnCooldown(playerUUID);
     }
 
     public String getRemainingCooldownFormatted(UUID playerUUID) {
-        if (!isOnCooldown(playerUUID)) return "0s";
+        if (isNotOnCooldown(playerUUID)) return "0s";
 
-        long remainingMillis = cooldowns.get(playerUUID) - System.currentTimeMillis();
+        long val = cooldowns.get(playerUUID);
+        if (val == -1L) return "∞";
+
+        long remainingMillis = val - System.currentTimeMillis();
         long totalSeconds = remainingMillis / 1000;
 
-        if (totalSeconds < 60) {
-            return totalSeconds + "s";
-        }
+        if (totalSeconds < 60) return totalSeconds + "s";
 
         if (totalSeconds < 3600) {
             long minutes = totalSeconds / 60;

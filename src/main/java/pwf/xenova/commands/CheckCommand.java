@@ -64,7 +64,7 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         String cooldownDisplay;
-        if (!plugin.getCooldownFlyManager().isOnCooldown(uuid)) {
+        if (plugin.getCooldownFlyManager().isOnCooldown(uuid)) {
             cooldownDisplay = plugin.getMessageString("cooldown-none", "&70s");
         } else {
             cooldownDisplay = "&7" + plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
