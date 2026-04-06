@@ -328,7 +328,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             progress = 1.0;
         } else {
             int currentMax = Math.max(remaining, maxTime);
-            progress = (currentMax <= 0) ? 0.0 : Math.max(0.0, Math.min(1.0, (double) remaining / currentMax));
+            progress = (currentMax <= 0) ? 0.0 : Math.clamp((double) remaining / currentMax, 0.0, 1.0);
         }
 
         bar.setProgress(progress);
