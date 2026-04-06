@@ -73,7 +73,7 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
             String timeDisplay = secondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(secondsToSet);
             String msg = plugin.getMessageString("set-flytime-all", "&aSet fly time to &f{seconds} &afor &eall players.")
-                    .replace("{time}", timeDisplay)
+                    .replace("{seconds}", timeDisplay)
                     .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
