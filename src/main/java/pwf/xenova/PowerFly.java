@@ -38,6 +38,7 @@ public class PowerFly extends JavaPlugin {
     private SlowMiningManager slowMiningManager;
     private StorageInterface storage;
     private FlyTimeOnGroundManager flyTimeOnGroundManager;
+    private FlyCommand flyCommand;
 
     private final Set<UUID> noFallDamage = new HashSet<>();
 
@@ -57,6 +58,8 @@ public class PowerFly extends JavaPlugin {
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
     public StorageInterface getStorage() { return storage; }
     public FlyTimeOnGroundManager getFlyTimeOnGroundManager() { return flyTimeOnGroundManager; }
+    public FlyCommand getFlyCommand() { return flyCommand; }
+    public void setFlyCommand(FlyCommand flyCommand) { this.flyCommand = flyCommand; }
 
     // ----------------- Plugin Enable -----------------
 

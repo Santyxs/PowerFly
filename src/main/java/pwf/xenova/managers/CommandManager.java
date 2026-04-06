@@ -17,6 +17,7 @@ public class CommandManager {
         HelpCommand helpCommand = new HelpCommand(powerFly);
         ReloadCommand reloadCommand = new ReloadCommand(powerFly);
         FlyCommand flyCommand = new FlyCommand(powerFly);
+        powerFly.setFlyCommand(flyCommand);
         CheckCommand checkCommand = new CheckCommand(powerFly);
         AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand(powerFly);
         DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(powerFly);
@@ -77,7 +78,6 @@ public class CommandManager {
                         return List.of("<seconds>");
                     }
                 }
-
             }
 
             if (args.length == 3) {
@@ -97,7 +97,6 @@ public class CommandManager {
                         return StringUtil.copyPartialMatches(args[2], options, new ArrayList<>());
                     }
                 }
-
             }
 
             return new ArrayList<>();

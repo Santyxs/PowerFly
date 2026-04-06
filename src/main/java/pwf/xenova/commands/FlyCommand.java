@@ -192,7 +192,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         startFlyTimer(player, maxTime);
     }
 
-    private void disableFly(Player player, boolean fromEnd) {
+    public void disableFly(Player player, boolean fromEnd) {
         UUID uuid = player.getUniqueId();
         stopFlyTimer(player);
         removeFlyBar(player);
@@ -239,7 +239,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                     return;
                 }
 
-                if (!player.isOnline() || !player.getAllowFlight()) {
+                if (!player.isOnline() || !PLUGIN_FLY_ACTIVE.contains(uuid)) {
                     cleanupFlyData(player);
                     cancel();
                     return;
