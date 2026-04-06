@@ -138,7 +138,7 @@ public class CooldownFlyManager {
         if (val == -1L) return "∞";
 
         long remainingMillis = val - System.currentTimeMillis();
-        long totalSeconds = remainingMillis / 1000;
+        long totalSeconds = (remainingMillis + 999) / 1000;
 
         if (totalSeconds < 60) return totalSeconds + "s";
 
