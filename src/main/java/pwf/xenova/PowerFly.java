@@ -129,11 +129,12 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Plugin Disable -----------------
 
     public void onDisable() {
-        if (storage != null) {
-            storage.close();
-        }
+        if (storage != null) storage.close();
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
         if (slowMiningManager != null) slowMiningManager.shutdown();
+
+        noFallDamage.clear();
+
         getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
     }
 

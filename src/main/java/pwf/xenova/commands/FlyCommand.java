@@ -23,6 +23,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     private static final Map<UUID, BukkitRunnable> FLY_TIMERS = new HashMap<>();
     private static final Map<UUID, BossBar> FLY_BOSSBARS = new HashMap<>();
     private static final Set<UUID> PLUGIN_FLY_ACTIVE = new HashSet<>();
+    private static final Set<UUID> WARNED_10S = new HashSet<>();
     private static final int INFINITE_FLY_TIME = -1;
 
     public boolean onCommand(@NotNull CommandSender sender,
@@ -183,6 +184,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
         player.setAllowFlight(true);
         player.setFlying(true);
+        player.setFallDistance(0);
         PLUGIN_FLY_ACTIVE.add(uuid);
 
         plugin.getSoundEffectsManager().playActivationEffects(player);
@@ -197,6 +199,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         stopFlyTimer(player);
         removeFlyBar(player);
         PLUGIN_FLY_ACTIVE.remove(uuid);
+        WARNED_10S.remove(uuid);
 
         if (fromEnd) handleFlyEnd(player);
 
@@ -254,13 +257,18 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                     }
                 }
 
-                if (currentRemaining == 10) {
+                if (currentRemaining == 10 && WARNED_10S.add(uuid)) {
                     sendMessage(player, "fly-time-warning", "&6⚠ &eThere are &c10s &eof fly remaining!");
                 }
 
                 if (currentRemaining > 0 || currentRemaining == INFINITE_FLY_TIME) {
                     if (plugin.getConfig().getBoolean("show-actionbar", true)) {
-                        boolean onGround = !player.isFlying();
+                        boolean onGround = player.getLocation()
+                                .clone()
+                                .subtract(0, 0.1, 0)
+                                .getBlock()
+                                .getType()
+                                .isSolid();
                         boolean showOnGround = plugin.getConfig().getBoolean("show-actionbar-on-ground", false);
                         if (!onGround || showOnGround) {
                             sendFlyTimeActionBar(player, currentRemaining);
@@ -399,6 +407,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         stopFlyTimer(player);
         removeFlyBar(player);
         PLUGIN_FLY_ACTIVE.remove(player.getUniqueId());
+        WARNED_10S.remove(player.getUniqueId());
     }
 
     public void cancelFlyTimer(UUID uuid) {
@@ -409,6 +418,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     public void restartFlyTimer(Player player, int newMaxTime) {
         stopFlyTimer(player);
         removeFlyBar(player);
+        WARNED_10S.remove(player.getUniqueId());
         if (plugin.getConfig().getBoolean("show-bossbar", true)) {
             showFlyBar(player, newMaxTime);
         }
