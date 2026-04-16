@@ -1,4 +1,4 @@
-config-version: 5
+config-version: 6
 
 # 玩家消息
 actionbar-fly-time: "&e飞行时间: &6{fly_time}"

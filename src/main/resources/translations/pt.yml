@@ -1,4 +1,4 @@
-config-version: 5
+config-version: 6
 
 # Mensagens do jogador
 actionbar-fly-time: "&eTempo de voo: &6{fly_time}"
@@ -45,7 +45,7 @@ invalid-time: "&cTempo inválido."
 already-flytime-infinite: "&c{player} já tem tempo de voo infinito."
 no-player-fly-time: "&c{player} não tem tempo de voo restante."
 no-players-with-fly-time: "&cNenhum jogador tem tempo de voo restante."
-no-reset-type-specified": "&cVocê deve especificar 'cooldown' ou 'flytime'."
+no-reset-type-specified: "&cVocê deve especificar 'cooldown' ou 'flytime'."
 
 check-info: |
   &8&m-&r &bInformações de {player} &8&m-
@@ -68,10 +68,10 @@ fly-cooldown-set: "&aDefinido o cooldown de &f{seconds} &apara &e{player}."
 fly-time-set-all: "&aDefinido o tempo de voo de &f{seconds} &apara &etodos os jogadores."
 fly-cooldown-set-all: "&aDefinido o cooldown de &f{seconds} &apara &etodos os jogadores."
 
-fly-time-reset: "&fTempo de voo &aresetado para &e{player}."
-fly-time-reset-all: "&fTempo de voo &aresetado para &etodos os jogadores."
-cooldown-reset: "&fCooldown &aresetado para &e{player}."
-cooldown-reset-all: "&fCooldown &aresetado para &etodos os jogadores."
+fly-time-reset: "&fTempo de voo &aresetado &fpara &e{player}."
+fly-time-reset-all: "&fTempo de voo &aresetado &fpara &etodos os jogadores."
+cooldown-reset: "&fCooldown &aresetado &fpara &e{player}."
+cooldown-reset-all: "&fCooldown &aresetado &fpara &etodos os jogadores."
 
 reload-success: "&aConfiguração recarregada!"
 reload-error: "&cOcorreu um erro ao recarregar a configuração ou as mensagens."

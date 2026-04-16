@@ -1,4 +1,4 @@
-config-version: 5
+config-version: 6
 
 # Player messages
 actionbar-fly-time: "&eFly time: &6{fly_time}"
@@ -45,7 +45,7 @@ invalid-time: "&cInvalid time."
 already-flytime-infinite: "&c{player} ya tiene tiempo de vuelo infinito."
 no-player-fly-time: "&c{player} has no fly time remaining."
 no-players-with-fly-time: "&cNo players have fly time remaining."
-no-reset-type-specified": "&cYou must specify 'cooldown' or 'flytime'."
+no-reset-type-specified: "&cYou must specify 'cooldown' or 'flytime'."
 
 check-info: |
   &8&m-&r &b{player} Info &8&m-
