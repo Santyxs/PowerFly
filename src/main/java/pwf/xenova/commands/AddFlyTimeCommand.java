@@ -55,7 +55,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
 
@@ -93,6 +93,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             sendWithPrefix(sender, msg);
             return true;
         }
+
         plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
 
         String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";

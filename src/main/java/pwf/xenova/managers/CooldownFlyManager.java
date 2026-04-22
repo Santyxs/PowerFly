@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.PowerFly;
 import pwf.xenova.storage.StorageInterface;
+
 import java.util.*;
 
 public class CooldownFlyManager {
@@ -17,30 +18,7 @@ public class CooldownFlyManager {
         this.plugin = plugin;
         this.storage = plugin.getStorage();
         load();
-
-        BukkitRunnable task = new BukkitRunnable() {
-            public void run() {
-                long now = System.currentTimeMillis();
-                List<UUID> toRemove = new ArrayList<>();
-
-                synchronized (cooldowns) {
-                    for (Map.Entry<UUID, Long> entry : cooldowns.entrySet()) {
-                        if (entry.getValue() != -1L && now >= entry.getValue()) {
-                            toRemove.add(entry.getKey());
-                        }
-                    }
-                }
-
-                if (!toRemove.isEmpty()) {
-                    for (UUID uuid : toRemove) {
-                        cooldowns.remove(uuid);
-                        rechargePlayerFly(uuid);
-                        storage.removeCooldown(uuid);
-                    }
-                }
-            }
-        };
-        task.runTaskTimer(plugin, 20L, 20L);
+        startCleanupTimer();
     }
 
     public void reload() {
@@ -50,22 +28,36 @@ public class CooldownFlyManager {
 
     private void load() {
         long now = System.currentTimeMillis();
-
-        Map<UUID, Integer> allPlayers = storage.loadAllFlyTimes();
-        for (UUID uuid : allPlayers.keySet()) {
-            long cooldownUntil = storage.getCooldown(uuid);
+        storage.loadAllCooldowns().forEach((uuid, cooldownUntil) -> {
             if (cooldownUntil == -1L || cooldownUntil > now) {
                 cooldowns.put(uuid, cooldownUntil);
             }
-        }
+        });
     }
 
-    private void rechargePlayerFly(UUID uuid) {
-        String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
-        int groupTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
+    private void startCleanupTimer() {
+        new BukkitRunnable() {
+            public void run() {
+                long now = System.currentTimeMillis();
+                List<UUID> toRemove = new ArrayList<>();
 
-        plugin.getFlyTimeManager().setFlyTime(uuid, groupTime);
+                for (Map.Entry<UUID, Long> entry : cooldowns.entrySet()) {
+                    if (entry.getValue() != -1L && now >= entry.getValue()) {
+                        toRemove.add(entry.getKey());
+                    }
+                }
 
+                for (UUID uuid : toRemove) {
+                    cooldowns.remove(uuid);
+                    storage.removeCooldown(uuid);
+                    plugin.getFlyTimeManager().reloadFlyTime(uuid);
+                    notifyRecharge(uuid);
+                }
+            }
+        }.runTaskTimer(plugin, 20L, 20L);
+    }
+
+    private void notifyRecharge(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
         if (player != null && player.isOnline()) {
             player.sendMessage(plugin.getPrefixedMessage("fly-time-recharged", "&aYour fly time has been recharged."));
@@ -90,28 +82,14 @@ public class CooldownFlyManager {
         }
 
         plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
-
-        if (cooldownSeconds == -1) {
-            long cooldownUntil = System.currentTimeMillis() + 1000L;
-            cooldowns.put(playerUUID, cooldownUntil);
-            storage.setCooldown(playerUUID, cooldownUntil);
-            return;
-        }
-
-        long cooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000L);
-        cooldowns.put(playerUUID, cooldownUntil);
-        storage.setCooldown(playerUUID, cooldownUntil);
+        setCooldown(playerUUID, cooldownSeconds);
     }
 
     public void setCooldown(UUID playerUUID, int seconds) {
-        if (seconds == -1) {
-            long cooldownUntil = System.currentTimeMillis() + 1000L;
-            cooldowns.put(playerUUID, cooldownUntil);
-            storage.setCooldown(playerUUID, cooldownUntil);
-            return;
-        }
+        long cooldownUntil = seconds == -1
+                ? -1L
+                : System.currentTimeMillis() + (seconds * 1000L);
 
-        long cooldownUntil = System.currentTimeMillis() + (seconds * 1000L);
         cooldowns.put(playerUUID, cooldownUntil);
         storage.setCooldown(playerUUID, cooldownUntil);
     }
@@ -121,18 +99,19 @@ public class CooldownFlyManager {
         storage.removeCooldown(playerUUID);
     }
 
-    public boolean isNotOnCooldown(UUID playerUUID) {
-        if (!cooldowns.containsKey(playerUUID)) return true;
+    public boolean isOnCooldown(UUID playerUUID) {
+        if (!cooldowns.containsKey(playerUUID)) return false;
         long val = cooldowns.get(playerUUID);
-        return val <= System.currentTimeMillis();
+        if (val == -1L) return true;
+        return val > System.currentTimeMillis();
     }
 
-    public boolean isOnCooldown(UUID playerUUID) {
-        return !isNotOnCooldown(playerUUID);
+    public boolean isNotOnCooldown(UUID playerUUID) {
+        return !isOnCooldown(playerUUID);
     }
 
     public String getRemainingCooldownFormatted(UUID playerUUID) {
-        if (isNotOnCooldown(playerUUID)) return "0s";
+        if (!isOnCooldown(playerUUID)) return "0s";
 
         long val = cooldowns.get(playerUUID);
         if (val == -1L) return "∞";

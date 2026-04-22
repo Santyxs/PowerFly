@@ -22,6 +22,11 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
+        if (!player.hasPermission("powerfly.buyflytime") && !player.hasPermission("powerfly.admin")) {
+            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
+            return true;
+        }
+
         if (!plugin.getConfig().getBoolean("use-economy", false)) {
             player.sendMessage(MessageFormat.parseMessage(
                     plugin.getMessageString("economy-disabled", "&cEconomy support is disabled. You cannot buy fly time.")
@@ -29,21 +34,14 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        if (!player.hasPermission("powerfly.buyflytime") && !player.hasPermission("powerfly.admin")) {
-            sender.sendMessage(plugin.getPrefixedMessage("no-permission", "&cYou do not have permission to use this command."));
-            return true;
-        }
-
-        int timeArgIndex = (args.length > 0 && args[0].equalsIgnoreCase("buyflytime")) ? 1 : 0;
-
-        if (args.length <= timeArgIndex) {
+        if (args.length == 0) {
             sendWithPrefix(player, plugin.getMessageString("no-time-specified", "&cYou must specify a time in seconds."));
             return true;
         }
 
         int seconds;
         try {
-            seconds = Integer.parseInt(args[timeArgIndex].trim());
+            seconds = Integer.parseInt(args[0].trim());
             if (seconds <= 0) throw new NumberFormatException();
         } catch (NumberFormatException e) {
             sendWithPrefix(player, plugin.getMessageString("invalid-time", "&cInvalid time."));
@@ -55,7 +53,6 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         String currencySymbol = plugin.getConfig().getString("currency-symbol", "$");
 
         if (!plugin.getEconomy().has(player, totalPrice)) {
-
             String msg = plugin.getMessageString("not-enough-money", "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &cof fly time.")
                     .replace("{price}", String.format("%.2f", totalPrice))
                     .replace("{currency}", currencySymbol)

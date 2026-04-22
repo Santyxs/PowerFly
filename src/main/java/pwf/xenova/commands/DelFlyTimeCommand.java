@@ -49,13 +49,19 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
+
+                if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
+                    continue;
+                }
+
                 processReduction(player.getUniqueId(), amount);
                 refreshPlayer(player);
                 affected++;
             }
+
             sendFeedback(sender, "all", amount, affected);
             return true;
         }

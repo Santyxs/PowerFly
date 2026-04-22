@@ -39,6 +39,7 @@ public class PowerFly extends JavaPlugin {
     private StorageInterface storage;
     private FlyTimeOnGroundManager flyTimeOnGroundManager;
     private FlyCommand flyCommand;
+    private FlyRuntimeManager flyRuntimeManager;
 
     private final Set<UUID> noFallDamage = new HashSet<>();
 
@@ -59,17 +60,45 @@ public class PowerFly extends JavaPlugin {
     public StorageInterface getStorage() { return storage; }
     public FlyTimeOnGroundManager getFlyTimeOnGroundManager() { return flyTimeOnGroundManager; }
     public FlyCommand getFlyCommand() { return flyCommand; }
+    public FlyRuntimeManager getFlyRuntimeManager() { return flyRuntimeManager; }
     public void setFlyCommand(FlyCommand flyCommand) { this.flyCommand = flyCommand; }
 
     // ----------------- Plugin Enable -----------------
 
     public void onEnable() {
         instance = this;
+        setupFiles();
+        setupStorage();
+        setupLuckPerms();
+        setupManagers();
+        setupCommands();
+        setupEvents();
+        setupMetrics();
+        setupEconomy();
+        setupExpansion();
+        reloadMessages();
+        checkForUpdates();
+        getLogger().info("\u001B[32mPowerFly plugin has been enabled.\u001B[0m");
+    }
 
-        // FileManager
+    // ----------------- Plugin Disable -----------------
+
+    public void onDisable() {
+        if (storage != null) storage.close();
+        if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
+        if (slowMiningManager != null) slowMiningManager.clearAllOnDisable();
+        if (combatFlyManager != null) combatFlyManager.cleanup();
+        noFallDamage.clear();
+        getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
+    }
+
+    // ----------------- Setup -----------------
+
+    private void setupFiles() {
         fileManager = new FileManager(this);
+    }
 
-        // Storage System
+    private void setupStorage() {
         String storageType = getConfig().getString("storage-type", "yaml").toUpperCase();
         if (storageType.equals("SQL")) {
             storage = new SQLStorage(this);
@@ -78,8 +107,9 @@ public class PowerFly extends JavaPlugin {
             storage = new YAMLStorage(this);
             getLogger().info("Using YAML storage.");
         }
+    }
 
-        // LuckPerms
+    private void setupLuckPerms() {
         if (Bukkit.getPluginManager().getPlugin("LuckPerms") != null) {
             luckPerms = LuckPermsProvider.get();
             getLogger().info("LuckPerms hooked.");
@@ -87,8 +117,10 @@ public class PowerFly extends JavaPlugin {
             luckPerms = null;
             getLogger().info("LuckPerms not found, group fly-time disabled.");
         }
+    }
 
-        // Managers
+    private void setupManagers() {
+        flyRuntimeManager = new FlyRuntimeManager(this);
         flyTimeManager = new FlyTimeManager(this);
         groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
         cooldownManager = new CooldownFlyManager(this);
@@ -98,44 +130,45 @@ public class PowerFly extends JavaPlugin {
         claimFlyManager = new ClaimFlyManager(this);
         slowMiningManager = new SlowMiningManager(this);
         flyTimeOnGroundManager = new FlyTimeOnGroundManager(this);
+    }
 
-        // CommandManager
+    private void setupCommands() {
         CommandManager.registerCommands(this);
+    }
 
-        // Events
+    private void setupEvents() {
         getServer().getPluginManager().registerEvents(flyRestrictionManager, this);
         getServer().getPluginManager().registerEvents(claimFlyManager, this);
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
-
+        getServer().getPluginManager().registerEvents(combatFlyManager, this);
+        getServer().getPluginManager().registerEvents(flyTimeOnGroundManager, this);
         registerPlayerJoinEvent();
         registerNoFallDamageEvent();
-
-        // Metrics
-        new Metrics(this, 26789);
-
-        // Vault
-        if (setupEconomy()) getLogger().info("Economy hooked: " + economy.getName());
-        else getLogger().info("Economy disabled (Vault not found).");
-
-        // PlaceholderAPI
-        setupExpansion();
-
-        reloadMessages();
-        checkForUpdates();
-
-        getLogger().info("\u001B[32mPowerFly plugin has been enabled.\u001B[0m");
     }
 
-    // ----------------- Plugin Disable -----------------
+    private void setupMetrics() {
+        new Metrics(this, 26789);
+    }
 
-    public void onDisable() {
-        if (storage != null) storage.close();
-        if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
-        if (slowMiningManager != null) slowMiningManager.shutdown();
+    private void setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            getLogger().info("Economy disabled (Vault not found).");
+            return;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            getLogger().info("Economy disabled (Vault not found).");
+            return;
+        }
+        economy = rsp.getProvider();
+        getLogger().info("Economy hooked: " + economy.getName());
+    }
 
-        noFallDamage.clear();
-
-        getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
+    private void setupExpansion() {
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new ExpansionManager(this).register();
+            getLogger().info("PlaceholderAPI detected, registered placeholders!");
+        }
     }
 
     // ----------------- Events -----------------
@@ -175,7 +208,8 @@ public class PowerFly extends JavaPlugin {
         if (!fileManager.getConfig().getBoolean("check-updates", true)) return;
 
         updateChecker = new UpdateChecker(this, "127043");
-        updateChecker.checkForUpdates(() -> {
+        updateChecker.checkForUpdates(success -> {
+            if (!success) { getLogger().warning("Could not check for updates."); return; }
             if (updateChecker.isUpdateAvailable()) {
                 getLogger().warning("=====================================");
                 getLogger().warning("A new version of PowerFly is available!");
@@ -193,25 +227,6 @@ public class PowerFly extends JavaPlugin {
 
     @SuppressWarnings("deprecation")
     private void logCurrentVersion() { getLogger().warning("Current version: " + getDescription().getVersion()); }
-
-    // ----------------- Economy -----------------
-
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) return false;
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) return false;
-        economy = rsp.getProvider();
-        return true;
-    }
-
-    // ----------------- Expansion -----------------
-
-    private void setupExpansion() {
-        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new pwf.xenova.managers.ExpansionManager(this).register();
-            getLogger().info("PlaceholderAPI detected, registered placeholders!");
-        }
-    }
 
     // ----------------- Messages -----------------
 

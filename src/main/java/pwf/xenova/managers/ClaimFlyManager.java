@@ -1,27 +1,28 @@
 package pwf.xenova.managers;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerMoveEvent;
+import com.palmergames.bukkit.towny.TownyAPI;
+import com.palmergames.bukkit.towny.object.TownBlock;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import pwf.xenova.PowerFly;
+import pwf.xenova.commands.FlyCommand;
 
 public class ClaimFlyManager implements Listener {
 
     private final PowerFly plugin;
     private boolean gpEnabled;
     private boolean townyEnabled;
-    private Object townyAPI;
 
     public ClaimFlyManager(PowerFly plugin) {
         this.plugin = plugin;
         reload();
-        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     public void reload() {
@@ -30,16 +31,6 @@ public class ClaimFlyManager implements Listener {
 
         this.townyEnabled = Bukkit.getPluginManager().isPluginEnabled("Towny") &&
                 plugin.getConfig().getBoolean("enable-towny", true);
-
-        if (townyEnabled) {
-            try {
-                Class<?> townyAPIClass = Class.forName("com.palmergames.bukkit.towny.TownyAPI");
-                townyAPI = townyAPIClass.getMethod("getInstance").invoke(null);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Towny is enabled but API could not be loaded: " + e.getMessage());
-                townyEnabled = false;
-            }
-        }
 
         plugin.getLogger().info("GriefPrevention: " + (gpEnabled ? "enabled" : "disabled"));
         plugin.getLogger().info("Towny: " + (townyEnabled ? "enabled" : "disabled"));
@@ -55,21 +46,13 @@ public class ClaimFlyManager implements Listener {
     }
 
     private boolean cannotFlyTowny(Player player, Location location) {
-        if (!townyEnabled || townyAPI == null) return false;
+        if (!townyEnabled) return false;
+
+        TownBlock townBlock = TownyAPI.getInstance().getTownBlock(location);
+        if (townBlock == null) return false;
 
         try {
-            Class<?> townyAPIClass = townyAPI.getClass();
-            Object townBlock = townyAPIClass.getMethod("getTownBlock", Location.class).invoke(townyAPI, location);
-
-            if (townBlock == null) return false;
-
-            Object town = townBlock.getClass().getMethod("getTown").invoke(townBlock);
-            boolean hasResident = (boolean) town.getClass()
-                    .getMethod("hasResident", String.class)
-                    .invoke(town, player.getName());
-
-            return !hasResident;
-
+            return !townBlock.getTown().hasResident(player.getName());
         } catch (Exception e) {
             return false;
         }
@@ -82,6 +65,8 @@ public class ClaimFlyManager implements Listener {
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
+
+        if (!FlyCommand.hasPluginFlyActive(player.getUniqueId())) return;
         if (!player.isFlying() || !player.getAllowFlight()) return;
 
         Location to = event.getTo();

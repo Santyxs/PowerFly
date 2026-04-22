@@ -59,7 +59,7 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
 
@@ -96,7 +96,6 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
         sendWithPrefix(sender, msg);
-
         return true;
     }
 

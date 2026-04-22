@@ -50,7 +50,7 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
     private void resetAll(CommandSender sender, String type) {
         int affected = 0;
 
-        var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+        var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
@@ -82,7 +82,6 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{affected}", String.valueOf(affected));
 
         sendWithPrefix(sender, msg);
-
         plugin.getLogger().info("Reset " + type + " for " + affected + " players");
     }
 

@@ -1,4 +1,4 @@
-config-version: 6
+config-version: 7
 
 # Player messages
 actionbar-fly-time: "&eFly time: &6{fly_time}"
@@ -22,7 +22,7 @@ not-enough-money: "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &co
 flytime-bought: "&aYou bought &f{secondstobuy}s &aof fly time for &e{price}{currency}&a."
 
 help-message: |
-  &8&m----&r &bPowerFly Help &8&m----&r
+  &8&m----&r &bPowerFly Help &8&m----&8&r
 
   &e/fly &7- Enable or disable fly for a limited time.
   &e/powerfly fly <player | all> <on | off> &7- Enable or disable fly for other players.
@@ -32,7 +32,7 @@ help-message: |
   &e/powerfly delflytime <player | all> <seconds> &7- Remove fly time.
   &e/powerfly setflytime <player | all> <seconds> &7- Set fly time.
   &e/powerfly setcooldown <player | all> <seconds> &7- Set cooldown time.
-  &e/powerfly reset <player | all> <cooldown | flytime> &7- Reset fly time or cooldown.
+  &e/powerfly reset <flytime | cooldown> <player | all> &7- Reset fly time or cooldown.
   &e/powerfly reload &7- Reload the plugin configuration.
 
 # Admin messages
@@ -42,15 +42,15 @@ no-player-specified: "&cYou must specify a player name."
 player-not-found: "&cPlayer not found."
 no-time-specified: "&cYou must specify a time in seconds."
 invalid-time: "&cInvalid time."
-already-flytime-infinite: "&c{player} ya tiene tiempo de vuelo infinito."
+already-flytime-infinite: "&c{player} already has infinite fly time."
 no-player-fly-time: "&c{player} has no fly time remaining."
 no-players-with-fly-time: "&cNo players have fly time remaining."
 no-reset-type-specified: "&cYou must specify 'cooldown' or 'flytime'."
 
 check-info: |
-  &8&m-&r &b{player} Info &8&m-
+  &8&m-&r &b{player} Info &8&m-&r
 
-  &bTime fly: &7{fly_time}
+  &bFly time: &7{fly_time}
   &bCooldown: &7{cooldown_time}
 
 fly-enabled-target: "&aFly enabled for &e{player}"

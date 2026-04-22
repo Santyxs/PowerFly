@@ -10,16 +10,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 
 public class FileManager {
 
+    private static final String[] LANG_FILES = {"es.yml", "en.yml", "rus.yml", "pt.yml", "cn.yml"};
+
     private final JavaPlugin plugin;
     private YamlDocument config;
     private final Map<String, YamlDocument> languages = new HashMap<>();
+    private boolean langWarningLogged = false;
 
     private final UpdaterSettings updaterSettings = UpdaterSettings.builder()
             .setVersioning(new BasicVersioning("config-version"))
@@ -34,18 +37,27 @@ public class FileManager {
 
     private void setupDirectory() {
         File langDir = new File(plugin.getDataFolder(), "translations");
-        if (!langDir.exists()) {
-            if (!langDir.mkdirs()) {
-                plugin.getLogger().warning("Could not create translations folder (it might already exist or permissions are missing).");
-            }
+        if (!langDir.exists() && !langDir.mkdirs()) {
+            plugin.getLogger().warning("Could not create translations folder.");
         }
     }
 
     public void loadFiles() {
+        loadConfig();
+        loadLanguages();
+    }
+
+    private void loadConfig() {
         try {
+            InputStream configResource = plugin.getResource("config.yml");
+            if (configResource == null) {
+                plugin.getLogger().severe("config.yml not found in JAR resources — plugin cannot load.");
+                return;
+            }
+
             config = YamlDocument.create(
                     new File(plugin.getDataFolder(), "config.yml"),
-                    Objects.requireNonNull(plugin.getResource("config.yml"), "config.yml not found in JAR resources"),
+                    configResource,
                     GeneralSettings.DEFAULT,
                     LoaderSettings.builder().setAutoUpdate(true).build(),
                     DumperSettings.DEFAULT,
@@ -53,34 +65,41 @@ public class FileManager {
             );
 
             config.save();
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.SEVERE, "Critical error loading PowerFly config", e);
+        }
+    }
 
-            String[] langFiles = {"es.yml", "en.yml", "rus.yml", "pt.yml", "cn.yml"};
+    private void loadLanguages() {
+        languages.clear();
 
-            for (String fileName : langFiles) {
-                try {
-                    YamlDocument langDoc = YamlDocument.create(
-                            new File(plugin.getDataFolder(), "translations/" + fileName),
-                            Objects.requireNonNull(plugin.getResource("translations/" + fileName), fileName + " not found in JAR resources"),
-                            GeneralSettings.DEFAULT,
-                            LoaderSettings.builder().setAutoUpdate(true).build(),
-                            DumperSettings.DEFAULT,
-                            updaterSettings
-                    );
-
-                    langDoc.update();
-                    langDoc.save();
-
-                    languages.put(fileName.replace(".yml", "").toLowerCase(), langDoc);
-                } catch (Exception e) {
-                    plugin.getLogger().log(Level.SEVERE, "Could not load language file: " + fileName, e);
-                }
+        for (String fileName : LANG_FILES) {
+            InputStream langResource = plugin.getResource("translations/" + fileName);
+            if (langResource == null) {
+                plugin.getLogger().warning("Language file not found in JAR: " + fileName + " — skipping.");
+                continue;
             }
 
-            plugin.getLogger().info("Configuration and " + languages.size() + " languages loaded and updated!");
+            try {
+                YamlDocument langDoc = YamlDocument.create(
+                        new File(plugin.getDataFolder(), "translations/" + fileName),
+                        langResource,
+                        GeneralSettings.DEFAULT,
+                        LoaderSettings.builder().setAutoUpdate(true).build(),
+                        DumperSettings.DEFAULT,
+                        updaterSettings
+                );
 
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Critical error loading PowerFly configuration files", e);
+                langDoc.update();
+                langDoc.save();
+
+                languages.put(fileName.replace(".yml", "").toLowerCase(), langDoc);
+            } catch (Exception e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not load language file: " + fileName, e);
+            }
         }
+
+        plugin.getLogger().info("Loaded " + languages.size() + " languages.");
     }
 
     public YamlDocument getConfig() {
@@ -94,8 +113,9 @@ public class FileManager {
         YamlDocument lang = languages.get(code);
 
         if (lang == null) {
-            if (!code.equals("en")) {
+            if (!langWarningLogged && !code.equals("en")) {
                 plugin.getLogger().warning("Language '" + code + "' not found, using 'en' as default.");
+                langWarningLogged = true;
             }
             lang = languages.get("en");
         }
@@ -108,6 +128,7 @@ public class FileManager {
     }
 
     public void reload() {
+        langWarningLogged = false;
         try {
             config.reload();
             config.update();
@@ -115,13 +136,12 @@ public class FileManager {
 
             for (YamlDocument lang : languages.values()) {
                 lang.reload();
-                lang.update();
                 lang.save();
             }
 
-            plugin.getLogger().info("PowerFly files reloaded and updated successfully!");
+            plugin.getLogger().info("PowerFly files reloaded successfully.");
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Error trying to reload configurations", e);
+            plugin.getLogger().log(Level.SEVERE, "Error reloading configurations", e);
         }
     }
 }

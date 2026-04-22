@@ -55,7 +55,7 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("allowed-worlds");
+            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
 

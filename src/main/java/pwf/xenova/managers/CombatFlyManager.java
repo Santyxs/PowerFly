@@ -1,6 +1,5 @@
 package pwf.xenova.managers;
 
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -12,7 +11,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -20,7 +18,7 @@ import java.util.UUID;
 public class CombatFlyManager implements Listener {
 
     private final PowerFly plugin;
-    private final Map<UUID, Long> combatLog = new HashMap<>();
+    private final Map<UUID, Long> combatExpiry = new HashMap<>();
     private final Map<UUID, BukkitRunnable> combatTimers = new HashMap<>();
 
     private boolean disableFlyInCombat;
@@ -30,7 +28,6 @@ public class CombatFlyManager implements Listener {
     public CombatFlyManager(PowerFly plugin) {
         this.plugin = plugin;
         loadConfig();
-        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     public void loadConfig() {
@@ -45,30 +42,22 @@ public class CombatFlyManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (!disableFlyInCombat) {
-            return;
-        }
+        if (!disableFlyInCombat) return;
 
         Entity damager = event.getDamager();
         Entity victim = event.getEntity();
 
-        if (victim instanceof Player player) {
-            if (shouldEnterCombat(damager)) {
-                enterCombat(player);
-            }
+        if (victim instanceof Player player && shouldEnterCombat(damager)) {
+            enterCombat(player);
         }
 
-        if (damager instanceof Player player) {
-            if (shouldEnterCombat(victim)) {
-                enterCombat(player);
-            }
+        if (damager instanceof Player player && shouldEnterCombat(victim)) {
+            enterCombat(player);
         }
     }
 
     private boolean shouldEnterCombat(Entity entity) {
-        if (!(entity instanceof LivingEntity)) {
-            return false;
-        }
+        if (!(entity instanceof LivingEntity)) return false;
 
         return switch (combatType) {
             case "players" -> entity instanceof Player;
@@ -84,61 +73,40 @@ public class CombatFlyManager implements Listener {
     private void enterCombat(Player player) {
         UUID uuid = player.getUniqueId();
 
-        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) {
-            return;
-        }
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
 
-        BukkitRunnable oldTimer = combatTimers.remove(uuid);
-        if (oldTimer != null) {
-            oldTimer.cancel();
-        }
+        cancelTimer(uuid);
 
         long expireTime = System.currentTimeMillis() + (combatDuration * 1000L);
-        combatLog.put(uuid, expireTime);
+        combatExpiry.put(uuid, expireTime);
 
         if (player.isFlying() && FlyCommand.hasPluginFlyActive(uuid)) {
             player.setAllowFlight(false);
             player.setFlying(false);
 
             plugin.getSoundEffectsManager().playDeactivationEffects(player);
-
-            FlyCommand flyCommand = new FlyCommand(plugin);
-            flyCommand.cleanupFlyData(player);
+            plugin.getFlyCommand().cleanupFlyData(player);
 
             player.sendMessage(plugin.getPrefixedMessage("fly-disabled-combat", "&cFly disabled due to combat!"));
         }
 
-        startCombatTimer(player);
+        startCombatTimer(player, expireTime);
     }
 
-    private void startCombatTimer(Player player) {
+    private void startCombatTimer(Player player, long expireTime) {
         UUID uuid = player.getUniqueId();
 
         BukkitRunnable timer = new BukkitRunnable() {
-            int remaining = combatDuration;
-
             public void run() {
                 if (!player.isOnline()) {
-                    combatTimers.remove(uuid);
-                    combatLog.remove(uuid);
+                    cleanupPlayer(uuid);
                     cancel();
                     return;
                 }
 
-                if (!isInCombat(uuid)) {
-                    combatTimers.remove(uuid);
-                    cancel();
-                    return;
-                }
-
-                remaining--;
-
-                if (remaining <= 0) {
-                    combatTimers.remove(uuid);
-                    combatLog.remove(uuid);
-
+                if (System.currentTimeMillis() >= expireTime) {
+                    cleanupPlayer(uuid);
                     player.sendMessage(plugin.getPrefixedMessage("combat-ended", "&aYou are no longer in combat."));
-
                     cancel();
                 }
             }
@@ -149,25 +117,12 @@ public class CombatFlyManager implements Listener {
     }
 
     public boolean isInCombat(UUID uuid) {
-        if (!disableFlyInCombat) {
-            return false;
-        }
+        if (!disableFlyInCombat) return false;
 
-        Long expireTime = combatLog.get(uuid);
-        if (expireTime == null) {
-            return false;
-        }
+        Long expireTime = combatExpiry.get(uuid);
+        if (expireTime == null) return false;
 
-        if (System.currentTimeMillis() > expireTime) {
-            combatLog.remove(uuid);
-            BukkitRunnable timer = combatTimers.remove(uuid);
-            if (timer != null) {
-                timer.cancel();
-            }
-            return false;
-        }
-
-        return true;
+        return System.currentTimeMillis() < expireTime;
     }
 
     public boolean isInCombat(Player player) {
@@ -175,34 +130,28 @@ public class CombatFlyManager implements Listener {
     }
 
     public int getRemainingCombatTime(UUID uuid) {
-        if (!isInCombat(uuid)) {
-            return 0;
-        }
+        if (!isInCombat(uuid)) return 0;
 
-        Long expireTime = combatLog.get(uuid);
-        if (expireTime == null) {
-            return 0;
-        }
+        Long expireTime = combatExpiry.get(uuid);
+        if (expireTime == null) return 0;
 
         long remaining = (expireTime - System.currentTimeMillis()) / 1000;
         return (int) Math.max(0, remaining);
     }
 
     public void cleanupPlayer(UUID uuid) {
-        combatLog.remove(uuid);
-        BukkitRunnable timer = combatTimers.remove(uuid);
-        if (timer != null) {
-            timer.cancel();
-        }
+        combatExpiry.remove(uuid);
+        cancelTimer(uuid);
     }
 
     public void cleanup() {
-        for (BukkitRunnable timer : combatTimers.values()) {
-            if (timer != null) {
-                timer.cancel();
-            }
-        }
+        combatTimers.values().forEach(BukkitRunnable::cancel);
         combatTimers.clear();
-        combatLog.clear();
+        combatExpiry.clear();
+    }
+
+    private void cancelTimer(UUID uuid) {
+        BukkitRunnable timer = combatTimers.remove(uuid);
+        if (timer != null) timer.cancel();
     }
 }

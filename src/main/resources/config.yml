@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 6
+config-version: 7
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -34,11 +34,26 @@ storage-type: YAML
 #       FLY SETTINGS       #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
+# Fly time in seconds for new players or players without a group
+# You can use a number (e.g: 500) or -1 for unlimited fly time
+global-fly-time: 100
+
+# Enable or disable group-based fly time (LuckPerms required)
+use-groups-fly-time: true
+
+# Fly time in seconds for each group (can be customized based on LuckPerms groups)
+# You can use a number (e.g: 500) or -1 for unlimited fly time
+groups-fly-time:
+  default: 100
+  vip: 300
+  mod: 600
+  admin: -1
+
 # Global cooldown time in seconds for all players or players without a group
 # You can use a number (e.g: 500 or -1 for no cooldown)
 global-cooldown: 100
 
-# Enable or disable group-based cooldowns
+# Enable or disable group-based cooldowns (LuckPerms required)
 use-groups-cooldown: true
 
 # Cooldown time in seconds for each group (can be customized based on LuckPerms groups)
@@ -47,18 +62,6 @@ groups-cooldown:
   default: 100
   vip: 30
   mod: 60
-  admin: -1
-
-# Fly time in seconds for new players or players without a group
-# You can use a number (e.g: 500) or -1 for unlimited fly time
-fly-time: 100
-
-# Fly time in seconds for each group (can be customized based on LuckPerms groups)
-# You can use a number (e.g: 500) or -1 for unlimited fly time
-groups-fly-time:
-  default: 100
-  vip: 300
-  mod: 600
   admin: -1
 
 # Prevent fall damage when fly time ends (10s)
@@ -70,7 +73,8 @@ decrease-flytime-on-ground: false
 # When players mine blocks while flying, they get mining fatigue effect
 slow-mining:
   enabled: true
-  amplifier: 1  # 0 = Mining Fatigue I, 1 = Mining Fatigue II, 2 = Mining Fatigue III, etc.
+  # Mining fatigue level: 1 = Fatigue I, 2 = Fatigue II, 3 = Fatigue III, etc.
+  amplifier: 1
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #     COMBAT SETTINGS      #
@@ -160,10 +164,10 @@ blacklist-regions:
 
 # List of regions where players allowed to fly
 whitelist-regions:
-   world:
-     - shops
-   world_nether:
-     - island
+  world:
+    - shops
+  world_nether:
+    - island
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #    CLAIM FLY SETTINGS    #

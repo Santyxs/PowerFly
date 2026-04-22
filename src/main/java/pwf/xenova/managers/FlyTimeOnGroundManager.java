@@ -11,7 +11,6 @@ import pwf.xenova.PowerFly;
 import pwf.xenova.commands.FlyCommand;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,54 +25,19 @@ public class FlyTimeOnGroundManager implements Listener {
     public FlyTimeOnGroundManager(PowerFly plugin) {
         this.plugin = plugin;
         reload();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-
-        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            for (UUID uuid : new HashSet<>(fallStartY.keySet())) {
-                Player player = plugin.getServer().getPlayer(uuid);
-                if (player == null || !player.isOnline()) {
-                    fallStartY.remove(uuid);
-                    wasFalling.remove(uuid);
-                    continue;
-                }
-
-                if (!FlyCommand.hasPluginFlyActive(uuid)) continue;
-                if (plugin.getNoFallDamageSet().contains(uuid)) continue;
-                if (player.isFlying()) continue;
-
-                boolean isFalling = player.getFallDistance() > 0;
-                boolean justLanded = !isFalling && wasFalling.getOrDefault(uuid, false);
-                wasFalling.put(uuid, isFalling);
-
-                if (justLanded) {
-                    double currentY = player.getLocation().getY();
-                    double startY = fallStartY.remove(uuid);
-                    double calculatedFall = startY - currentY;
-
-                    if (calculatedFall > 3) {
-                        double damage = (calculatedFall - 3) * 0.5;
-                        player.damage(damage);
-                    }
-                }
-            }
-        }, 0L, 2L);
     }
 
     public void reload() {
-        this.decreaseOnGround = plugin.getConfig().getBoolean("decrease-flytime-on-ground", false);
+        this.decreaseOnGround = plugin.getFileManager().getConfig().getBoolean("decrease-flytime-on-ground", false);
     }
 
     public boolean shouldDecreaseFlyTime(Player player) {
-        if (decreaseOnGround) return true;
-        return player.isFlying();
+        if (player.isFlying()) return true;
+        return decreaseOnGround;
     }
 
     public boolean isDecreaseOnGroundEnabled() {
         return decreaseOnGround;
-    }
-
-    public void setDecreaseOnGround(boolean enabled) {
-        this.decreaseOnGround = enabled;
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -83,8 +47,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
         if (!FlyCommand.hasPluginFlyActive(uuid)) return;
         if (plugin.getNoFallDamageSet().contains(uuid)) return;
-
-        if (event.getFrom().getY() == event.getTo().getY() && !player.isFlying()) return;
+        if (!event.hasChangedPosition()) return;
 
         double currentY = player.getLocation().getY();
 
@@ -98,6 +61,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
         boolean isFalling = player.getFallDistance() > 0;
         boolean justLanded = !isFalling && wasFalling.getOrDefault(uuid, false);
+
         wasFalling.put(uuid, isFalling);
 
         if (justLanded && fallStartY.containsKey(uuid)) {
@@ -105,8 +69,7 @@ public class FlyTimeOnGroundManager implements Listener {
             double calculatedFall = startY - currentY;
 
             if (calculatedFall > 3) {
-                double damage = (calculatedFall - 3) * 0.5;
-                player.damage(damage);
+                player.damage((calculatedFall - 3) * 0.5);
             }
         }
     }

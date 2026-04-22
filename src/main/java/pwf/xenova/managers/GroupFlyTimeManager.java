@@ -5,13 +5,17 @@ import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
 import pwf.xenova.PowerFly;
-import java.util.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class GroupFlyTimeManager {
 
     private final PowerFly plugin;
     private final LuckPerms luckPerms;
     private final Map<String, Integer> groupFlyTimes = new HashMap<>();
+    private int defaultFlyTime;
 
     public GroupFlyTimeManager(PowerFly plugin, LuckPerms luckPerms) {
         this.plugin = plugin;
@@ -28,37 +32,33 @@ public class GroupFlyTimeManager {
 
         YamlDocument config = plugin.getFileManager().getConfig();
 
-        if (config.isSection("groups-fly-time")) {
+        defaultFlyTime = config.getInt("global-fly-time", 100);
 
+        if (config.isSection("groups-fly-time")) {
             Section section = config.getSection("groups-fly-time");
 
             for (String group : section.getRoutesAsStrings(false)) {
-                int time = config.getInt("groups-fly-time." + group, config.getInt("fly-time", 10));
+                int time = config.getInt("groups-fly-time." + group, defaultFlyTime);
                 groupFlyTimes.put(group.toLowerCase(), time);
             }
         }
-        plugin.getLogger().info("Group fly times loaded: " + groupFlyTimes);
+
+        plugin.getLogger().info("Loaded fly times for " + groupFlyTimes.size() + " groups.");
     }
 
     public int getGroupFlyTime(String group) {
-        return groupFlyTimes.getOrDefault(group.toLowerCase(),
-                plugin.getFileManager().getConfig().getInt("fly-time", 10));
+        return groupFlyTimes.getOrDefault(group.toLowerCase(), defaultFlyTime);
     }
 
     public String getPrimaryGroup(UUID uuid) {
+        if (luckPerms == null) return "default";
 
-        if (luckPerms == null) {
+        User user = luckPerms.getUserManager().getUser(uuid);
+        if (user == null) {
+            plugin.getLogger().fine("LuckPerms user not cached for UUID " + uuid + ", falling back to 'default'.");
             return "default";
         }
 
-        User user = luckPerms.getUserManager().getUser(uuid);
-        if (user != null) {
-            return user.getPrimaryGroup();
-        }
-        return "default";
-    }
-
-    public LuckPerms getLuckPerms() {
-        return luckPerms;
+        return user.getPrimaryGroup();
     }
 }

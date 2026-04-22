@@ -11,14 +11,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import pwf.xenova.PowerFly;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 public class SlowMiningManager implements Listener {
 
     private final PowerFly plugin;
-    private final Set<UUID> playersMiningSlow = new HashSet<>();
 
     private boolean enabled;
     private int amplifier;
@@ -48,23 +43,24 @@ public class SlowMiningManager implements Listener {
         Player player = event.getPlayer();
 
         if (player.isFlying() && player.getGameMode() != GameMode.CREATIVE) {
-            applyFatigue(player);
-            playersMiningSlow.add(player.getUniqueId());
+            if (!player.hasPotionEffect(PotionEffectType.MINING_FATIGUE)) {
+                applyFatigue(player);
+            }
         }
     }
 
+    @EventHandler
     public void onToggleFlight(PlayerToggleFlightEvent event) {
         Player player = event.getPlayer();
 
         if (!event.isFlying()) {
             removeFatigue(player);
-            playersMiningSlow.remove(player.getUniqueId());
         }
     }
 
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         removeFatigue(event.getPlayer());
-        playersMiningSlow.remove(event.getPlayer().getUniqueId());
     }
 
     private void applyFatigue(Player player) {
@@ -83,16 +79,12 @@ public class SlowMiningManager implements Listener {
     }
 
     private void clearAll() {
-        for (UUID uuid : playersMiningSlow) {
-            Player player = plugin.getServer().getPlayer(uuid);
-            if (player != null) {
-                removeFatigue(player);
-            }
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            removeFatigue(player);
         }
-        playersMiningSlow.clear();
     }
 
-    public void shutdown() {
+    public void clearAllOnDisable() {
         clearAll();
     }
 }

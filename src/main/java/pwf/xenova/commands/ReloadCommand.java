@@ -84,7 +84,7 @@ public record ReloadCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getFileManager().getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 }

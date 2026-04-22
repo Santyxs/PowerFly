@@ -23,21 +23,17 @@ public class CommandManager {
     }
 
     public static void registerCommands(PowerFly plugin) {
-        if (!(plugin instanceof PowerFly powerFly)) {
-            throw new IllegalArgumentException("Plugin must be an instance of PowerFly");
-        }
 
-        HelpCommand helpCommand = new HelpCommand(powerFly);
-        ReloadCommand reloadCommand = new ReloadCommand(powerFly);
-        FlyCommand flyCommand = new FlyCommand(powerFly);
-        powerFly.setFlyCommand(flyCommand);
-        CheckCommand checkCommand = new CheckCommand(powerFly);
-        AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand(powerFly);
-        DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(powerFly);
-        BuyFlyTimeCommand buyFlyTimeCommand = new BuyFlyTimeCommand(powerFly);
-        ResetCommand resetCommand = new ResetCommand(powerFly);
-        SetFlyTimeCommand setFlyTimeCommand = new SetFlyTimeCommand(powerFly);
-        SetCooldownCommand setCooldownCommand = new SetCooldownCommand(powerFly);
+        HelpCommand helpCommand = new HelpCommand(plugin);
+        ReloadCommand reloadCommand = new ReloadCommand(plugin);
+        FlyCommand flyCommand = new FlyCommand(plugin); plugin.setFlyCommand(flyCommand);
+        CheckCommand checkCommand = new CheckCommand(plugin);
+        AddFlyTimeCommand addFlyTimeCommand = new AddFlyTimeCommand(plugin);
+        DelFlyTimeCommand delFlyTimeCommand = new DelFlyTimeCommand(plugin);
+        BuyFlyTimeCommand buyFlyTimeCommand = new BuyFlyTimeCommand(plugin);
+        ResetCommand resetCommand = new ResetCommand(plugin);
+        SetFlyTimeCommand setFlyTimeCommand = new SetFlyTimeCommand(plugin);
+        SetCooldownCommand setCooldownCommand = new SetCooldownCommand(plugin);
 
         Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(flyCommand);
         Objects.requireNonNull(plugin.getCommand("buyflytime")).setExecutor(buyFlyTimeCommand);

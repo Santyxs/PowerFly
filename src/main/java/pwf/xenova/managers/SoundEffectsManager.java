@@ -4,25 +4,31 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.PowerFly;
-import java.lang.reflect.Method;
+
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SoundEffectsManager {
 
     private final PowerFly plugin;
-    private final Map<UUID, BukkitRunnable> activeLoops = new HashMap<>();
+    private final Map<UUID, BukkitRunnable> activeLoops = new ConcurrentHashMap<>();
 
     private boolean effectsEnabled;
     private boolean soundsEnabled;
 
-    private String activationParticle, flyingParticle, deactivationParticle;
-    private int activationParticleCount, flyingParticleCount, deactivationParticleCount;
-    private double activationOffsetX, activationOffsetY, activationOffsetZ, activationSpeed;
-    private double flyingOffsetX, flyingOffsetY, flyingOffsetZ, flyingSpeed;
-    private double deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ, deactivationSpeed;
+    private record ParticleConfig(Particle type, int count,
+                                  double offsetX, double offsetY, double offsetZ,
+                                  double speed) {}
 
-    private String activationSound, deactivationSound, timeEndedSound;
-    private float activationVolume, activationPitch, deactivationVolume, deactivationPitch, timeEndedVolume, timeEndedPitch;
+    private record SoundConfig(Sound type, float volume, float pitch) {}
+
+    private ParticleConfig activationParticle;
+    private ParticleConfig flyingParticle;
+    private ParticleConfig deactivationParticle;
+
+    private SoundConfig activationSound;
+    private SoundConfig deactivationSound;
+    private SoundConfig timeEndedSound;
 
     public SoundEffectsManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -33,138 +39,55 @@ public class SoundEffectsManager {
         cleanupAllLoops();
 
         effectsEnabled = plugin.getConfig().getBoolean("enable-effects", false);
-        soundsEnabled = plugin.getConfig().getBoolean("enable-sounds", false);
+        soundsEnabled  = plugin.getConfig().getBoolean("enable-sounds", false);
 
-        activationParticle = plugin.getConfig().getString("particles.activation.type", "CLOUD");
-        activationParticleCount = plugin.getConfig().getInt("particles.activation.count", 20);
-        activationOffsetX = plugin.getConfig().getDouble("particles.activation.offset-x", 0.5);
-        activationOffsetY = plugin.getConfig().getDouble("particles.activation.offset-y", 0.5);
-        activationOffsetZ = plugin.getConfig().getDouble("particles.activation.offset-z", 0.5);
-        activationSpeed = plugin.getConfig().getDouble("particles.activation.speed", 0.1);
+        activationParticle   = loadParticleConfig("particles.activation");
+        flyingParticle       = loadParticleConfig("particles.flying");
+        deactivationParticle = loadParticleConfig("particles.deactivation");
 
-        flyingParticle = plugin.getConfig().getString("particles.flying.type", "END_ROD");
-        flyingParticleCount = plugin.getConfig().getInt("particles.flying.count", 3);
-        flyingOffsetX = plugin.getConfig().getDouble("particles.flying.offset-x", 0.3);
-        flyingOffsetY = plugin.getConfig().getDouble("particles.flying.offset-y", 0.1);
-        flyingOffsetZ = plugin.getConfig().getDouble("particles.flying.offset-z", 0.3);
-        flyingSpeed = plugin.getConfig().getDouble("particles.flying.speed", 0.05);
+        activationSound   = loadSoundConfig("sounds.activation");
+        deactivationSound = loadSoundConfig("sounds.deactivation");
+        timeEndedSound    = loadSoundConfig("sounds.time-ended");
 
-        deactivationParticle = plugin.getConfig().getString("particles.deactivation.type", "SMOKE");
-        deactivationParticleCount = plugin.getConfig().getInt("particles.deactivation.count", 15);
-        deactivationOffsetX = plugin.getConfig().getDouble("particles.deactivation.offset-x", 0.4);
-        deactivationOffsetY = plugin.getConfig().getDouble("particles.deactivation.offset-y", 0.4);
-        deactivationOffsetZ = plugin.getConfig().getDouble("particles.deactivation.offset-z", 0.4);
-        deactivationSpeed = plugin.getConfig().getDouble("particles.deactivation.speed", 0.08);
+        if (effectsEnabled) {
+            Bukkit.getOnlinePlayers().stream()
+                    .filter(p -> p.isFlying() && p.getAllowFlight())
+                    .forEach(this::startFlightLoop);
+        }
+    }
 
-        activationSound = plugin.getConfig().getString("sounds.activation.type", "BLOCK_BEACON_ACTIVATE");
-        activationVolume = (float) plugin.getConfig().getDouble("sounds.activation.volume", 1.0);
-        activationPitch = (float) plugin.getConfig().getDouble("sounds.activation.pitch", 1.0);
+    private ParticleConfig loadParticleConfig(String path) {
+        Particle type  = resolveParticle(plugin.getConfig().getString(path + ".type", "CLOUD"));
+        int count      = plugin.getConfig().getInt(path + ".count", 5);
+        double offsetX = plugin.getConfig().getDouble(path + ".offset-x", 0.3);
+        double offsetY = plugin.getConfig().getDouble(path + ".offset-y", 0.3);
+        double offsetZ = plugin.getConfig().getDouble(path + ".offset-z", 0.3);
+        double speed   = plugin.getConfig().getDouble(path + ".speed", 0.05);
+        return new ParticleConfig(type, count, offsetX, offsetY, offsetZ, speed);
+    }
 
-        deactivationSound = plugin.getConfig().getString("sounds.deactivation.type", "BLOCK_BEACON_DEACTIVATE");
-        deactivationVolume = (float) plugin.getConfig().getDouble("sounds.deactivation.volume", 1.0);
-        deactivationPitch = (float) plugin.getConfig().getDouble("sounds.deactivation.pitch", 1.0);
-
-        timeEndedSound = plugin.getConfig().getString("sounds.time-ended.type", "BLOCK_PORTAL_TRAVEL");
-        timeEndedVolume = (float) plugin.getConfig().getDouble("sounds.time-ended.volume", 0.8);
-        timeEndedPitch = (float) plugin.getConfig().getDouble("sounds.time-ended.pitch", 1.2);
+    private SoundConfig loadSoundConfig(String path) {
+        Sound sound  = resolveSound(plugin.getConfig().getString(path + ".type", "BLOCK_BEACON_ACTIVATE"));
+        float volume = (float) plugin.getConfig().getDouble(path + ".volume", 1.0);
+        float pitch  = (float) plugin.getConfig().getDouble(path + ".pitch", 1.0);
+        return new SoundConfig(sound, volume, pitch);
     }
 
     public void playActivationEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, activationParticle, activationParticleCount, activationOffsetX, activationOffsetY, activationOffsetZ, activationSpeed);
-        if (soundsEnabled) playSound(player, activationSound, activationVolume, activationPitch);
+        if (effectsEnabled) spawnParticle(player, activationParticle);
+        if (soundsEnabled)  playSound(player, activationSound);
         if (effectsEnabled) startFlightLoop(player);
     }
 
     public void playDeactivationEffects(Player player) {
         stopFlightLoop(player);
-        if (effectsEnabled) spawnParticle(player, deactivationParticle, deactivationParticleCount, deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ, deactivationSpeed);
-        if (soundsEnabled) playSound(player, deactivationSound, deactivationVolume, deactivationPitch);
+        if (effectsEnabled) spawnParticle(player, deactivationParticle);
+        if (soundsEnabled)  playSound(player, deactivationSound);
     }
 
     public void playTimeEndEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, deactivationParticle, deactivationParticleCount, deactivationOffsetX, deactivationOffsetY, deactivationOffsetZ, deactivationSpeed);
-        if (soundsEnabled) playSound(player, timeEndedSound, timeEndedVolume, timeEndedPitch);
-    }
-
-    private void playSound(Player player, String soundName, float volume, float pitch) {
-        if (!soundsEnabled || soundName == null || soundName.isEmpty()) return;
-
-        String cleanName = soundName.toLowerCase(Locale.ROOT).replace("_", ".");
-
-        try {
-            Method valuesMethod = Sound.class.getMethod("values");
-            Object[] sounds = (Object[]) valuesMethod.invoke(null);
-            Method nameMethod = sounds[0].getClass().getMethod("name");
-
-            for (Object obj : sounds) {
-                String enumName = ((String) nameMethod.invoke(obj)).toLowerCase(Locale.ROOT).replace("_", ".");
-                if (enumName.equals(cleanName) || enumName.endsWith(cleanName)) {
-                    player.playSound(player.getLocation(), (Sound) obj, volume, pitch);
-                    return;
-                }
-            }
-        } catch (Exception e) {
-            try {
-                Registry.SOUNDS.stream()
-                        .filter(s -> {
-                            NamespacedKey key = Registry.SOUNDS.getKey(s);
-                            return key != null && (key.getKey().equals(cleanName) || key.getKey().endsWith(cleanName));
-                        })
-                        .findFirst()
-                        .ifPresent(sound -> player.playSound(player.getLocation(), sound, volume, pitch));
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Could not play sound: " + soundName);
-            }
-        }
-    }
-
-    private void spawnParticle(Player player, String particleName, int count, double offsetX, double offsetY, double offsetZ, double speed) {
-        if (!effectsEnabled || particleName == null || particleName.isEmpty()) return;
-
-        try {
-            Registry.class.getField("PARTICLE_TYPE");
-        } catch (NoSuchFieldException e) {
-            return;
-        }
-
-        String cleanName = particleName.toLowerCase(Locale.ROOT).replace("_", ".");
-
-        Particle particle = Registry.PARTICLE_TYPE.stream()
-                .filter(p -> {
-                    NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
-                    return key != null && (key.getKey().replace("_", ".").equals(cleanName) || key.getKey().endsWith(cleanName.replace(".", "")));
-                })
-                .findFirst().orElse(null);
-
-        if (particle != null) {
-            Location loc = player.getLocation();
-            if (isOnGround(player)) loc.add(0, 0.5, 0);
-            player.getWorld().spawnParticle(particle, loc, count, offsetX, offsetY, offsetZ, speed);
-        }
-    }
-
-    private void startFlightLoop(Player player) {
-        UUID playerId = player.getUniqueId();
-        stopFlightLoop(player);
-
-        BukkitRunnable task = new BukkitRunnable() {
-            public void run() {
-                if (!player.isOnline() || !player.getAllowFlight()) {
-                    cancel();
-                    activeLoops.remove(playerId);
-                    return;
-                }
-                spawnParticle(player, flyingParticle, flyingParticleCount, flyingOffsetX, flyingOffsetY, flyingOffsetZ, flyingSpeed);
-            }
-        };
-
-        task.runTaskTimer(plugin, 0L, 5L);
-        activeLoops.put(playerId, task);
-    }
-
-    private void stopFlightLoop(Player player) {
-        BukkitRunnable task = activeLoops.remove(player.getUniqueId());
-        if (task != null) task.cancel();
+        if (effectsEnabled) spawnParticle(player, deactivationParticle);
+        if (soundsEnabled)  playSound(player, timeEndedSound);
     }
 
     public void cleanupAllLoops() {
@@ -172,7 +95,76 @@ public class SoundEffectsManager {
         activeLoops.clear();
     }
 
+    private void playSound(Player player, SoundConfig config) {
+        if (!soundsEnabled || config == null || config.type() == null) return;
+        player.playSound(player.getLocation(), config.type(), config.volume(), config.pitch());
+    }
+
+    private void spawnParticle(Player player, ParticleConfig config) {
+        if (!effectsEnabled || config == null || config.type() == null) return;
+        Location loc = player.getLocation();
+        if (isOnGround(player)) loc.add(0, 0.5, 0);
+        player.getWorld().spawnParticle(config.type(), loc, config.count(),
+                config.offsetX(), config.offsetY(), config.offsetZ(), config.speed());
+    }
+
+    private void startFlightLoop(Player player) {
+        UUID uuid = player.getUniqueId();
+        stopFlightLoop(player);
+
+        BukkitRunnable task = new BukkitRunnable() {
+            public void run() {
+                if (!player.isOnline() || !player.getAllowFlight()) {
+                    cancel();
+                    activeLoops.remove(uuid);
+                    return;
+                }
+                spawnParticle(player, flyingParticle);
+            }
+        };
+
+        task.runTaskTimer(plugin, 0L, 5L);
+        activeLoops.put(uuid, task);
+    }
+
+    private void stopFlightLoop(Player player) {
+        BukkitRunnable task = activeLoops.remove(player.getUniqueId());
+        if (task != null) task.cancel();
+    }
+
     private boolean isOnGround(Player player) {
         return !player.getLocation().clone().subtract(0, 0.1, 0).getBlock().isPassable();
+    }
+
+    private Particle resolveParticle(String name) {
+        if (name == null || name.isEmpty()) return null;
+        String clean = name.toLowerCase(Locale.ROOT).replace("_", ".");
+        return Registry.PARTICLE_TYPE.stream()
+                .filter(p -> {
+                    NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
+                    return key != null && (key.getKey().replace("_", ".").equals(clean)
+                            || key.getKey().endsWith(clean.replace(".", "")));
+                })
+                .findFirst()
+                .orElseGet(() -> {
+                    plugin.getLogger().warning("Unknown particle type: " + name);
+                    return null;
+                });
+    }
+
+    private Sound resolveSound(String name) {
+        if (name == null || name.isEmpty()) return null;
+        String clean = name.toLowerCase(Locale.ROOT).replace("_", ".");
+        return Registry.SOUNDS.stream()
+                .filter(s -> {
+                    NamespacedKey key = Registry.SOUNDS.getKey(s);
+                    return key != null && (key.getKey().replace("_", ".").equals(clean)
+                            || key.getKey().endsWith(clean));
+                })
+                .findFirst()
+                .orElseGet(() -> {
+                    plugin.getLogger().warning("Unknown sound type: " + name);
+                    return null;
+                });
     }
 }

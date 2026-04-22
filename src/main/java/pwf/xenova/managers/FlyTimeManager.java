@@ -3,12 +3,17 @@ package pwf.xenova.managers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import pwf.xenova.PowerFly;
+import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.storage.StorageInterface;
+import pwf.xenova.utils.MessageFormat;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public class FlyTimeManager {
+
+    private static final int INFINITE = -1;
 
     private final PowerFly plugin;
     private final Map<UUID, Integer> flyTimeMap = new HashMap<>();
@@ -25,39 +30,22 @@ public class FlyTimeManager {
         flyTimeMap.putAll(storage.loadAllFlyTimes());
     }
 
-    public void save() {
-    }
-
-    public String formatTime(int totalSeconds) {
-        if (totalSeconds == -1) return "∞";
-        if (totalSeconds <= 0) return "0s";
-
-        int days = totalSeconds / 86400;
-        int hours = (totalSeconds % 86400) / 3600;
-        int minutes = (totalSeconds % 3600) / 60;
-        int seconds = totalSeconds % 60;
-
-        StringBuilder builder = new StringBuilder();
-        if (days > 0) builder.append(days).append("d ");
-        if (hours > 0) builder.append(hours).append("h ");
-        if (minutes > 0) builder.append(minutes).append("m ");
-        if (seconds > 0 || totalSeconds < 60) builder.append(seconds).append("s");
-
-        return builder.toString().trim();
-    }
-
     public int getRemainingFlyTime(UUID playerUUID) {
         return flyTimeMap.getOrDefault(playerUUID, 0);
     }
 
+    public boolean hasInfiniteFlyTime(UUID playerUUID) {
+        return getRemainingFlyTime(playerUUID) == INFINITE;
+    }
+
     public void addFlyTime(UUID playerUUID, int seconds) {
-        if (seconds == -1) {
-            setFlyTime(playerUUID, -1);
+        if (seconds == INFINITE) {
+            setFlyTime(playerUUID, INFINITE);
             return;
         }
 
         int currentTime = getRemainingFlyTime(playerUUID);
-        if (currentTime == -1) return;
+        if (currentTime == INFINITE) return;
 
         int newTime = currentTime + seconds;
         flyTimeMap.put(playerUUID, newTime);
@@ -68,7 +56,7 @@ public class FlyTimeManager {
 
     public void delFlyTime(UUID playerUUID, int seconds) {
         int currentTime = getRemainingFlyTime(playerUUID);
-        if (currentTime == -1) return;
+        if (currentTime == INFINITE) return;
 
         int newTime = Math.max(0, currentTime - seconds);
         flyTimeMap.put(playerUUID, newTime);
@@ -78,11 +66,17 @@ public class FlyTimeManager {
     }
 
     public void setFlyTime(UUID playerUUID, int seconds) {
-        int newTime = Math.max(-1, seconds);
+        int newTime = Math.max(INFINITE, seconds);
         flyTimeMap.put(playerUUID, newTime);
         storage.setFlyTime(playerUUID, newTime);
 
         updateLiveFlight(playerUUID, newTime);
+    }
+
+    public void setFlyTimeInternal(UUID playerUUID, int seconds) {
+        int newTime = Math.max(INFINITE, seconds);
+        flyTimeMap.put(playerUUID, newTime);
+        storage.setFlyTime(playerUUID, newTime);
     }
 
     public void reloadFlyTime(UUID playerUUID) {
@@ -103,48 +97,35 @@ public class FlyTimeManager {
 
     public void handleJoin(Player player) {
         UUID uuid = player.getUniqueId();
-        if (!flyTimeMap.containsKey(uuid)) {
-            int flyTime;
-            if (plugin.getConfig().getBoolean("use-group-fly-time")) {
-                String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
-                flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
-            } else {
-                flyTime = parseFlyTime(plugin.getConfig().getString("fly-time", "100"));
-            }
+        if (flyTimeMap.containsKey(uuid)) return;
 
-            flyTimeMap.put(uuid, flyTime);
-            storage.createPlayerIfNotExists(uuid, player.getName(), flyTime);
+        int flyTime;
+        if (plugin.getFileManager().getConfig().getBoolean("use-groups-fly-time", false)) {
+            String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
+            flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
+        } else {
+            flyTime = plugin.getFileManager().getConfig().getInt("global-fly-time", 100);
         }
-    }
 
-    private int parseFlyTime(String value) {
-        if (value == null) value = "100";
-        value = value.trim().toLowerCase();
-        if (value.equals("-1")) return -1;
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 100;
-        }
-    }
-
-    public int getInfiniteFlyTime() {
-        return -1;
-    }
-
-    public boolean hasInfiniteFlyTime(UUID playerUUID) {
-        return getRemainingFlyTime(playerUUID) == -1;
+        flyTimeMap.put(uuid, flyTime);
+        storage.createPlayerIfNotExists(uuid, player.getName(), flyTime);
     }
 
     public StorageInterface getStorage() {
         return storage;
     }
 
-    private void updateLiveFlight(UUID uuid, int newTime) {
-        Player player = Bukkit.getPlayer(uuid);
+    public String formatTime(int totalSeconds) {
+        return MessageFormat.formatTime(totalSeconds);
+    }
 
-        if (player != null) {
-            player.isOnline();
+    private void updateLiveFlight(UUID uuid, int newTime) {
+        if (!FlyCommand.hasPluginFlyActive(uuid)) return;
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null || !player.isOnline()) return;
+
+        if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true)) {
+            plugin.getFlyRuntimeManager().showBossBar(player, newTime);
         }
     }
 }

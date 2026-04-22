@@ -7,6 +7,11 @@ import pwf.xenova.PowerFly;
 
 public class ExpansionManager extends PlaceholderExpansion {
 
+    private static final long SECONDS_PER_DAY = 86400;
+    private static final long SECONDS_PER_HOUR = 3600;
+    private static final long SECONDS_PER_MINUTE = 60;
+    private static final String INFINITE = "∞";
+
     private final PowerFly plugin;
 
     public ExpansionManager(PowerFly plugin) {
@@ -37,52 +42,44 @@ public class ExpansionManager extends PlaceholderExpansion {
     public String onPlaceholderRequest(Player player, @NotNull String identifier) {
         if (player == null) return "";
 
-        long totalSeconds = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
-        boolean isInfinite = (totalSeconds == -1);
-
-        long days = isInfinite ? 0 : totalSeconds / 86400;
-        long hours = isInfinite ? 0 : (totalSeconds % 86400) / 3600;
-        long minutes = isInfinite ? 0 : (totalSeconds % 3600) / 60;
-        long seconds = isInfinite ? 0 : totalSeconds % 60;
+        long total = getTotalSeconds(player);
 
         return switch (identifier.toLowerCase()) {
-
-            case "flytime" -> formatTime(totalSeconds);
-
-            case "flytime_d" -> isInfinite ? "∞" : String.valueOf(days);
-            case "flytime_h" -> isInfinite ? "∞" : String.valueOf(hours);
-            case "flytime_m" -> isInfinite ? "∞" : String.valueOf(minutes);
-            case "flytime_s" -> isInfinite ? "∞" : String.valueOf(seconds);
-
-            case "cooldown" -> plugin.getCooldownFlyManager().getRemainingCooldownFormatted(player.getUniqueId());
-
-            case "enabled" -> player.getAllowFlight() ? "yes" : "no";
-
-            default -> null;
+            case "flytime"   -> formatTime(total);
+            case "flytime_d" -> formatUnit(total, SECONDS_PER_DAY);
+            case "flytime_h" -> formatUnit(total % SECONDS_PER_DAY, SECONDS_PER_HOUR);
+            case "flytime_m" -> formatUnit(total % SECONDS_PER_HOUR, SECONDS_PER_MINUTE);
+            case "flytime_s" -> total == -1 ? INFINITE : String.valueOf(total % SECONDS_PER_MINUTE);
+            case "cooldown"  -> plugin.getCooldownFlyManager().getRemainingCooldownFormatted(player.getUniqueId());
+            case "enabled"   -> player.getAllowFlight() ? "yes" : "no";
+            default          -> null;
         };
     }
 
-    private String formatTime(long totalSeconds) {
-        if (totalSeconds == -1) {
-            return "∞";
-        }
+    private long getTotalSeconds(Player player) {
+        return plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+    }
 
+    private String formatUnit(long totalSeconds, long divisor) {
+        if (totalSeconds == -1) return INFINITE;
+        return String.valueOf(totalSeconds / divisor);
+    }
+
+    private String formatTime(long totalSeconds) {
+        if (totalSeconds == -1) return INFINITE;
         if (totalSeconds <= 0) return "0s";
 
-        long days = totalSeconds / 86400;
-        long hours = (totalSeconds % 86400) / 3600;
-        long minutes = (totalSeconds % 3600) / 60;
-        long seconds = totalSeconds % 60;
+        long days = totalSeconds / SECONDS_PER_DAY;
+        long hours = (totalSeconds % SECONDS_PER_DAY) / SECONDS_PER_HOUR;
+        long minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE;
+        long seconds = totalSeconds % SECONDS_PER_MINUTE;
 
         StringBuilder builder = new StringBuilder();
 
         if (days > 0) builder.append(days).append("d ");
         if (hours > 0) builder.append(hours).append("h ");
         if (minutes > 0) builder.append(minutes).append("m ");
-
-        if (seconds > 0 || builder.isEmpty()) {
-            builder.append(seconds).append("s");
-        }
+        if (seconds > 0 || builder.isEmpty()) builder.append(seconds).append("s");
 
         return builder.toString().trim();
     }

@@ -19,6 +19,7 @@ public interface StorageInterface {
     void removePlayer(UUID uuid);
 
     Map<UUID, Integer> loadAllFlyTimes();
+    Map<UUID, Long> loadAllCooldowns();
 
     void close();
 }
