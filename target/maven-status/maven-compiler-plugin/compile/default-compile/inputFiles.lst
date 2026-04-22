@@ -15,6 +15,7 @@ C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenov
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\ExpansionManager.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\FileManager.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\FlyRestrictionManager.java
+C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\FlyRuntimeManager.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\FlyTimeManager.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\FlyTimeOnGroundManager.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\managers\GroupFlyTimeManager.java
@@ -25,5 +26,4 @@ C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenov
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\storage\StorageInterface.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\storage\YAMLStorage.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\utils\MessageFormat.java
-C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\utils\Metrics.java
 C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\utils\UpdateChecker.java
