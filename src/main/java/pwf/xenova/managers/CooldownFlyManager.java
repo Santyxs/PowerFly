@@ -6,12 +6,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.PowerFly;
 import pwf.xenova.storage.StorageInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CooldownFlyManager {
 
     private final PowerFly plugin;
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     private final StorageInterface storage;
 
     public CooldownFlyManager(PowerFly plugin) {
@@ -48,8 +52,8 @@ public class CooldownFlyManager {
                 }
 
                 for (UUID uuid : toRemove) {
-                    cooldowns.remove(uuid);
                     storage.removeCooldown(uuid);
+                    cooldowns.remove(uuid);
                     plugin.getFlyTimeManager().reloadFlyTime(uuid);
                     notifyRecharge(uuid);
                 }
@@ -90,13 +94,13 @@ public class CooldownFlyManager {
                 ? -1L
                 : System.currentTimeMillis() + (seconds * 1000L);
 
-        cooldowns.put(playerUUID, cooldownUntil);
         storage.setCooldown(playerUUID, cooldownUntil);
+        cooldowns.put(playerUUID, cooldownUntil);
     }
 
     public void removeCooldown(UUID playerUUID) {
-        cooldowns.remove(playerUUID);
         storage.removeCooldown(playerUUID);
+        cooldowns.remove(playerUUID);
     }
 
     public boolean isOnCooldown(UUID playerUUID) {

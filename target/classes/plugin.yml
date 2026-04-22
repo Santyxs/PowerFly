@@ -1,0 +1,84 @@
+name: PowerFly
+version: 2.0
+description: A fully customizable fly plugin featuring timed fly, cooldown control, and complete configuration.
+authors:
+  - Santysx
+api-version: 1.21
+main: pwf.xenova.PowerFly
+softdepend: [LuckPerms, Vault, WorldEdit, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
+loadbefore: [EssentialsX, CMI]
+
+commands:
+  powerfly:
+    description: Main command for PowerFly plugin.
+    usage: Use /powerfly help to see the list of commands
+    aliases: [pwf]
+  fly:
+    description: Enable or disable fly for a limited time.
+    usage: /fly [player] [on/off]
+    permission: powerfly.fly
+  buyflytime:
+    description: Buy fly time.
+    usage: /buyflytime
+    permission: powerfly.buyflytime
+
+permissions:
+  powerfly.admin:
+    description: Gives access to all admin commands of PowerFly
+    default: op
+    children:
+      powerfly.addflytime: true
+      powerfly.delflytime: true
+      powerfly.reset: true
+      powerfly.setflytime: true
+      powerfly.setcooldown: true
+      powerfly.reload: true
+      powerfly.check: true
+      powerfly.fly: true
+      powerfly.fly.others: true
+      powerfly.buyflytime: true
+      powerfly.help: true
+
+  powerfly.addflytime:
+    description: Allows using /powerfly addflytime
+    default: false
+
+  powerfly.delflytime:
+    description: Allows using /powerfly delflytime
+    default: false
+
+  powerfly.reset:
+    description: Allows using /powerfly reset
+    default: false
+
+  powerfly.setflytime:
+    description: Allows using /powerfly setflytime
+    default: false
+
+  powerfly.setcooldown:
+    description: Allows using /powerfly setcooldown
+    default: false
+
+  powerfly.reload:
+    description: Allows using /powerfly reload
+    default: false
+
+  powerfly.check:
+    description: Allows using /powerfly check
+    default: false
+
+  powerfly.fly:
+    description: Allows using /fly
+    default: true
+
+  powerfly.fly.others:
+    description: Allows using /fly on other players
+    default: op
+
+  powerfly.buyflytime:
+    description: Allows using /buyflytime
+    default: true
+
+  powerfly.help:
+    description: Allows using /powerfly help
+    default: op

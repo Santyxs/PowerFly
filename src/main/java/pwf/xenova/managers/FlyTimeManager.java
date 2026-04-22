@@ -6,8 +6,7 @@ import pwf.xenova.PowerFly;
 import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.storage.StorageInterface;
 import pwf.xenova.utils.MessageFormat;
-
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -16,7 +15,7 @@ public class FlyTimeManager {
     private static final int INFINITE = -1;
 
     private final PowerFly plugin;
-    private final Map<UUID, Integer> flyTimeMap = new HashMap<>();
+    private final Map<UUID, Integer> flyTimeMap = new ConcurrentHashMap<>();
     private final StorageInterface storage;
 
     public FlyTimeManager(PowerFly plugin) {

@@ -127,12 +127,13 @@ public class YAMLStorage implements StorageInterface {
         for (String key : config.getKeys(false)) {
             try {
                 UUID uuid = UUID.fromString(key);
-                long cooldown = config.getLong(key + PATH_COOLDOWN, 0L);
-                if (cooldown == -1L || cooldown > now) {
-                    map.put(uuid, cooldown);
+                long cooldownUntil = config.getLong(key + PATH_COOLDOWN, 0L);
+
+                if (cooldownUntil == -1L || cooldownUntil > now) {
+                    map.put(uuid, cooldownUntil);
                 }
             } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid UUID in " + DATABASE_FILE + ": " + key);
+                plugin.getLogger().warning("Invalid UUID in " + DATABASE_FILE + " (cooldowns): " + key);
             }
         }
 

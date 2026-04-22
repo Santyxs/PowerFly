@@ -1,0 +1,77 @@
+config-version: 7
+
+# Сообщения игрока
+actionbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
+bossbar-fly-time: "&eВашего времени полёта: &6{fly_time}"
+fly-time-warning: "&6⚠ &eОсталось &c10s &eполета!"
+fly-time-ended: "&cВремя полёта истекло"
+fly-cooldown: "&cВы уже потратили ваше время полёта, подождите &6{cooldown_time} &cчтобы летать снова."
+fly-enabled: "&aПолёт включен."
+fly-disabled: "&cПолёт отключён."
+fly-time-recharged: "&aВаше время полёта было автоматически восстановлено."
+fly-not-allowed-in-world: "&cВы не можете использовать полёт в этом мире."
+fly-not-allowed-in-region: "&cВы не можете использовать полёт в этом регионе."
+fly-not-allowed-in-world-target: "&c{player} не может летать в этом мире."
+fly-not-allowed-in-region-target: "&c{player} не может летать в этом регионе."
+fly-not-allowed-in-claim: "&cВы не можете использовать полёт на этой территории."
+fly-in-combat: "&cВо время боя летать нельзя."
+fly-disabled-combat: "&cПолёт отключён из-за боя!"
+combat-ended: "&aВы больше не в бою."
+no-permission: "&cУ вас нет прав для использования этой команды."
+not-enough-money: "&cВам нужно &e{price}{currency} &cчтобы купить &f{secondstobuy}s &cвремени полёта."
+flytime-bought: "&aВы купили &f{secondstobuy}s &aполёта за &e{price}{currency}&a."
+
+help-message: |
+  &8&m----&r &bPowerFly Помощь &8&m----&8&r
+  
+  &e/fly &7- Включить или выключить полёт на ограниченное время.
+  &e/powerfly fly <игрок | all> <on | off> &7- Включить или выключить полёт другим игрокам.
+  &e/powerfly buyflytime <секунды> &7- Купить время полёта.
+  &e/powerfly check <игрок> &7- Проверить время полёта и кулдаун игрока.
+  &e/powerfly addflytime <игрок | all> <секунды> &7- Добавить время полёта.
+  &e/powerfly delflytime <игрок | all> <секунды> &7- Удалить время полёта.
+  &e/powerfly setflytime <игрок | all> <секунды> &7- Установить время полёта.
+  &e/powerfly setcooldown <игрок | all> <секунды> &7- Установить время перезарядки.
+  &e/powerfly reset <flytime | cooldown> <игрок | all> &7- Сбросить кулдаун или время полёта.
+  &e/powerfly reload &7- Перезагрузить конфигурацию плагина.
+
+# Сообщения Администратора
+fly-mode-error: "&cВы не можете летать в вашем текущем игровом режиме."
+fly-mode-error-target: "&c{player} не может использовать время полёта, так как находится в режиме Творчества или Наблюдателя."
+no-player-specified: "&cВы не указали имя игрока."
+player-not-found: "&cИгрок не найден."
+no-time-specified: "&cВы не установили конкретного времени."
+invalid-time: "&cВремя выбрано неверно."
+already-flytime-infinite: "&c{player} уже имеет бесконечное время полёта."
+no-player-fly-time: "&cИгрок {player} не имеет времени полёта."
+no-players-with-fly-time: "&cНи у одного игрока нет времени полета."
+no-reset-type-specified: "&cВы должны указать 'cooldown' или 'flytime'."
+
+check-info: |
+  &8&m-&r &bИнформация об {player} &8&m-&r
+
+  &bВремя полёта: &7{fly_time}
+  &bВремя восстановления: &7{cooldown_time}
+
+fly-enabled-target: "&aИгрок &e{player} &aтеперь может летать."
+fly-disabled-target: "&cИгрок &e{player} &aбольше не может летать."
+fly-enabled-all: "&eВсе игроки &aтеперь могут летать."
+fly-disabled-all: "&cПолёт был запрещён &eдля всех игроков."
+
+fly-time-added: "&aИгроку &e{player} &aбыло добавлено время полёта в размере &f{seconds}."
+fly-time-deleted: "&aУ игрока &e{player} &aбыло отнято &f{seconds} &aвремени полёта."
+fly-time-added-all: "&eВсем &eигрокам было добавлено &f{seconds} &aвремени полёта."
+fly-time-deleted-all: "&eУ всех &eигроков было отнято &f{seconds} &aвремени полёта."
+
+fly-time-set: "&aУстановлено время полёта &f{seconds} &aдля &e{player}."
+fly-cooldown-set: "&aУстановлено время восстановления &f{seconds} &aдля &e{player}."
+fly-time-set-all: "&aУстановлено время полёта &f{seconds} &aдля &eвсех игроков."
+fly-cooldown-set-all: "&aУстановлено время восстановления &f{seconds} &aдля &eвсех игроков."
+
+fly-time-reset: "&fВремя полёта &aсброшено для &e{player}."
+fly-time-reset-all: "&fВремя полёта &aсброшено для всех игроков."
+cooldown-reset: "&fКулдаун &aсброшен для &e{player}."
+cooldown-reset-all: "&fКулдаун &aсброшен для всех игроков."
+
+reload-success: "&aКонфигурация была перезагружена успешно."
+reload-error: "&cВозникла ошибка при перезагрузке конфигурации."
