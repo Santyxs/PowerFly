@@ -14,6 +14,7 @@ fly-not-allowed-in-region: "&cВы не можете использовать п
 fly-not-allowed-in-world-target: "&c{player} не может летать в этом мире."
 fly-not-allowed-in-region-target: "&c{player} не может летать в этом регионе."
 fly-not-allowed-in-claim: "&cВы не можете использовать полёт на этой территории."
+fly-not-allowed-outside-claim: "&cВы можете летать только внутри территорий."
 fly-in-combat: "&cВо время боя летать нельзя."
 fly-disabled-combat: "&cПолёт отключён из-за боя!"
 combat-ended: "&aВы больше не в бою."

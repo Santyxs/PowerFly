@@ -123,7 +123,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
 
     private void enableFly(Player player, int maxTime, CommandSender sender) {
         if (plugin.getClaimFlyManager().cannotFlyHere(player, player.getLocation())) {
-            player.sendMessage(plugin.getPrefixedMessage("fly-not-allowed-in-claim", "&cYou cannot fly in this claim or town."));
+            plugin.getClaimFlyManager().sendClaimFlyMessage(player);
             return;
         }
 

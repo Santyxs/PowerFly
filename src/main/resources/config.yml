@@ -179,6 +179,9 @@ enable-griefprevention: true
 # Enable or disable Towny support
 enable-towny: true
 
+# Enable or disable flying only inside claims
+only-fly-in-claims: false
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #     PARTICLE SETTINGS    #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
