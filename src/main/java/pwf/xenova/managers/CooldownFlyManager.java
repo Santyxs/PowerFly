@@ -85,6 +85,11 @@ public class CooldownFlyManager {
             cooldownSeconds = plugin.getFileManager().getConfig().getInt("global-cooldown", 100);
         }
 
+        if (cooldownSeconds == -1) {
+            plugin.getFlyTimeManager().reloadFlyTime(playerUUID);
+            return;
+        }
+
         plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
         setCooldown(playerUUID, cooldownSeconds);
     }
