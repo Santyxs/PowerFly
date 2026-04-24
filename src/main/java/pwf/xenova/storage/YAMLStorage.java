@@ -43,7 +43,7 @@ public class YAMLStorage implements StorageInterface {
     }
 
     private void startAutoSave() {
-        int intervalTicks = plugin.getConfig().getInt("autosave-interval", 6000);
+        int intervalTicks = plugin.getMainConfig().getInt("autosave-interval", 6000);
 
         plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             if (dirty) save();

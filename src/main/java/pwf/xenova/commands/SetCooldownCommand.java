@@ -13,6 +13,7 @@ import pwf.xenova.PowerFly;
 import pwf.xenova.utils.MessageFormat;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -58,7 +59,6 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
             var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
                 }
@@ -88,37 +88,53 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+        final int finalSecondsToSet = secondsToSet;
 
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-            return true;
-        }
+        resolvePlayer(targetName,
+                target -> {
+                    UUID uuid = target.getUniqueId();
 
-        UUID uuid = target.getUniqueId();
+                    if (finalSecondsToSet == -1) {
+                        plugin.getCooldownFlyManager().removeCooldown(uuid);
 
-        if (secondsToSet == -1) {
-            plugin.getCooldownFlyManager().removeCooldown(uuid);
+                        String msg = plugin.getMessageString("set-cooldown-removed", "&aRemoved cooldown for &e{player}&a.")
+                                .replace("{player}", target.getName() != null ? target.getName() : targetName);
+                        sendWithPrefix(sender, msg);
 
-            String msg = plugin.getMessageString("set-cooldown-removed", "&aRemoved cooldown for &e{player}&a.")
-                    .replace("{player}", target.getName() != null ? target.getName() : targetName);
-            sendWithPrefix(sender, msg);
+                        if (target.isOnline() && target.getPlayer() != null) {
+                            sendWithPrefix(target.getPlayer(), plugin.getMessageString("set-cooldown-removed-notify", "&aYour cooldown has been removed."));
+                        }
+                    } else {
+                        plugin.getCooldownFlyManager().setCooldown(uuid, finalSecondsToSet);
 
-            if (target.isOnline() && target.getPlayer() != null) {
-                sendWithPrefix(target.getPlayer(), plugin.getMessageString("set-cooldown-removed-notify", "&aYour cooldown has been removed."));
-            }
-        } else {
-            plugin.getCooldownFlyManager().setCooldown(uuid, secondsToSet);
+                        String timeDisplay = plugin.getFlyTimeManager().formatTime(finalSecondsToSet);
+                        String msg = plugin.getMessageString("set-cooldown-player", "&aSet cooldown to &f{time} &afor &e{player}&a.")
+                                .replace("{time}", timeDisplay)
+                                .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
-            String timeDisplay = plugin.getFlyTimeManager().formatTime(secondsToSet);
-            String msg = plugin.getMessageString("set-cooldown-player", "&aSet cooldown to &f{time} &afor &e{player}&a.")
-                    .replace("{time}", timeDisplay)
-                    .replace("{player}", target.getName() != null ? target.getName() : targetName);
-
-            sendWithPrefix(sender, msg);
-        }
+                        sendWithPrefix(sender, msg);
+                    }
+                },
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
 
         return true;
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

@@ -28,12 +28,12 @@ public class ClaimFlyManager implements Listener {
 
     public void reload() {
         this.gpEnabled = Bukkit.getPluginManager().isPluginEnabled("GriefPrevention") &&
-                plugin.getFileManager().getConfig().getBoolean("enable-griefprevention", true);
+                plugin.getMainConfig().getBoolean("enable-griefprevention", true);
 
         this.townyEnabled = Bukkit.getPluginManager().isPluginEnabled("Towny") &&
-                plugin.getFileManager().getConfig().getBoolean("enable-towny", true);
+                plugin.getMainConfig().getBoolean("enable-towny", true);
 
-        this.onlyFlyInClaims = plugin.getFileManager().getConfig().getBoolean("only-fly-in-claims", false);
+        this.onlyFlyInClaims = plugin.getMainConfig().getBoolean("only-fly-in-claims", false);
 
         plugin.getLogger().info("GriefPrevention: " + (gpEnabled ? "enabled" : "disabled"));
         plugin.getLogger().info("Towny: " + (townyEnabled ? "enabled" : "disabled"));

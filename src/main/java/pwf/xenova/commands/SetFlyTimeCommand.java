@@ -12,7 +12,7 @@ import org.jspecify.annotations.NonNull;
 import pwf.xenova.PowerFly;
 import pwf.xenova.utils.MessageFormat;
 
-import java.util.UUID;
+import java.util.function.Consumer;
 
 public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -62,7 +62,6 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
                 }
@@ -80,23 +79,39 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+        final int finalSecondsToSet = secondsToSet;
 
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-            return true;
+        resolvePlayer(targetName,
+                target -> {
+                    plugin.getFlyTimeManager().setFlyTime(target.getUniqueId(), finalSecondsToSet);
+
+                    String timeDisplay = finalSecondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(finalSecondsToSet);
+                    String msg = plugin.getMessageString("set-flytime-player", "&aSet fly time to &f{time} &afor &e{player}&a.")
+                            .replace("{time}", timeDisplay)
+                            .replace("{player}", target.getName() != null ? target.getName() : targetName);
+
+                    sendWithPrefix(sender, msg);
+                },
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
+
+        return true;
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
         }
 
-        UUID uuid = target.getUniqueId();
-        plugin.getFlyTimeManager().setFlyTime(uuid, secondsToSet);
-
-        String timeDisplay = secondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(secondsToSet);
-        String msg = plugin.getMessageString("set-flytime-player", "&aSet fly time to &f{time} &afor &e{player}&a.")
-                .replace("{time}", timeDisplay)
-                .replace("{player}", target.getName() != null ? target.getName() : targetName);
-
-        sendWithPrefix(sender, msg);
-        return true;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

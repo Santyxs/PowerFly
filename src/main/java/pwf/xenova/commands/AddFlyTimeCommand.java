@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
-import java.util.UUID;
+
+import java.util.function.Consumer;
 
 public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -52,13 +53,11 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-
             int affected = 0;
 
             var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
                 }
@@ -78,31 +77,46 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+        final int finalSecondsToAdd = secondsToAdd;
 
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-            return true;
-        }
+        resolvePlayer(targetName,
+                target -> {
+                    if (plugin.getFlyTimeManager().hasInfiniteFlyTime(target.getUniqueId())) {
+                        String msg = plugin.getMessageString("already-flytime-infinite", "&c{player} already has infinite fly time.")
+                                .replace("{player}", target.getName() != null ? target.getName() : targetName);
+                        sendWithPrefix(sender, msg);
+                        return;
+                    }
 
-        UUID uuid = target.getUniqueId();
+                    plugin.getFlyTimeManager().addFlyTime(target.getUniqueId(), finalSecondsToAdd);
 
-        if (plugin.getFlyTimeManager().hasInfiniteFlyTime(uuid)) {
-            String msg = plugin.getMessageString("already-flytime-infinite", "&c{player} already has infinite fly time.")
-                    .replace("{player}", target.getName() != null ? target.getName() : targetName);
-            sendWithPrefix(sender, msg);
-            return true;
-        }
+                    String timeDisplay = finalSecondsToAdd == -1 ? "∞" : finalSecondsToAdd + "s";
+                    String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds} &aof fly time to {player}.")
+                            .replace("{seconds}", timeDisplay)
+                            .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
-        plugin.getFlyTimeManager().addFlyTime(uuid, secondsToAdd);
+                    sendWithPrefix(sender, msg);
+                },
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
 
-        String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
-        String msg = plugin.getMessageString("fly-time-added", "&aAdded &f{seconds} &aof fly time to {player}.")
-                .replace("{seconds}", timeDisplay)
-                .replace("{player}", target.getName() != null ? target.getName() : targetName);
-
-        sendWithPrefix(sender, msg);
         return true;
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

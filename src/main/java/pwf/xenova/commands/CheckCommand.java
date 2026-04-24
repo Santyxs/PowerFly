@@ -9,8 +9,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
-import java.util.Objects;
+
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public record CheckCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -24,31 +25,31 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer target;
-
         if (args.length < 1) {
             if (sender instanceof Player player) {
-                target = player;
+                showInfo(sender, player.getUniqueId(), player.getName());
             } else {
                 sendWithPrefix(sender, plugin.getMessageString("no-player-specified", "&cYou must specify a player name."));
-                return true;
             }
-        } else {
-            Player onlineTarget = Bukkit.getPlayerExact(args[0]);
-            if (onlineTarget != null) {
-                target = onlineTarget;
-            } else {
-                target = Bukkit.getOfflinePlayer(args[0]);
-                if (!target.hasPlayedBefore()) {
-                    sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-                    return true;
-                }
-            }
+            return true;
         }
 
-        UUID uuid = target.getUniqueId();
-        String playerName = Objects.requireNonNullElse(target.getName(), "Unknown");
+        Player online = Bukkit.getPlayerExact(args[0]);
+        if (online != null) {
+            showInfo(sender, online.getUniqueId(), online.getName());
+            return true;
+        }
 
+        resolvePlayer(args[0],
+                target -> showInfo(sender, target.getUniqueId(),
+                        target.getName() != null ? target.getName() : args[0]),
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
+
+        return true;
+    }
+
+    private void showInfo(CommandSender sender, UUID uuid, String playerName) {
         int flySeconds = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         String flyTimeDisplay;
 
@@ -80,7 +81,6 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{cooldown_time}", cooldownDisplay);
 
         sender.sendMessage(MessageFormat.parseMessage(raw));
-        return true;
     }
 
     private String formatFlyTime(int totalSeconds) {
@@ -95,6 +95,16 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
         if (m > 0) sb.append(m).append("m ");
         if (s > 0 || sb.isEmpty()) sb.append(s).append("s");
         return sb.toString().trim();
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

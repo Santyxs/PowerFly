@@ -11,6 +11,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -31,9 +32,9 @@ public class CombatFlyManager implements Listener {
     }
 
     public void loadConfig() {
-        this.disableFlyInCombat = plugin.getConfig().getBoolean("disable-fly-in-combat", true);
-        this.combatType = plugin.getConfig().getString("combat-type", "players").toLowerCase();
-        this.combatDuration = plugin.getConfig().getInt("combat-duration", 10);
+        this.disableFlyInCombat = plugin.getMainConfig().getBoolean("disable-fly-in-combat", true);
+        this.combatType = plugin.getMainConfig().getString("combat-type", "players").toLowerCase();
+        this.combatDuration = plugin.getMainConfig().getInt("combat-duration", 10);
     }
 
     public void reload() {

@@ -5,6 +5,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import dev.dejvokep.boostedyaml.block.implementation.Section;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -15,6 +16,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import pwf.xenova.PowerFly;
 import pwf.xenova.commands.FlyCommand;
+
 import java.util.*;
 
 public class FlyRestrictionManager implements Listener {
@@ -125,13 +127,13 @@ public class FlyRestrictionManager implements Listener {
         blacklistRegions.clear();
         whitelistRegions.clear();
 
-        List<String> blacklistWorldsConfig = plugin.getConfig().getStringList("blacklist-worlds");
+        List<String> blacklistWorldsConfig = plugin.getMainConfig().getStringList("blacklist-worlds");
         if (!blacklistWorldsConfig.isEmpty()) {
             blacklistWorlds.addAll(blacklistWorldsConfig);
             plugin.getLogger().info("Loaded " + blacklistWorlds.size() + " blacklisted worlds: " + blacklistWorlds);
         }
 
-        List<String> whitelistWorldsConfig = plugin.getConfig().getStringList("whitelist-worlds");
+        List<String> whitelistWorldsConfig = plugin.getMainConfig().getStringList("whitelist-worlds");
         if (!whitelistWorldsConfig.isEmpty()) {
             whitelistWorlds.addAll(whitelistWorldsConfig);
             plugin.getLogger().info("Loaded " + whitelistWorlds.size() + " whitelisted worlds: " + whitelistWorlds);
@@ -142,12 +144,12 @@ public class FlyRestrictionManager implements Listener {
     }
 
     private void processRegionConfig(String path, Map<String, Set<String>> targetMap) {
-        if (!plugin.getConfig().isConfigurationSection(path)) return;
+        if (!plugin.getMainConfig().isSection(path)) return;
 
-        var section = plugin.getConfig().getConfigurationSection(path);
+        Section section = plugin.getMainConfig().getSection(path);
         if (section == null) return;
 
-        for (String worldName : section.getKeys(false)) {
+        for (String worldName : section.getRoutesAsStrings(false)) {
             List<String> regions = section.getStringList(worldName);
             if (!regions.isEmpty()) {
                 targetMap.put(worldName, new HashSet<>(regions));

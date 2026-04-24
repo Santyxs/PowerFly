@@ -11,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
+
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -46,13 +48,11 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-
             int affected = 0;
 
             var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
                     continue;
                 }
@@ -66,21 +66,22 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+        final int finalAmount = amount;
 
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-            return true;
-        }
+        resolvePlayer(targetName,
+                target -> {
+                    processReduction(target.getUniqueId(), finalAmount);
 
-        processReduction(target.getUniqueId(), amount);
+                    Player onlinePlayer = target.getPlayer();
+                    if (onlinePlayer != null) {
+                        refreshPlayer(onlinePlayer);
+                    }
 
-        Player onlinePlayer = target.getPlayer();
-        if (onlinePlayer != null) {
-            refreshPlayer(onlinePlayer);
-        }
+                    sendFeedback(sender, target.getName() != null ? target.getName() : targetName, finalAmount, 1);
+                },
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
 
-        sendFeedback(sender, target.getName() != null ? target.getName() : targetName, amount, 1);
         return true;
     }
 
@@ -115,6 +116,22 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                 ? "&aRemoved &f" + display + " &afrom all online players."
                 : "&aRemoved &f" + display + " &aof fly time from &e" + target + ".";
         sendWithPrefix(sender, msg);
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

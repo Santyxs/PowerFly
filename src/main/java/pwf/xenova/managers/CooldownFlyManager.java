@@ -71,18 +71,18 @@ public class CooldownFlyManager {
     public void startCooldown(UUID playerUUID) {
         int cooldownSeconds;
 
-        boolean useGroupCooldown = plugin.getFileManager().getConfig().getBoolean("use-groups-cooldown", false);
+        boolean useGroupCooldown = plugin.getMainConfig().getBoolean("use-groups-cooldown", false);
 
         if (useGroupCooldown) {
             String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(playerUUID);
             String path = "groups-cooldown." + group;
-            if (plugin.getFileManager().getConfig().contains(path)) {
-                cooldownSeconds = plugin.getFileManager().getConfig().getInt(path, 50);
+            if (plugin.getMainConfig().contains(path)) {
+                cooldownSeconds = plugin.getMainConfig().getInt(path, 50);
             } else {
-                cooldownSeconds = plugin.getFileManager().getConfig().getInt("groups-cooldown.default", 100);
+                cooldownSeconds = plugin.getMainConfig().getInt("groups-cooldown.default", 100);
             }
         } else {
-            cooldownSeconds = plugin.getFileManager().getConfig().getInt("global-cooldown", 100);
+            cooldownSeconds = plugin.getMainConfig().getInt("global-cooldown", 100);
         }
 
         if (cooldownSeconds == -1) {

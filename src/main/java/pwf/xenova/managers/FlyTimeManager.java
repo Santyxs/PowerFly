@@ -6,6 +6,7 @@ import pwf.xenova.PowerFly;
 import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.storage.StorageInterface;
 import pwf.xenova.utils.MessageFormat;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -99,11 +100,11 @@ public class FlyTimeManager {
         if (flyTimeMap.containsKey(uuid)) return;
 
         int flyTime;
-        if (plugin.getFileManager().getConfig().getBoolean("use-groups-fly-time", false)) {
+        if (plugin.getMainConfig().getBoolean("use-groups-fly-time", false)) {
             String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(uuid);
             flyTime = plugin.getGroupFlyTimeManager().getGroupFlyTime(group);
         } else {
-            flyTime = plugin.getFileManager().getConfig().getInt("global-fly-time", 100);
+            flyTime = plugin.getMainConfig().getInt("global-fly-time", 100);
         }
 
         flyTimeMap.put(uuid, flyTime);
@@ -123,7 +124,7 @@ public class FlyTimeManager {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null || !player.isOnline()) return;
 
-        if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true)) {
+        if (plugin.getMainConfig().getBoolean("show-bossbar", true)) {
             plugin.getFlyRuntimeManager().showBossBar(player, newTime);
         }
     }

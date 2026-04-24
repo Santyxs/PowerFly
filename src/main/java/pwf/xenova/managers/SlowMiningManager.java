@@ -24,8 +24,8 @@ public class SlowMiningManager implements Listener {
     }
 
     private void loadConfig() {
-        enabled = plugin.getConfig().getBoolean("slow-mining.enabled", true);
-        amplifier = plugin.getConfig().getInt("slow-mining.amplifier", 1);
+        enabled   = plugin.getMainConfig().getBoolean("slow-mining.enabled", true);
+        amplifier = plugin.getMainConfig().getInt("slow-mining.amplifier", 1);
     }
 
     public void reload() {

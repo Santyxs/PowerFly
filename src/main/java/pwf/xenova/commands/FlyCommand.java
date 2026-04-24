@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
+
 import java.util.*;
 
 public record FlyCommand(PowerFly plugin) implements CommandExecutor {
@@ -162,7 +163,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getSoundEffectsManager().playActivationEffects(player);
         sendMessage(player, "fly-enabled", "&aFly activated.");
 
-        if (plugin.getConfig().getBoolean("show-bossbar", true)) {
+        if (plugin.getMainConfig().getBoolean("show-bossbar", true)) {
             plugin.getFlyRuntimeManager().showBossBar(player, maxTime);
         }
         plugin.getFlyRuntimeManager().startTimer(player, maxTime);
@@ -193,7 +194,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             plugin.getCooldownFlyManager().startCooldown(uuid);
         }
 
-        if (plugin.getConfig().getBoolean("no-fall-damage", true)) {
+        if (plugin.getMainConfig().getBoolean("no-fall-damage", true)) {
             plugin.getNoFallDamageSet().add(uuid);
             new BukkitRunnable() {
                 public void run() { plugin.getNoFallDamageSet().remove(uuid); }
@@ -243,7 +244,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendRaw(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         sender.sendMessage(MessageFormat.parseMessageWithPrefix(prefix, message));
     }
 

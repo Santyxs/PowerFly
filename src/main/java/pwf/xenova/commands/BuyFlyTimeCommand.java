@@ -27,7 +27,7 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        if (!plugin.getConfig().getBoolean("use-economy", false)) {
+        if (!plugin.getMainConfig().getBoolean("use-economy", false)) {
             player.sendMessage(MessageFormat.parseMessage(
                     plugin.getMessageString("economy-disabled", "&cEconomy support is disabled. You cannot buy fly time.")
             ));
@@ -48,9 +48,9 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        double pricePerSecond = plugin.getConfig().getDouble("flytime-price", 100);
+        double pricePerSecond = plugin.getMainConfig().getDouble("flytime-price", 100.0);
         double totalPrice = pricePerSecond * seconds;
-        String currencySymbol = plugin.getConfig().getString("currency-symbol", "$");
+        String currencySymbol = plugin.getMainConfig().getString("currency-symbol", "$");
 
         if (!plugin.getEconomy().has(player, totalPrice)) {
             String msg = plugin.getMessageString("not-enough-money", "&cYou need &e{price}{currency} &cto buy &f{secondstobuy}s &cof fly time.")
@@ -75,7 +75,7 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
         sender.sendMessage(component);
     }

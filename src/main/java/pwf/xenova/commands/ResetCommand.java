@@ -11,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
+
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public record ResetCommand(PowerFly plugin) implements CommandExecutor {
 
@@ -43,7 +45,11 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        resetPlayer(sender, type, targetName);
+        resolvePlayer(targetName,
+                target -> resetPlayer(sender, type, targetName, target.getUniqueId(), target.getName()),
+                () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
+        );
+
         return true;
     }
 
@@ -85,26 +91,19 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
         plugin.getLogger().info("Reset " + type + " for " + affected + " players");
     }
 
-    private void resetPlayer(CommandSender sender, String type, String targetName) {
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
-
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."));
-            return;
-        }
-
-        UUID uuid = target.getUniqueId();
+    private void resetPlayer(CommandSender sender, String type, String targetName, UUID uuid, String name) {
+        String displayName = name != null ? name : targetName;
 
         if (type.equals("cooldown")) {
             plugin.getCooldownFlyManager().setCooldown(uuid, 1);
         } else if (type.equals("flytime")) {
             plugin.getFlyTimeManager().setFlyTime(uuid, 1);
 
-            if (target.isOnline() && target.getPlayer() != null) {
-                Player player = target.getPlayer();
-                if (player.isFlying() || player.getAllowFlight()) {
-                    player.setAllowFlight(false);
-                    player.setFlying(false);
+            Player onlinePlayer = Bukkit.getPlayer(uuid);
+            if (onlinePlayer != null) {
+                if (onlinePlayer.isFlying() || onlinePlayer.getAllowFlight()) {
+                    onlinePlayer.setAllowFlight(false);
+                    onlinePlayer.setFlying(false);
                 }
             }
         }
@@ -115,9 +114,25 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
                 : "&aReset &ffly time &afor &e{player}.";
 
         String msg = plugin.getMessageString(messageKey, defaultMsg)
-                .replace("{player}", target.getName() != null ? target.getName() : targetName);
+                .replace("{player}", displayName);
 
         sendWithPrefix(sender, msg);
+    }
+
+    private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(name);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (target.hasPlayedBefore()) onFound.accept(target);
+                else onNotFound.run();
+            });
+        });
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

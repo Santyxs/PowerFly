@@ -1,6 +1,5 @@
 package pwf.xenova.managers;
 
-import dev.dejvokep.boostedyaml.YamlDocument;
 import dev.dejvokep.boostedyaml.block.implementation.Section;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
@@ -30,15 +29,13 @@ public class GroupFlyTimeManager {
     public void loadTimesFromConfig() {
         groupFlyTimes.clear();
 
-        YamlDocument config = plugin.getFileManager().getConfig();
+        defaultFlyTime = plugin.getMainConfig().getInt("global-fly-time", 100);
 
-        defaultFlyTime = config.getInt("global-fly-time", 100);
-
-        if (config.isSection("groups-fly-time")) {
-            Section section = config.getSection("groups-fly-time");
+        if (plugin.getMainConfig().isSection("groups-fly-time")) {
+            Section section = plugin.getMainConfig().getSection("groups-fly-time");
 
             for (String group : section.getRoutesAsStrings(false)) {
-                int time = config.getInt("groups-fly-time." + group, defaultFlyTime);
+                int time = plugin.getMainConfig().getInt("groups-fly-time." + group, defaultFlyTime);
                 groupFlyTimes.put(group.toLowerCase(), time);
             }
         }

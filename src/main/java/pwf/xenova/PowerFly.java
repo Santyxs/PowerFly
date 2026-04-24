@@ -1,5 +1,6 @@
 package pwf.xenova;
 
+import dev.dejvokep.boostedyaml.YamlDocument;
 import net.kyori.adventure.text.Component;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -14,6 +15,7 @@ import pwf.xenova.commands.*;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 import pwf.xenova.storage.*;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -63,6 +65,10 @@ public class PowerFly extends JavaPlugin {
     public FlyRuntimeManager getFlyRuntimeManager() { return flyRuntimeManager; }
     public void setFlyCommand(FlyCommand flyCommand) { this.flyCommand = flyCommand; }
 
+    public YamlDocument getMainConfig() {
+        return fileManager.getConfig();
+    }
+
     // ----------------- Plugin Enable -----------------
 
     public void onEnable() {
@@ -99,7 +105,7 @@ public class PowerFly extends JavaPlugin {
     }
 
     private void setupStorage() {
-        String storageType = getConfig().getString("storage-type", "yaml").toUpperCase();
+        String storageType = getMainConfig().getString("storage-type", "yaml").toUpperCase();
         if (storageType.equals("SQL")) {
             storage = new SQLStorage(this);
             getLogger().info("Using SQL storage.");
@@ -205,7 +211,7 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Update Checker -----------------
 
     private void checkForUpdates() {
-        if (!fileManager.getConfig().getBoolean("check-updates", true)) return;
+        if (!getMainConfig().getBoolean("check-updates", true)) return;
 
         updateChecker = new UpdateChecker(this, "127043");
         updateChecker.checkForUpdates(success -> {
@@ -237,11 +243,11 @@ public class PowerFly extends JavaPlugin {
     }
 
     private String getDefaultPrefix() {
-        return fileManager.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        return getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
     }
 
     private String getLangCode() {
-        return fileManager.getConfig().getString("language", "en");
+        return getMainConfig().getString("language", "en");
     }
 
     public Component getPrefixedMessage(String key, String defaultMessage) {

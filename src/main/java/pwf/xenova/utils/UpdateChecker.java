@@ -54,7 +54,17 @@ public class UpdateChecker {
                     response = reader.lines().collect(Collectors.joining());
                 }
 
-                latestVersion = response.replaceAll(".*\"name\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+                String parsed = parseVersion(response);
+
+                if (parsed == null) {
+                    plugin.getLogger().warning("UpdateChecker: Could not parse version from API response.");
+                    if (callback != null) {
+                        Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
+                    }
+                    return;
+                }
+
+                latestVersion = parsed;
                 downloadUrl = String.format(SPIGOT_URL, resourceId);
 
                 String normalizedLatest = latestVersion.startsWith("v") ? latestVersion.substring(1) : latestVersion;
@@ -72,6 +82,21 @@ public class UpdateChecker {
                 Bukkit.getScheduler().runTask(plugin, () -> callback.accept(result));
             }
         });
+    }
+
+    private String parseVersion(String json) {
+        if (json == null || json.isEmpty()) return null;
+
+        int keyIndex = json.indexOf("\"name\":\"");
+        if (keyIndex == -1) return null;
+
+        int start = keyIndex + 8;
+        int end = json.indexOf('"', start);
+
+        if (end == -1 || end <= start) return null;
+
+        String version = json.substring(start, end).trim();
+        return version.isEmpty() ? null : version;
     }
 
     @SuppressWarnings("deprecation")

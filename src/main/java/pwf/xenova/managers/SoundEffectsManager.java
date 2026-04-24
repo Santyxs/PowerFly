@@ -38,8 +38,8 @@ public class SoundEffectsManager {
     public void reload() {
         cleanupAllLoops();
 
-        effectsEnabled = plugin.getConfig().getBoolean("enable-effects", false);
-        soundsEnabled  = plugin.getConfig().getBoolean("enable-sounds", false);
+        effectsEnabled = plugin.getMainConfig().getBoolean("enable-effects", false);
+        soundsEnabled  = plugin.getMainConfig().getBoolean("enable-sounds", false);
 
         activationParticle   = loadParticleConfig("particles.activation");
         flyingParticle       = loadParticleConfig("particles.flying");
@@ -57,19 +57,19 @@ public class SoundEffectsManager {
     }
 
     private ParticleConfig loadParticleConfig(String path) {
-        Particle type  = resolveParticle(plugin.getConfig().getString(path + ".type", "CLOUD"));
-        int count      = plugin.getConfig().getInt(path + ".count", 5);
-        double offsetX = plugin.getConfig().getDouble(path + ".offset-x", 0.3);
-        double offsetY = plugin.getConfig().getDouble(path + ".offset-y", 0.3);
-        double offsetZ = plugin.getConfig().getDouble(path + ".offset-z", 0.3);
-        double speed   = plugin.getConfig().getDouble(path + ".speed", 0.05);
+        Particle type  = resolveParticle(plugin.getMainConfig().getString(path + ".type", "CLOUD"));
+        int count      = plugin.getMainConfig().getInt(path + ".count", 5);
+        double offsetX = plugin.getMainConfig().getDouble(path + ".offset-x", 0.3);
+        double offsetY = plugin.getMainConfig().getDouble(path + ".offset-y", 0.3);
+        double offsetZ = plugin.getMainConfig().getDouble(path + ".offset-z", 0.3);
+        double speed   = plugin.getMainConfig().getDouble(path + ".speed", 0.05);
         return new ParticleConfig(type, count, offsetX, offsetY, offsetZ, speed);
     }
 
     private SoundConfig loadSoundConfig(String path) {
-        Sound sound  = resolveSound(plugin.getConfig().getString(path + ".type", "BLOCK_BEACON_ACTIVATE"));
-        float volume = (float) plugin.getConfig().getDouble(path + ".volume", 1.0);
-        float pitch  = (float) plugin.getConfig().getDouble(path + ".pitch", 1.0);
+        Sound sound  = resolveSound(plugin.getMainConfig().getString(path + ".type", "BLOCK_BEACON_ACTIVATE"));
+        float volume = plugin.getMainConfig().getDouble(path + ".volume", 1.0).floatValue();
+        float pitch  = plugin.getMainConfig().getDouble(path + ".pitch", 1.0).floatValue();
         return new SoundConfig(sound, volume, pitch);
     }
 
