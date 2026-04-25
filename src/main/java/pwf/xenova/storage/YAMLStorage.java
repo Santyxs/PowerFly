@@ -20,7 +20,7 @@ public class YAMLStorage implements StorageInterface {
     private final PowerFly plugin;
     private final File file;
     private FileConfiguration config;
-    private boolean dirty = false;
+    private volatile boolean dirty = false;
 
     public YAMLStorage(PowerFly plugin) {
         this.plugin = plugin;
@@ -29,7 +29,7 @@ public class YAMLStorage implements StorageInterface {
         startAutoSave();
     }
 
-    private void initialize() {
+    private synchronized void initialize() {
         if (!file.exists()) {
             try {
                 if (!file.createNewFile()) {
@@ -50,16 +50,16 @@ public class YAMLStorage implements StorageInterface {
         }, intervalTicks, intervalTicks);
     }
 
-    public int getFlyTime(UUID uuid) {
+    public synchronized int getFlyTime(UUID uuid) {
         return config.getInt(uuid + PATH_TIME, 0);
     }
 
-    public void setFlyTime(UUID uuid, int time) {
+    public synchronized void setFlyTime(UUID uuid, int time) {
         config.set(uuid + PATH_TIME, time);
         markDirty();
     }
 
-    public void addFlyTime(UUID uuid, int seconds) {
+    public synchronized void addFlyTime(UUID uuid, int seconds) {
         if (seconds == -1) {
             setFlyTime(uuid, -1);
             return;
@@ -70,28 +70,28 @@ public class YAMLStorage implements StorageInterface {
         }
     }
 
-    public void delFlyTime(UUID uuid, int seconds) {
+    public synchronized void delFlyTime(UUID uuid, int seconds) {
         int current = getFlyTime(uuid);
         if (current != -1) {
             setFlyTime(uuid, Math.max(0, current - seconds));
         }
     }
 
-    public long getCooldown(UUID uuid) {
+    public synchronized long getCooldown(UUID uuid) {
         return config.getLong(uuid + PATH_COOLDOWN, 0L);
     }
 
-    public void setCooldown(UUID uuid, long cooldownUntil) {
+    public synchronized void setCooldown(UUID uuid, long cooldownUntil) {
         config.set(uuid + PATH_COOLDOWN, cooldownUntil);
         markDirty();
     }
 
-    public void removeCooldown(UUID uuid) {
+    public synchronized void removeCooldown(UUID uuid) {
         config.set(uuid + PATH_COOLDOWN, null);
         markDirty();
     }
 
-    public void createPlayerIfNotExists(UUID uuid, String name, int flyTime) {
+    public synchronized void createPlayerIfNotExists(UUID uuid, String name, int flyTime) {
         String uuidStr = uuid.toString();
         if (!config.contains(uuidStr)) {
             config.set(uuidStr + PATH_NAME, name);
@@ -101,12 +101,12 @@ public class YAMLStorage implements StorageInterface {
         }
     }
 
-    public void removePlayer(UUID uuid) {
+    public synchronized void removePlayer(UUID uuid) {
         config.set(uuid.toString(), null);
         markDirty();
     }
 
-    public Map<UUID, Integer> loadAllFlyTimes() {
+    public synchronized Map<UUID, Integer> loadAllFlyTimes() {
         Map<UUID, Integer> map = new HashMap<>();
         for (String key : config.getKeys(false)) {
             try {
@@ -120,7 +120,7 @@ public class YAMLStorage implements StorageInterface {
         return map;
     }
 
-    public Map<UUID, Long> loadAllCooldowns() {
+    public synchronized Map<UUID, Long> loadAllCooldowns() {
         Map<UUID, Long> map = new HashMap<>();
         long now = System.currentTimeMillis();
 
@@ -148,7 +148,7 @@ public class YAMLStorage implements StorageInterface {
         dirty = true;
     }
 
-    private void save() {
+    private synchronized void save() {
         try {
             config.save(file);
             dirty = false;

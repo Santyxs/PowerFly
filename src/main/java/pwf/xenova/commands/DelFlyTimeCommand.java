@@ -106,7 +106,7 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
     private void refreshPlayer(Player player) {
         if (FlyCommand.hasPluginFlyActive(player.getUniqueId())) {
             int newTime = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
-            new FlyCommand(plugin).restartFlyTimer(player, newTime);
+            plugin.getFlyCommand().restartFlyTimer(player, newTime);
         }
     }
 

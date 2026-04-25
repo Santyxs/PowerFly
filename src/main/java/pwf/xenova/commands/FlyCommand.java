@@ -194,7 +194,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             plugin.getCooldownFlyManager().startCooldown(uuid);
         }
 
-        if (plugin.getMainConfig().getBoolean("no-fall-damage", true)) {
+        if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) {
             plugin.getNoFallDamageSet().add(uuid);
             new BukkitRunnable() {
                 public void run() { plugin.getNoFallDamageSet().remove(uuid); }
