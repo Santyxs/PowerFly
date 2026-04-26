@@ -138,33 +138,39 @@ public class SoundEffectsManager {
 
     private Particle resolveParticle(String name) {
         if (name == null || name.isEmpty()) return null;
-        String clean = name.toLowerCase(Locale.ROOT).replace("_", ".");
-        return Registry.PARTICLE_TYPE.stream()
-                .filter(p -> {
-                    NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
-                    return key != null && (key.getKey().replace("_", ".").equals(clean)
-                            || key.getKey().endsWith(clean.replace(".", "")));
-                })
-                .findFirst()
-                .orElseGet(() -> {
-                    plugin.getLogger().warning("Unknown particle type: " + name);
-                    return null;
-                });
+
+        String normalized = name.toLowerCase(Locale.ROOT).trim().replace(" ", "_");
+
+        for (Particle p : Registry.PARTICLE_TYPE) {
+            NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
+            if (key != null && key.getKey().equals(normalized)) return p;
+        }
+
+        for (Particle p : Registry.PARTICLE_TYPE) {
+            NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
+            if (key != null && key.getKey().contains(normalized)) return p;
+        }
+
+        plugin.getLogger().warning("Unknown particle type: '" + name + "'. Check your config.yml for a valid particle name.");
+        return null;
     }
 
     private Sound resolveSound(String name) {
         if (name == null || name.isEmpty()) return null;
-        String clean = name.toLowerCase(Locale.ROOT).replace("_", ".");
-        return Registry.SOUNDS.stream()
-                .filter(s -> {
-                    NamespacedKey key = Registry.SOUNDS.getKey(s);
-                    return key != null && (key.getKey().replace("_", ".").equals(clean)
-                            || key.getKey().endsWith(clean));
-                })
-                .findFirst()
-                .orElseGet(() -> {
-                    plugin.getLogger().warning("Unknown sound type: " + name);
-                    return null;
-                });
+
+        String normalized = name.toLowerCase(Locale.ROOT).trim().replace("_", ".");
+
+        for (Sound s : Registry.SOUNDS) {
+            NamespacedKey key = Registry.SOUNDS.getKey(s);
+            if (key != null && key.getKey().equals(normalized)) return s;
+        }
+
+        for (Sound s : Registry.SOUNDS) {
+            NamespacedKey key = Registry.SOUNDS.getKey(s);
+            if (key != null && key.getKey().endsWith(normalized)) return s;
+        }
+
+        plugin.getLogger().warning("Unknown sound type: '" + name + "'. Check your config.yml for a valid sound name.");
+        return null;
     }
 }

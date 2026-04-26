@@ -11,6 +11,7 @@ import pwf.xenova.utils.MessageFormat;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Locale;
 
 public class FlyRuntimeManager {
 
@@ -19,6 +20,8 @@ public class FlyRuntimeManager {
     private final Map<UUID, BossBar> flyBossBars = new ConcurrentHashMap<>();
     private final Set<UUID> activeSessions = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Set<UUID> warned10s = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    private final Map<UUID, Integer> sessionMaxTime = new ConcurrentHashMap<>();
 
     private static final int INFINITE = -1;
 
@@ -37,10 +40,18 @@ public class FlyRuntimeManager {
     public void removeSession(UUID uuid) {
         activeSessions.remove(uuid);
         warned10s.remove(uuid);
+        sessionMaxTime.remove(uuid);
+    }
+
+    public void updateSessionMaxTime(UUID uuid, int newMaxTime) {
+        if (hasActiveSession(uuid)) {
+            sessionMaxTime.put(uuid, newMaxTime);
+        }
     }
 
     public void startTimer(Player player, int initialMaxTime) {
         UUID uuid = player.getUniqueId();
+        sessionMaxTime.put(uuid, initialMaxTime);
 
         BukkitRunnable timer = new BukkitRunnable() {
             public void run() {
@@ -66,7 +77,7 @@ public class FlyRuntimeManager {
                 if (remaining > 0 || remaining == INFINITE) {
                     handleActionBar(player, remaining);
                     if (plugin.getMainConfig().getBoolean("show-bossbar", true)) {
-                        updateBossBar(player, remaining, initialMaxTime);
+                        updateBossBar(player, remaining);
                     }
                 } else {
                     plugin.getFlyCommand().endFly(player);
@@ -89,6 +100,7 @@ public class FlyRuntimeManager {
         stopTimer(player);
         removeBossBar(player);
         warned10s.remove(player.getUniqueId());
+        sessionMaxTime.put(player.getUniqueId(), newMaxTime);
         if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true)) {
             showBossBar(player, newMaxTime);
         }
@@ -103,8 +115,8 @@ public class FlyRuntimeManager {
         String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}")
                 .replace("{fly_time}", display);
 
-        BarColor color = BarColor.valueOf(plugin.getFileManager().getConfig().getString("bossbar-color", "BLUE").toUpperCase());
-        BarStyle style = BarStyle.valueOf(plugin.getFileManager().getConfig().getString("bossbar-style", "SOLID").toUpperCase());
+        BarColor color = resolveEnum(BarColor.class, plugin.getFileManager().getConfig().getString("bossbar-color", "BLUE"), BarColor.BLUE);
+        BarStyle style = resolveEnum(BarStyle.class, plugin.getFileManager().getConfig().getString("bossbar-style", "SOLID"), BarStyle.SOLID);
 
         BossBar bar = Bukkit.createBossBar(MessageFormat.toConsoleString(MessageFormat.parseMessage(raw)), color, style);
         bar.addPlayer(player);
@@ -118,7 +130,7 @@ public class FlyRuntimeManager {
         if (bar != null) bar.removeAll();
     }
 
-    private void updateBossBar(Player player, int remaining, int maxTime) {
+    private void updateBossBar(Player player, int remaining) {
         BossBar bar = flyBossBars.get(player.getUniqueId());
         if (bar == null) return;
 
@@ -126,8 +138,14 @@ public class FlyRuntimeManager {
         if (remaining == INFINITE) {
             progress = 1.0;
         } else {
-            int currentMax = Math.max(remaining, maxTime);
-            progress = currentMax <= 0 ? 0.0 : Math.clamp((double) remaining / currentMax, 0.0, 1.0);
+
+            int maxTime = sessionMaxTime.getOrDefault(player.getUniqueId(), remaining);
+
+            if (remaining > maxTime) {
+                maxTime = remaining;
+                sessionMaxTime.put(player.getUniqueId(), maxTime);
+            }
+            progress = maxTime <= 0 ? 0.0 : Math.clamp((double) remaining / maxTime, 0.0, 1.0);
         }
 
         bar.setProgress(progress);
@@ -170,5 +188,15 @@ public class FlyRuntimeManager {
         flyBossBars.clear();
         activeSessions.clear();
         warned10s.clear();
+        sessionMaxTime.clear();
+    }
+
+    private <E extends Enum<E>> E resolveEnum(Class<E> enumClass, String value, E fallback) {
+        try {
+            return Enum.valueOf(enumClass, value.toUpperCase(Locale.ROOT).trim());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            plugin.getLogger().warning("Invalid " + enumClass.getSimpleName() + " value: '" + value + "', using " + fallback.name() + " as default.");
+            return fallback;
+        }
     }
 }

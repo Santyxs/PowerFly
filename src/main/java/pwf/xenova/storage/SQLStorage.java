@@ -9,6 +9,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SQLStorage implements StorageInterface {
 
@@ -47,13 +48,34 @@ public class SQLStorage implements StorageInterface {
             "UPDATE " + TABLE_NAME + " SET time = time + ? WHERE uuid = ?;";
     private static final String QUERY_DEL_TIME =
             "UPDATE " + TABLE_NAME + " SET time = MAX(time - ?, 0) WHERE uuid = ?;";
+    private static final String QUERY_UPDATE_NAME =
+            "UPDATE " + TABLE_NAME + " SET name = ? WHERE uuid = ?;";
 
     private final PowerFly plugin;
     private Connection connection;
 
+    private final Map<UUID, String> nameCache = new ConcurrentHashMap<>();
+
     public SQLStorage(PowerFly plugin) {
         this.plugin = plugin;
         initialize();
+    }
+
+    public void cachePlayerName(UUID uuid, String name) {
+        nameCache.put(uuid, name);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_UPDATE_NAME)) {
+                ps.setString(1, name);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning("cachePlayerName update failed for " + uuid + ": " + e.getMessage());
+            }
+        });
+    }
+
+    public void evictPlayerName(UUID uuid) {
+        nameCache.remove(uuid);
     }
 
     private synchronized void initialize() {
@@ -95,7 +117,6 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public int getFlyTime(UUID uuid) {
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_GET_TIME)) {
             ps.setString(1, uuid.toString());
@@ -108,7 +129,6 @@ public class SQLStorage implements StorageInterface {
         return 0;
     }
 
-    @Override
     public void setFlyTime(UUID uuid, int time) {
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_TIME)) {
             ps.setString(1, uuid.toString());
@@ -120,7 +140,6 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public void addFlyTime(UUID uuid, int seconds) {
         if (seconds == -1) {
             setFlyTime(uuid, -1);
@@ -135,7 +154,6 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public void delFlyTime(UUID uuid, int seconds) {
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DEL_TIME)) {
             ps.setInt(1, seconds);
@@ -146,7 +164,6 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public long getCooldown(UUID uuid) {
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_GET_COOLDOWN)) {
             ps.setString(1, uuid.toString());
@@ -159,7 +176,6 @@ public class SQLStorage implements StorageInterface {
         return 0L;
     }
 
-    @Override
     public void setCooldown(UUID uuid, long cooldownUntil) {
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_COOLDOWN)) {
             ps.setString(1, uuid.toString());
@@ -171,13 +187,12 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public void removeCooldown(UUID uuid) {
         setCooldown(uuid, 0L);
     }
 
-    @Override
     public void createPlayerIfNotExists(UUID uuid, String name, int flyTime) {
+        nameCache.put(uuid, name);
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_INSERT_IGNORE)) {
             ps.setString(1, uuid.toString());
             ps.setString(2, name);
@@ -188,8 +203,8 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public void removePlayer(UUID uuid) {
+        nameCache.remove(uuid);
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DELETE)) {
             ps.setString(1, uuid.toString());
             ps.executeUpdate();
@@ -198,7 +213,6 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    @Override
     public Map<UUID, Integer> loadAllFlyTimes() {
         Map<UUID, Integer> map = new HashMap<>();
         try (Statement stmt = getConnection().createStatement();
@@ -217,7 +231,6 @@ public class SQLStorage implements StorageInterface {
         return map;
     }
 
-    @Override
     public Map<UUID, Long> loadAllCooldowns() {
         Map<UUID, Long> map = new HashMap<>();
         try (Statement stmt = getConnection().createStatement();
@@ -236,8 +249,8 @@ public class SQLStorage implements StorageInterface {
         return map;
     }
 
-    @Override
     public void close() {
+        nameCache.clear();
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
@@ -249,13 +262,23 @@ public class SQLStorage implements StorageInterface {
     }
 
     private String getPlayerName(UUID uuid) {
+        String cached = nameCache.get(uuid);
+        if (cached != null) return cached;
+
         Player player = Bukkit.getPlayer(uuid);
-        if (player != null) return player.getName();
+        if (player != null) {
+            nameCache.put(uuid, player.getName());
+            return player.getName();
+        }
 
         try (PreparedStatement ps = getConnection().prepareStatement(QUERY_GET_NAME)) {
             ps.setString(1, uuid.toString());
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getString("name");
+                if (rs.next()) {
+                    String name = rs.getString("name");
+                    if (name != null) nameCache.put(uuid, name);
+                    return name != null ? name : "Unknown";
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().warning("getPlayerName failed for " + uuid + ": " + e.getMessage());
