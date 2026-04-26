@@ -218,14 +218,25 @@ public class PowerFly extends JavaPlugin {
         Bukkit.getPluginManager().registerEvent(
                 EntityDamageEvent.class,
                 new org.bukkit.event.Listener() {},
-                org.bukkit.event.EventPriority.NORMAL,
+                org.bukkit.event.EventPriority.HIGH,
                 (listener, event) -> {
                     EntityDamageEvent damageEvent = (EntityDamageEvent) event;
                     if (!(damageEvent.getEntity() instanceof Player player)) return;
                     if (damageEvent.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-                    if (noFallDamage.remove(player.getUniqueId())) damageEvent.setCancelled(true);
+
+                    UUID uuid = player.getUniqueId();
+
+                    if (noFallDamage.remove(uuid)) {
+                        damageEvent.setCancelled(true);
+                        return;
+                    }
+
+                    if (flyRuntimeManager.hasActiveSession(uuid)) {
+                        damageEvent.setCancelled(false);
+                    }
                 },
-                this
+                this,
+                true
         );
     }
 
