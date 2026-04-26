@@ -50,7 +50,7 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
+            var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
@@ -112,9 +112,16 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
     private void sendFeedback(CommandSender sender, String target, int amount, int affected) {
         String display = (amount == -1) ? "∞" : amount + "s";
-        String msg = (target.equalsIgnoreCase("all"))
-                ? "&aRemoved &f" + display + " &afrom all online players."
-                : "&aRemoved &f" + display + " &aof fly time from &e" + target + ".";
+        String msg;
+        if (target.equalsIgnoreCase("all")) {
+            msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds} &aof fly time from &eall players.")
+                    .replace("{seconds}", display)
+                    .replace("{affected}", String.valueOf(affected));
+        } else {
+            msg = plugin.getMessageString("fly-time-deleted", "&aRemoved &f{seconds} &aof fly time from &e{player}.")
+                    .replace("{seconds}", display)
+                    .replace("{player}", target);
+        }
         sendWithPrefix(sender, msg);
     }
 
@@ -135,7 +142,7 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
         sender.sendMessage(component);
     }

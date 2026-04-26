@@ -8,19 +8,18 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import pwf.xenova.PowerFly;
-import pwf.xenova.commands.FlyCommand;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FlyTimeOnGroundManager implements Listener {
 
     private final PowerFly plugin;
     private boolean decreaseOnGround;
 
-    private final Map<UUID, Double> fallStartY = new HashMap<>();
-    private final Map<UUID, Boolean> wasFalling = new HashMap<>();
+    private final Map<UUID, Double> fallStartY = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> wasFalling = new ConcurrentHashMap<>();
 
     public FlyTimeOnGroundManager(PowerFly plugin) {
         this.plugin = plugin;
@@ -45,7 +44,7 @@ public class FlyTimeOnGroundManager implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (!FlyCommand.hasPluginFlyActive(uuid)) return;
+        if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
         if (plugin.getNoFallDamageSet().contains(uuid)) return;
         if (!event.hasChangedPosition()) return;
 
@@ -79,11 +78,11 @@ public class FlyTimeOnGroundManager implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (!FlyCommand.hasPluginFlyActive(uuid)) return;
+        if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
 
         if (!event.isFlying()) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                if (FlyCommand.hasPluginFlyActive(uuid) && player.isOnline()) {
+                if (plugin.getFlyRuntimeManager().hasActiveSession(uuid) && player.isOnline()) {
                     player.setAllowFlight(true);
                 }
             }, 3L);

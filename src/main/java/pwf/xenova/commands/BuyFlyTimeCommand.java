@@ -28,9 +28,13 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (!plugin.getMainConfig().getBoolean("use-economy", false)) {
-            player.sendMessage(MessageFormat.parseMessage(
-                    plugin.getMessageString("economy-disabled", "&cEconomy support is disabled. You cannot buy fly time.")
-            ));
+            player.sendMessage(MessageFormat.parseMessage("&cEconomy support is disabled. You cannot buy fly time."));
+            return true;
+        }
+
+        if (plugin.getEconomy() == null) {
+            player.sendMessage(MessageFormat.parseMessage("&cEconomy support is enabled but no provider was found. You cannot buy fly time."));
+            plugin.getLogger().warning("use-economy is enabled but no economy provider was found.");
             return true;
         }
 

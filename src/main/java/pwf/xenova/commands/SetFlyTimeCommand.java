@@ -59,7 +59,7 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
+            var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
@@ -71,7 +71,7 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             }
 
             String timeDisplay = secondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(secondsToSet);
-            String msg = plugin.getMessageString("set-flytime-all", "&aSet fly time to &f{seconds} &afor &eall players.")
+            String msg = plugin.getMessageString("fly-time-set-all", "&aSet fly time to &f{seconds} &afor &eall players.")
                     .replace("{seconds}", timeDisplay)
                     .replace("{affected}", String.valueOf(affected));
 
@@ -86,8 +86,8 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                     plugin.getFlyTimeManager().setFlyTime(target.getUniqueId(), finalSecondsToSet);
 
                     String timeDisplay = finalSecondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(finalSecondsToSet);
-                    String msg = plugin.getMessageString("set-flytime-player", "&aSet fly time to &f{time} &afor &e{player}&a.")
-                            .replace("{time}", timeDisplay)
+                    String msg = plugin.getMessageString("fly-time-set", "&aSet fly time to &f{seconds} &afor &e{player}.")
+                            .replace("{seconds}", timeDisplay)
                             .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
                     sendWithPrefix(sender, msg);
@@ -115,7 +115,7 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
         sender.sendMessage(component);
     }

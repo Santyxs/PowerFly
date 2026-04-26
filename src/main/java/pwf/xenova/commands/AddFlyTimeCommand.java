@@ -55,7 +55,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
+            var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
@@ -120,7 +120,7 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
         sender.sendMessage(component);
     }

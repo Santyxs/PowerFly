@@ -3,7 +3,6 @@ package pwf.xenova.managers;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import pwf.xenova.PowerFly;
-import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.storage.StorageInterface;
 import pwf.xenova.utils.MessageFormat;
 
@@ -120,7 +119,7 @@ public class FlyTimeManager {
     }
 
     private void updateLiveFlight(UUID uuid, int newTime) {
-        if (!FlyCommand.hasPluginFlyActive(uuid)) return;
+        if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
         Player player = Bukkit.getPlayer(uuid);
         if (player == null || !player.isOnline()) return;
 

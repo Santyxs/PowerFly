@@ -9,18 +9,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
-import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CombatFlyManager implements Listener {
 
     private final PowerFly plugin;
-    private final Map<UUID, Long> combatExpiry = new HashMap<>();
-    private final Map<UUID, BukkitRunnable> combatTimers = new HashMap<>();
+    private final Map<UUID, Long> combatExpiry = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitRunnable> combatTimers = new ConcurrentHashMap<>();
 
     private boolean disableFlyInCombat;
     private String combatType;
@@ -81,7 +80,7 @@ public class CombatFlyManager implements Listener {
         long expireTime = System.currentTimeMillis() + (combatDuration * 1000L);
         combatExpiry.put(uuid, expireTime);
 
-        if (player.isFlying() && FlyCommand.hasPluginFlyActive(uuid)) {
+        if (player.isFlying() && plugin.getFlyRuntimeManager().hasActiveSession(uuid)) {
             player.setAllowFlight(false);
             player.setFlying(false);
 

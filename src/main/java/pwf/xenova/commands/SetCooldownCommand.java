@@ -56,7 +56,7 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
         if (targetName.equalsIgnoreCase("all")) {
             int affected = 0;
 
-            var allowedWorlds = plugin.getConfig().getStringList("whitelist-worlds");
+            var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
@@ -75,13 +75,13 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
             }
 
             String timeDisplay = secondsToSet == -1 ? "removed" : plugin.getFlyTimeManager().formatTime(secondsToSet);
-            String messageKey = secondsToSet == -1 ? "set-cooldown-set-all" : "set-cooldown-all";
+            String messageKey = secondsToSet == -1 ? "cooldown-reset-all" : "fly-cooldown-set-all";
             String defaultMsg = secondsToSet == -1
                     ? "&aRemoved cooldown for &e{affected} &aplayers."
-                    : "&aSet cooldown to &f{time} &afor &eall &aplayers.";
+                    : "&aSet cooldown time to &f{seconds} &afor &eall players.";
 
             String msg = plugin.getMessageString(messageKey, defaultMsg)
-                    .replace("{time}", timeDisplay)
+                    .replace("{seconds}", timeDisplay)
                     .replace("{affected}", String.valueOf(affected));
 
             sendWithPrefix(sender, msg);
@@ -96,20 +96,12 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
 
                     if (finalSecondsToSet == -1) {
                         plugin.getCooldownFlyManager().removeCooldown(uuid);
-
-                        String msg = plugin.getMessageString("set-cooldown-removed", "&aRemoved cooldown for &e{player}&a.")
-                                .replace("{player}", target.getName() != null ? target.getName() : targetName);
-                        sendWithPrefix(sender, msg);
-
-                        if (target.isOnline() && target.getPlayer() != null) {
-                            sendWithPrefix(target.getPlayer(), plugin.getMessageString("set-cooldown-removed-notify", "&aYour cooldown has been removed."));
-                        }
                     } else {
                         plugin.getCooldownFlyManager().setCooldown(uuid, finalSecondsToSet);
 
                         String timeDisplay = plugin.getFlyTimeManager().formatTime(finalSecondsToSet);
-                        String msg = plugin.getMessageString("set-cooldown-player", "&aSet cooldown to &f{time} &afor &e{player}&a.")
-                                .replace("{time}", timeDisplay)
+                        String msg = plugin.getMessageString("fly-cooldown-set", "&aSet cooldown time to &f{seconds} &afor &e{player}.")
+                                .replace("{seconds}", timeDisplay)
                                 .replace("{player}", target.getName() != null ? target.getName() : targetName);
 
                         sendWithPrefix(sender, msg);
@@ -138,7 +130,7 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {
-        String prefix = plugin.getConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
+        String prefix = plugin.getMainConfig().getString("prefix", "&7[&ePower&fFly&7] &r");
         Component component = MessageFormat.parseMessageWithPrefix(prefix, message);
         sender.sendMessage(component);
     }

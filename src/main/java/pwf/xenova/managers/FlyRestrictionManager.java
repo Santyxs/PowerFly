@@ -15,18 +15,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import pwf.xenova.PowerFly;
-import pwf.xenova.commands.FlyCommand;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FlyRestrictionManager implements Listener {
 
     private final PowerFly plugin;
-    private final Set<String> blacklistWorlds = new HashSet<>();
-    private final Set<String> whitelistWorlds = new HashSet<>();
-    private final Map<String, Set<String>> blacklistRegions = new HashMap<>();
-    private final Map<String, Set<String>> whitelistRegions = new HashMap<>();
-    private final Map<UUID, Long> messageCooldowns = new HashMap<>();
+    private final Set<String> blacklistWorlds = ConcurrentHashMap.newKeySet();
+    private final Set<String> whitelistWorlds = ConcurrentHashMap.newKeySet();
+    private final Map<String, Set<String>> blacklistRegions = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> whitelistRegions = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> messageCooldowns = new ConcurrentHashMap<>();
     private static final long MESSAGE_COOLDOWN_MS = 3000;
 
     private boolean worldGuardEnabled;
@@ -53,7 +53,7 @@ public class FlyRestrictionManager implements Listener {
 
         Player player = event.getPlayer();
 
-        if (!FlyCommand.hasPluginFlyActive(player.getUniqueId()) || player.hasPermission("powerfly.admin")) return;
+        if (!plugin.getFlyRuntimeManager().hasActiveSession(player.getUniqueId()) || player.hasPermission("powerfly.admin")) return;
 
         if (isFlightBlockedInWorld(player)) {
             disableFlight(player, false);
@@ -201,10 +201,7 @@ public class FlyRestrictionManager implements Listener {
             plugin.getSoundEffectsManager().playDeactivationEffects(player);
         }
 
-        FlyCommand flyCommand = plugin.getFlyCommand();
-        if (flyCommand != null) {
-            flyCommand.cleanupFlyData(player);
-        }
+        plugin.getFlyRuntimeManager().cleanup(player);
 
         if (shouldNotify) {
             sendBlockMessage(player, isRegionBlock);

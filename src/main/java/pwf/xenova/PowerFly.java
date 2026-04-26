@@ -16,9 +16,9 @@ import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 import pwf.xenova.storage.*;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PowerFly extends JavaPlugin {
 
@@ -43,7 +43,7 @@ public class PowerFly extends JavaPlugin {
     private FlyCommand flyCommand;
     private FlyRuntimeManager flyRuntimeManager;
 
-    private final Set<UUID> noFallDamage = new HashSet<>();
+    private final Set<UUID> noFallDamage = ConcurrentHashMap.newKeySet();
 
     public static PowerFly getInstance() { return instance; }
 
@@ -90,6 +90,7 @@ public class PowerFly extends JavaPlugin {
     // ----------------- Plugin Disable -----------------
 
     public void onDisable() {
+        if (flyRuntimeManager != null) flyRuntimeManager.cleanupAll();
         if (storage != null) storage.close();
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
         if (slowMiningManager != null) slowMiningManager.clearAllOnDisable();
@@ -157,15 +158,35 @@ public class PowerFly extends JavaPlugin {
     }
 
     private void setupEconomy() {
+        boolean useEconomy = getMainConfig().getBoolean("use-economy", false);
+
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            getLogger().info("Economy disabled (Vault not found).");
+            if (useEconomy) {
+                getLogger().warning("====================================================");
+                getLogger().warning("use-economy is enabled but Vault is not installed!");
+                getLogger().warning("Players will not be able to buy fly time.");
+                getLogger().warning("Install Vault and an economy plugin to fix this.");
+                getLogger().warning("====================================================");
+            } else {
+                getLogger().info("Economy disabled (Vault not found).");
+            }
             return;
         }
+
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
-            getLogger().info("Economy disabled (Vault not found).");
+            if (useEconomy) {
+                getLogger().warning("====================================================");
+                getLogger().warning("use-economy is enabled but no economy provider was found!");
+                getLogger().warning("Players will not be able to buy fly time.");
+                getLogger().warning("Install an economy plugin (e.g. EssentialsX) to fix this.");
+                getLogger().warning("====================================================");
+            } else {
+                getLogger().info("Economy disabled (no economy provider found).");
+            }
             return;
         }
+
         economy = rsp.getProvider();
         getLogger().info("Economy hooked: " + economy.getName());
     }

@@ -12,7 +12,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import pwf.xenova.PowerFly;
-import pwf.xenova.commands.FlyCommand;
 
 public class ClaimFlyManager implements Listener {
 
@@ -111,7 +110,7 @@ public class ClaimFlyManager implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
 
-        if (!FlyCommand.hasPluginFlyActive(player.getUniqueId())) return;
+        if (!plugin.getFlyRuntimeManager().hasActiveSession(player.getUniqueId())) return;
         if (!player.isFlying() || !player.getAllowFlight()) return;
         if (player.hasPermission("powerfly.admin")) return;
 

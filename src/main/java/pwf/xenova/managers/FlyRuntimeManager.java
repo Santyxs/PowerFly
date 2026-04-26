@@ -89,7 +89,7 @@ public class FlyRuntimeManager {
         stopTimer(player);
         removeBossBar(player);
         warned10s.remove(player.getUniqueId());
-        if (plugin.getMainConfig().getBoolean("show-bossbar", true)) {
+        if (plugin.getFileManager().getConfig().getBoolean("show-bossbar", true)) {
             showBossBar(player, newMaxTime);
         }
         startTimer(player, newMaxTime);
@@ -103,8 +103,8 @@ public class FlyRuntimeManager {
         String raw = plugin.getMessageString("bossbar-fly-time", "&eFly time: &6{fly_time}")
                 .replace("{fly_time}", display);
 
-        BarColor color = BarColor.valueOf(plugin.getMainConfig().getString("bossbar-color", "BLUE").toUpperCase());
-        BarStyle style = BarStyle.valueOf(plugin.getMainConfig().getString("bossbar-style", "SOLID").toUpperCase());
+        BarColor color = BarColor.valueOf(plugin.getFileManager().getConfig().getString("bossbar-color", "BLUE").toUpperCase());
+        BarStyle style = BarStyle.valueOf(plugin.getFileManager().getConfig().getString("bossbar-style", "SOLID").toUpperCase());
 
         BossBar bar = Bukkit.createBossBar(MessageFormat.toConsoleString(MessageFormat.parseMessage(raw)), color, style);
         bar.addPlayer(player);
@@ -139,7 +139,7 @@ public class FlyRuntimeManager {
     }
 
     private void handleActionBar(Player player, int remaining) {
-        if (!plugin.getMainConfig().getBoolean("show-actionbar", true)) return;
+        if (!plugin.getFileManager().getConfig().getBoolean("show-actionbar", true)) return;
 
         boolean onGround = player.getLocation()
                 .clone()
@@ -147,7 +147,7 @@ public class FlyRuntimeManager {
                 .getBlock()
                 .getType()
                 .isSolid();
-        boolean showOnGround = plugin.getMainConfig().getBoolean("show-actionbar-on-ground", false);
+        boolean showOnGround = plugin.getFileManager().getConfig().getBoolean("show-actionbar-on-ground", false);
 
         if (!onGround || showOnGround) {
             String display = MessageFormat.formatTime(remaining);
@@ -161,5 +161,14 @@ public class FlyRuntimeManager {
         stopTimer(player);
         removeBossBar(player);
         removeSession(player.getUniqueId());
+    }
+
+    public void cleanupAll() {
+        flyTimers.values().forEach(BukkitRunnable::cancel);
+        flyTimers.clear();
+        flyBossBars.values().forEach(BossBar::removeAll);
+        flyBossBars.clear();
+        activeSessions.clear();
+        warned10s.clear();
     }
 }
