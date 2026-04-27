@@ -56,10 +56,6 @@
                                     <shadedPattern>pwf.xenova.libs.sqlite</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.apache.commons</pattern>
-                                    <shadedPattern>pwf.xenova.libs.commons</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>dev.dejvokep</pattern>
                                     <shadedPattern>pwf.xenova.libs.boostedyaml</shadedPattern>
                                 </relocation>
@@ -107,14 +103,6 @@
     </repositories>
 
     <dependencies>
-
-        <!-- Apache -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.20.0</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!-- Paper -->
         <dependency>
