@@ -123,8 +123,10 @@ public class FlyTimeManager {
         Player player = Bukkit.getPlayer(uuid);
         if (player == null || !player.isOnline()) return;
 
+        plugin.getFlyRuntimeManager().updateSessionMaxTime(uuid, newTime);
+
         if (plugin.getMainConfig().getBoolean("show-bossbar", true)) {
-            plugin.getFlyRuntimeManager().showBossBar(player, newTime);
+            plugin.getFlyRuntimeManager().restartTimer(player, newTime);
         }
     }
 }

@@ -90,7 +90,7 @@ public class CooldownFlyManager {
             return;
         }
 
-        plugin.getFlyTimeManager().setFlyTime(playerUUID, 0);
+        plugin.getFlyTimeManager().setFlyTimeInternal(playerUUID, 0);
         setCooldown(playerUUID, cooldownSeconds);
     }
 

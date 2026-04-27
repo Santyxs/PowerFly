@@ -38,8 +38,8 @@ public class SoundEffectsManager {
     public void reload() {
         cleanupAllLoops();
 
-        effectsEnabled = plugin.getMainConfig().getBoolean("enable-effects", false);
-        soundsEnabled  = plugin.getMainConfig().getBoolean("enable-sounds", false);
+        effectsEnabled = plugin.getMainConfig().getBoolean("enable-effects", true);
+        soundsEnabled  = plugin.getMainConfig().getBoolean("enable-sounds", true);
 
         activationParticle   = loadParticleConfig("particles.activation");
         flyingParticle       = loadParticleConfig("particles.flying");

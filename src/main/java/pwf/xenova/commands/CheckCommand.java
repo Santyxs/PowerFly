@@ -98,6 +98,12 @@ public record CheckCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null) {
+            onFound.accept(online);
+            return;
+        }
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(name);
             Bukkit.getScheduler().runTask(plugin, () -> {

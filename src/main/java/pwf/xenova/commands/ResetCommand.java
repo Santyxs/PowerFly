@@ -57,13 +57,7 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
     private void resetAll(CommandSender sender, String type) {
         int affected = 0;
 
-        var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
-
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!allowedWorlds.isEmpty() && !matchesAnyPattern(player.getWorld().getName(), allowedWorlds)) {
-                continue;
-            }
-
             UUID uuid = player.getUniqueId();
 
             if (type.equals("cooldown")) {
