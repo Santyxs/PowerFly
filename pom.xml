@@ -48,10 +48,6 @@
                             <minimizeJar>true</minimizeJar>
                             <relocations>
                                 <relocation>
-                                    <pattern>org.bstats</pattern>
-                                    <shadedPattern>pwf.xenova.shaded.bstats</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>org.sqlite</pattern>
                                     <shadedPattern>pwf.xenova.libs.sqlite</shadedPattern>
                                 </relocation>
@@ -166,14 +162,6 @@
             <artifactId>placeholderapi</artifactId>
             <version>2.11.7</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- bStats -->
-        <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>3.2.1</version>
-            <scope>compile</scope>
         </dependency>
 
         <!-- Boosted-YAML -->
