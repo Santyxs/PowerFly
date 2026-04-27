@@ -2,9 +2,9 @@ package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import pwf.xenova.PowerFly;
 import pwf.xenova.storage.StorageInterface;
 import pwf.xenova.utils.MessageFormat;
+import pwf.xenova.PowerFly;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;

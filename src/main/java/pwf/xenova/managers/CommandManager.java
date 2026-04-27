@@ -2,8 +2,8 @@ package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.util.StringUtil;
-import pwf.xenova.PowerFly;
 import pwf.xenova.commands.*;
+import pwf.xenova.PowerFly;
 
 import java.util.*;
 

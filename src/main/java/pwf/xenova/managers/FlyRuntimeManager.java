@@ -6,8 +6,9 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import pwf.xenova.PowerFly;
+import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.utils.MessageFormat;
+import pwf.xenova.PowerFly;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -80,7 +81,10 @@ public class FlyRuntimeManager {
                         updateBossBar(player, remaining);
                     }
                 } else {
-                    plugin.getFlyCommand().endFly(player);
+                    FlyCommand flyCommand = plugin.getFlyCommand();
+                    if (flyCommand != null) {
+                        flyCommand.endFly(player);
+                    }
                     cancel();
                     flyTimers.remove(uuid);
                 }
@@ -138,7 +142,6 @@ public class FlyRuntimeManager {
         if (remaining == INFINITE) {
             progress = 1.0;
         } else {
-
             int maxTime = sessionMaxTime.getOrDefault(player.getUniqueId(), remaining);
 
             if (remaining > maxTime) {
