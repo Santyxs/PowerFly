@@ -64,7 +64,7 @@ groups-cooldown:
   mod: 60
   admin: -1
 
-# Prevent fall damage when fly time ends (10s)
+# Prevent fall damage for 10 seconds after fly time ends
 no-fall-damage: false
 
 # Decrease fly time when the player is on the ground
@@ -73,21 +73,22 @@ decrease-flytime-on-ground: false
 # When players mine blocks while flying, they get mining fatigue effect
 slow-mining:
   enabled: true
-  # Mining fatigue level: 1 = Fatigue I, 2 = Fatigue II, 3 = Fatigue III, etc.
+  # Mining fatigue level (amplifier):
+  # 1 = Mining Fatigue I, 2 = Mining Fatigue II, 3 = Mining Fatigue III, etc.
   amplifier: 1
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #     COMBAT SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
-# Activate or deactivate fly when a player enters combat
+# Enable or disable fly when a player enters combat
 disable-fly-in-combat: true
 
-# Determine which entity prevents combat fly:
-#  - "players": (PvP)
-#  - "mobs": (PvE)
-#  - "all": players + mobs (PvP + PvE)
-combat-type: "players"
+# Determines which type of damage will disable flying while in combat:
+#  - players → Damage caused by other players (PvP)
+#  - mobs    → Damage caused by non-player entities (PvE)
+#  - all     → Both players and mobs (PvP + PvE)
+combat-type: players
 
 # Duration in seconds after taking damage to consider the player in combat
 combat-duration: 10
@@ -128,6 +129,8 @@ flytime-price: 100
 #     WORLDS SETTINGS      #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
+# If both whitelist and blacklist are set, whitelist will take priority
+
 # List of worlds where players are not allowed to fly
 # Supports exact names and patterns with wildcards (*)
 # Examples:
@@ -150,7 +153,9 @@ whitelist-worlds:
 #     REGIONS SETTINGS     #
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 
-# List of regions where players not allowed to fly
+# If both whitelist and blacklist are set, whitelist will take priority
+
+# List of regions where players are not allowed to fly
 blacklist-regions:
   world:
     - spawn
