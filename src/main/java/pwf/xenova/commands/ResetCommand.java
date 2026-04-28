@@ -12,7 +12,6 @@ import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -55,8 +54,6 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     private void resetAll(CommandSender sender, String type) {
-        int affected = 0;
-
         for (Player player : Bukkit.getOnlinePlayers()) {
             UUID uuid = player.getUniqueId();
 
@@ -70,20 +67,13 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
                     player.setFlying(false);
                 }
             }
-
-            affected++;
         }
 
         String messageKey = type.equals("cooldown") ? "cooldown-reset-all" : "fly-time-reset-all";
         String defaultMsg = type.equals("cooldown")
-                ? "&aReset &fcooldown &cfor &eall players."
-                : "&aReset &ffly time &cfor &eall players.";
-
-        String msg = plugin.getMessageString(messageKey, defaultMsg)
-                .replace("{affected}", String.valueOf(affected));
-
-        sendWithPrefix(sender, msg);
-        plugin.getLogger().info("Reset " + type + " for " + affected + " players");
+                ? "&aReset &fcooldown &afor &eall players."
+                : "&aReset &ffly time &afor &eall players.";
+        sendWithPrefix(sender, plugin.getMessageString(messageKey, defaultMsg));
     }
 
     private void resetPlayer(CommandSender sender, String type, String targetName, UUID uuid, String name) {
@@ -112,17 +102,6 @@ public record ResetCommand(PowerFly plugin) implements CommandExecutor {
                 .replace("{player}", displayName);
 
         sendWithPrefix(sender, msg);
-    }
-
-    private boolean matchesAnyPattern(String worldName, List<String> patterns) {
-        for (String pattern : patterns) {
-            if (pattern.contains("*")) {
-                if (worldName.matches(pattern.replace("*", ".*"))) return true;
-            } else {
-                if (worldName.equalsIgnoreCase(pattern)) return true;
-            }
-        }
-        return false;
     }
 
     private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {

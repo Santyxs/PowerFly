@@ -54,8 +54,6 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-            int affected = 0;
-
             var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -70,19 +68,16 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
                 } else {
                     plugin.getCooldownFlyManager().setCooldown(uuid, secondsToSet);
                 }
-
-                affected++;
             }
 
             String timeDisplay = secondsToSet == -1 ? "removed" : plugin.getFlyTimeManager().formatTime(secondsToSet);
             String messageKey = secondsToSet == -1 ? "cooldown-reset-all" : "fly-cooldown-set-all";
             String defaultMsg = secondsToSet == -1
-                    ? "&aRemoved cooldown for &e{affected} &aplayers."
+                    ? "&aRemoved cooldown for &eall players."
                     : "&aSet cooldown time to &f{seconds} &afor &eall players.";
 
             String msg = plugin.getMessageString(messageKey, defaultMsg)
-                    .replace("{seconds}", timeDisplay)
-                    .replace("{affected}", String.valueOf(affected));
+                    .replace("{seconds}", timeDisplay);
 
             sendWithPrefix(sender, msg);
             return true;
@@ -96,6 +91,9 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
 
                     if (finalSecondsToSet == -1) {
                         plugin.getCooldownFlyManager().removeCooldown(uuid);
+                        String msg = plugin.getMessageString("cooldown-reset", "&aReset &fcooldown &afor &e{player}.")
+                                .replace("{player}", target.getName() != null ? target.getName() : targetName);
+                        sendWithPrefix(sender, msg);
                     } else {
                         plugin.getCooldownFlyManager().setCooldown(uuid, finalSecondsToSet);
 

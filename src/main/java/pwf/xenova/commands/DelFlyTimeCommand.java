@@ -49,8 +49,6 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-            int affected = 0;
-
             var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -60,10 +58,9 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
                 processReduction(player.getUniqueId(), amount);
                 refreshPlayer(player);
-                affected++;
             }
 
-            sendFeedback(sender, "all", amount, affected);
+            sendFeedback(sender, "all", amount);
             return true;
         }
 
@@ -78,7 +75,7 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
                         refreshPlayer(onlinePlayer);
                     }
 
-                    sendFeedback(sender, target.getName() != null ? target.getName() : targetName, finalAmount, 1);
+                    sendFeedback(sender, target.getName() != null ? target.getName() : targetName, finalAmount);
                 },
                 () -> sendWithPrefix(sender, plugin.getMessageString("player-not-found", "&cPlayer not found."))
         );
@@ -111,13 +108,12 @@ public record DelFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
     }
 
-    private void sendFeedback(CommandSender sender, String target, int amount, int affected) {
+    private void sendFeedback(CommandSender sender, String target, int amount) {
         String display = (amount == -1) ? "∞" : amount + "s";
         String msg;
         if (target.equalsIgnoreCase("all")) {
             msg = plugin.getMessageString("fly-time-deleted-all", "&aRemoved &f{seconds} &aof fly time from &eall players.")
-                    .replace("{seconds}", display)
-                    .replace("{affected}", String.valueOf(affected));
+                    .replace("{seconds}", display);
         } else {
             msg = plugin.getMessageString("fly-time-deleted", "&aRemoved &f{seconds} &aof fly time from &e{player}.")
                     .replace("{seconds}", display)

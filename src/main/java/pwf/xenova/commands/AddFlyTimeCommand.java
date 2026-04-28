@@ -54,8 +54,6 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-            int affected = 0;
-
             var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -65,14 +63,12 @@ public record AddFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
                 if (!plugin.getFlyTimeManager().hasInfiniteFlyTime(player.getUniqueId())) {
                     plugin.getFlyTimeManager().addFlyTime(player.getUniqueId(), secondsToAdd);
-                    affected++;
                 }
             }
 
             String timeDisplay = secondsToAdd == -1 ? "∞" : secondsToAdd + "s";
             String msg = plugin.getMessageString("fly-time-added-all", "&aAdded &f{seconds} &aof fly time to all players.")
-                    .replace("{seconds}", timeDisplay)
-                    .replace("{affected}", String.valueOf(affected));
+                    .replace("{seconds}", timeDisplay);
 
             sendWithPrefix(sender, msg);
             return true;

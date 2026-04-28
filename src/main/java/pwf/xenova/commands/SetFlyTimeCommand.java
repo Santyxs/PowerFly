@@ -58,23 +58,18 @@ public record SetFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
         }
 
         if (targetName.equalsIgnoreCase("all")) {
-            int affected = 0;
-
             var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!allowedWorlds.isEmpty() && !matchesAnyPattern(player.getWorld().getName(), allowedWorlds)) {
                     continue;
                 }
-
                 plugin.getFlyTimeManager().setFlyTime(player.getUniqueId(), secondsToSet);
-                affected++;
             }
 
             String timeDisplay = secondsToSet == -1 ? "∞" : plugin.getFlyTimeManager().formatTime(secondsToSet);
             String msg = plugin.getMessageString("fly-time-set-all", "&aSet fly time to &f{seconds} &afor &eall players.")
-                    .replace("{seconds}", timeDisplay)
-                    .replace("{affected}", String.valueOf(affected));
+                    .replace("{seconds}", timeDisplay);
 
             sendWithPrefix(sender, msg);
             return true;
