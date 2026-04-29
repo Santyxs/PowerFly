@@ -2,7 +2,7 @@ package pwf.xenova.managers;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import pwf.xenova.PowerFly;
 
 import java.util.*;
@@ -11,7 +11,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SoundEffectsManager {
 
     private final PowerFly plugin;
-    private final Map<UUID, BukkitRunnable> activeLoops = new ConcurrentHashMap<>();
+
+    private final Set<UUID> flyingPlayers = ConcurrentHashMap.newKeySet();
+
+    private BukkitTask globalParticleTask;
 
     private boolean effectsEnabled;
     private boolean soundsEnabled;
@@ -36,7 +39,8 @@ public class SoundEffectsManager {
     }
 
     public void reload() {
-        cleanupAllLoops();
+        stopGlobalTask();
+        flyingPlayers.clear();
 
         effectsEnabled = plugin.getMainConfig().getBoolean("enable-effects", true);
         soundsEnabled  = plugin.getMainConfig().getBoolean("enable-sounds", true);
@@ -52,8 +56,74 @@ public class SoundEffectsManager {
         if (effectsEnabled) {
             Bukkit.getOnlinePlayers().stream()
                     .filter(p -> p.isFlying() && p.getAllowFlight())
-                    .forEach(this::startFlightLoop);
+                    .map(Player::getUniqueId)
+                    .forEach(flyingPlayers::add);
+
+            startGlobalTask();
         }
+    }
+
+    public void playActivationEffects(Player player) {
+        if (effectsEnabled) {
+            spawnParticle(player, activationParticle);
+            registerFlying(player.getUniqueId());
+        }
+        if (soundsEnabled) playSound(player, activationSound);
+    }
+
+    public void playDeactivationEffects(Player player) {
+        unregisterFlying(player.getUniqueId());
+        if (effectsEnabled) spawnParticle(player, deactivationParticle);
+        if (soundsEnabled)  playSound(player, deactivationSound);
+    }
+
+    public void playTimeEndEffects(Player player) {
+        if (effectsEnabled) spawnParticle(player, deactivationParticle);
+        if (soundsEnabled)  playSound(player, timeEndedSound);
+    }
+
+    public void cleanupAllLoops() {
+        stopGlobalTask();
+        flyingPlayers.clear();
+    }
+
+    private void startGlobalTask() {
+        if (globalParticleTask != null) return;
+
+        globalParticleTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (!effectsEnabled || flyingParticle == null) return;
+
+            Iterator<UUID> it = flyingPlayers.iterator();
+            while (it.hasNext()) {
+                UUID uuid = it.next();
+                Player player = Bukkit.getPlayer(uuid);
+
+                if (player == null || !player.isOnline() || !player.getAllowFlight()) {
+                    it.remove();
+                    continue;
+                }
+
+                spawnParticle(player, flyingParticle);
+            }
+        }, 0L, 5L);
+    }
+
+    private void stopGlobalTask() {
+        if (globalParticleTask != null) {
+            globalParticleTask.cancel();
+            globalParticleTask = null;
+        }
+    }
+
+    private void registerFlying(UUID uuid) {
+        flyingPlayers.add(uuid);
+        if (effectsEnabled && globalParticleTask == null) {
+            startGlobalTask();
+        }
+    }
+
+    private void unregisterFlying(UUID uuid) {
+        flyingPlayers.remove(uuid);
     }
 
     private ParticleConfig loadParticleConfig(String path) {
@@ -73,28 +143,6 @@ public class SoundEffectsManager {
         return new SoundConfig(sound, volume, pitch);
     }
 
-    public void playActivationEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, activationParticle);
-        if (soundsEnabled)  playSound(player, activationSound);
-        if (effectsEnabled) startFlightLoop(player);
-    }
-
-    public void playDeactivationEffects(Player player) {
-        stopFlightLoop(player);
-        if (effectsEnabled) spawnParticle(player, deactivationParticle);
-        if (soundsEnabled)  playSound(player, deactivationSound);
-    }
-
-    public void playTimeEndEffects(Player player) {
-        if (effectsEnabled) spawnParticle(player, deactivationParticle);
-        if (soundsEnabled)  playSound(player, timeEndedSound);
-    }
-
-    public void cleanupAllLoops() {
-        activeLoops.values().forEach(BukkitRunnable::cancel);
-        activeLoops.clear();
-    }
-
     private void playSound(Player player, SoundConfig config) {
         if (!soundsEnabled || config == null || config.type() == null) return;
         player.playSound(player.getLocation(), config.type(), config.volume(), config.pitch());
@@ -108,69 +156,41 @@ public class SoundEffectsManager {
                 config.offsetX(), config.offsetY(), config.offsetZ(), config.speed());
     }
 
-    private void startFlightLoop(Player player) {
-        UUID uuid = player.getUniqueId();
-        stopFlightLoop(player);
-
-        BukkitRunnable task = new BukkitRunnable() {
-            public void run() {
-                if (!player.isOnline() || !player.getAllowFlight()) {
-                    cancel();
-                    activeLoops.remove(uuid);
-                    return;
-                }
-                spawnParticle(player, flyingParticle);
-            }
-        };
-
-        task.runTaskTimer(plugin, 0L, 5L);
-        activeLoops.put(uuid, task);
-    }
-
-    private void stopFlightLoop(Player player) {
-        BukkitRunnable task = activeLoops.remove(player.getUniqueId());
-        if (task != null) task.cancel();
-    }
-
     private boolean isOnGround(Player player) {
         return !player.getLocation().clone().subtract(0, 0.1, 0).getBlock().isPassable();
     }
 
     private Particle resolveParticle(String name) {
         if (name == null || name.isEmpty()) return null;
-
         String normalized = name.toLowerCase(Locale.ROOT).trim().replace(" ", "_");
 
         for (Particle p : Registry.PARTICLE_TYPE) {
             NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
             if (key != null && key.getKey().equals(normalized)) return p;
         }
-
         for (Particle p : Registry.PARTICLE_TYPE) {
             NamespacedKey key = Registry.PARTICLE_TYPE.getKey(p);
             if (key != null && key.getKey().contains(normalized)) return p;
         }
 
-        plugin.getLogger().warning("Unknown particle type: '" + name + "'. Check your config.yml for a valid particle name.");
+        plugin.getLogger().warning("Unknown particle type: '" + name + "'. Check your config.yml.");
         return null;
     }
 
     private Sound resolveSound(String name) {
         if (name == null || name.isEmpty()) return null;
-
         String normalized = name.toLowerCase(Locale.ROOT).trim().replace("_", ".");
 
         for (Sound s : Registry.SOUNDS) {
             NamespacedKey key = Registry.SOUNDS.getKey(s);
             if (key != null && key.getKey().equals(normalized)) return s;
         }
-
         for (Sound s : Registry.SOUNDS) {
             NamespacedKey key = Registry.SOUNDS.getKey(s);
             if (key != null && key.getKey().endsWith(normalized)) return s;
         }
 
-        plugin.getLogger().warning("Unknown sound type: '" + name + "'. Check your config.yml for a valid sound name.");
+        plugin.getLogger().warning("Unknown sound type: '" + name + "'. Check your config.yml.");
         return null;
     }
 }
