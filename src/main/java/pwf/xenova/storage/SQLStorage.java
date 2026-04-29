@@ -9,7 +9,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public class SQLStorage implements StorageInterface {
 
@@ -24,61 +24,42 @@ public class SQLStorage implements StorageInterface {
                     "cooldown INTEGER DEFAULT 0" +
                     ");";
 
-    private static final String QUERY_GET_TIME =
-            "SELECT time FROM " + TABLE_NAME + " WHERE uuid = ?;";
-    private static final String QUERY_GET_COOLDOWN =
-            "SELECT cooldown FROM " + TABLE_NAME + " WHERE uuid = ?;";
-    private static final String QUERY_GET_NAME =
-            "SELECT name FROM " + TABLE_NAME + " WHERE uuid = ?;";
-    private static final String QUERY_LOAD_ALL =
-            "SELECT uuid, time FROM " + TABLE_NAME + ";";
-    private static final String QUERY_LOAD_ALL_COOLDOWNS =
-            "SELECT uuid, cooldown FROM " + TABLE_NAME + " WHERE cooldown > 0;";
-    private static final String QUERY_INSERT_IGNORE =
+    private static final String QUERY_GET_TIME         = "SELECT time FROM " + TABLE_NAME + " WHERE uuid = ?;";
+    private static final String QUERY_GET_COOLDOWN     = "SELECT cooldown FROM " + TABLE_NAME + " WHERE uuid = ?;";
+    private static final String QUERY_GET_NAME         = "SELECT name FROM " + TABLE_NAME + " WHERE uuid = ?;";
+    private static final String QUERY_LOAD_ALL         = "SELECT uuid, time FROM " + TABLE_NAME + ";";
+    private static final String QUERY_LOAD_ALL_COOLDOWNS = "SELECT uuid, cooldown FROM " + TABLE_NAME + " WHERE cooldown > 0;";
+    private static final String QUERY_INSERT_IGNORE    =
             "INSERT OR IGNORE INTO " + TABLE_NAME + " (uuid, name, time, cooldown) VALUES (?, ?, ?, 0);";
-    private static final String QUERY_DELETE =
-            "DELETE FROM " + TABLE_NAME + " WHERE uuid = ?;";
-    private static final String QUERY_SET_TIME =
+    private static final String QUERY_DELETE           = "DELETE FROM " + TABLE_NAME + " WHERE uuid = ?;";
+    private static final String QUERY_SET_TIME         =
             "INSERT INTO " + TABLE_NAME + " (uuid, name, time, cooldown) VALUES (?, ?, ?, 0) " +
                     "ON CONFLICT(uuid) DO UPDATE SET name = excluded.name, time = excluded.time;";
-    private static final String QUERY_SET_COOLDOWN =
+    private static final String QUERY_SET_COOLDOWN     =
             "INSERT INTO " + TABLE_NAME + " (uuid, name, time, cooldown) VALUES (?, ?, 0, ?) " +
                     "ON CONFLICT(uuid) DO UPDATE SET name = excluded.name, cooldown = excluded.cooldown;";
-    private static final String QUERY_ADD_TIME =
-            "UPDATE " + TABLE_NAME + " SET time = time + ? WHERE uuid = ?;";
-    private static final String QUERY_DEL_TIME =
-            "UPDATE " + TABLE_NAME + " SET time = MAX(time - ?, 0) WHERE uuid = ?;";
-    private static final String QUERY_UPDATE_NAME =
-            "UPDATE " + TABLE_NAME + " SET name = ? WHERE uuid = ?;";
+    private static final String QUERY_ADD_TIME         = "UPDATE " + TABLE_NAME + " SET time = time + ? WHERE uuid = ?;";
+    private static final String QUERY_DEL_TIME         = "UPDATE " + TABLE_NAME + " SET time = MAX(time - ?, 0) WHERE uuid = ?;";
+    private static final String QUERY_UPDATE_NAME      = "UPDATE " + TABLE_NAME + " SET name = ? WHERE uuid = ?;";
+    private static final String QUERY_REMOVE_COOLDOWN  = "UPDATE " + TABLE_NAME + " SET cooldown = 0 WHERE uuid = ?;";
 
     private final PowerFly plugin;
     private Connection connection;
+
+    private final ExecutorService dbExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "PowerFly-DB");
+        t.setDaemon(true);
+        return t;
+    });
 
     private final Map<UUID, String> nameCache = new ConcurrentHashMap<>();
 
     public SQLStorage(PowerFly plugin) {
         this.plugin = plugin;
-        initialize();
+        initializeSync();
     }
 
-    public void cachePlayerName(UUID uuid, String name) {
-        nameCache.put(uuid, name);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_UPDATE_NAME)) {
-                ps.setString(1, name);
-                ps.setString(2, uuid.toString());
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                plugin.getLogger().warning("cachePlayerName update failed for " + uuid + ": " + e.getMessage());
-            }
-        });
-    }
-
-    public void evictPlayerName(UUID uuid) {
-        nameCache.remove(uuid);
-    }
-
-    private synchronized void initialize() {
+    private synchronized void initializeSync() {
         try {
             File databaseFile = new File(plugin.getDataFolder(), "database.db");
             connection = DriverManager.getConnection(String.format(DB_URL, databaseFile.getAbsolutePath()));
@@ -100,12 +81,11 @@ public class SQLStorage implements StorageInterface {
         if (connection != null && !connection.isClosed()) return connection;
 
         plugin.getLogger().warning("SQL connection was closed — reconnecting...");
-        initialize();
+        initializeSync();
 
         if (connection == null || connection.isClosed()) {
             throw new SQLException("Failed to reconnect to the database.");
         }
-
         return connection;
     }
 
@@ -115,6 +95,28 @@ public class SQLStorage implements StorageInterface {
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to create tables: " + e.getMessage());
         }
+    }
+
+    private void asyncWrite(Runnable task) {
+        dbExecutor.submit(() -> {
+            try {
+                task.run();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Async DB write failed: " + e.getMessage());
+            }
+        });
+    }
+
+    private <T> CompletableFuture<T> asyncRead(Callable<T> task) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+        dbExecutor.submit(() -> {
+            try {
+                future.complete(task.call());
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
     }
 
     public int getFlyTime(UUID uuid) {
@@ -130,14 +132,16 @@ public class SQLStorage implements StorageInterface {
     }
 
     public void setFlyTime(UUID uuid, int time) {
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_TIME)) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, getPlayerName(uuid));
-            ps.setInt(3, time);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("setFlyTime failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_TIME)) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, getPlayerNameSync(uuid));
+                ps.setInt(3, time);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("setFlyTime failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public void addFlyTime(UUID uuid, int seconds) {
@@ -145,23 +149,27 @@ public class SQLStorage implements StorageInterface {
             setFlyTime(uuid, -1);
             return;
         }
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_ADD_TIME)) {
-            ps.setInt(1, seconds);
-            ps.setString(2, uuid.toString());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("addFlyTime failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_ADD_TIME)) {
+                ps.setInt(1, seconds);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("addFlyTime failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public void delFlyTime(UUID uuid, int seconds) {
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DEL_TIME)) {
-            ps.setInt(1, seconds);
-            ps.setString(2, uuid.toString());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("delFlyTime failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DEL_TIME)) {
+                ps.setInt(1, seconds);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("delFlyTime failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public long getCooldown(UUID uuid) {
@@ -177,40 +185,53 @@ public class SQLStorage implements StorageInterface {
     }
 
     public void setCooldown(UUID uuid, long cooldownUntil) {
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_COOLDOWN)) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, getPlayerName(uuid));
-            ps.setLong(3, cooldownUntil);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("setCooldown failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_SET_COOLDOWN)) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, getPlayerNameSync(uuid));
+                ps.setLong(3, cooldownUntil);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("setCooldown failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public void removeCooldown(UUID uuid) {
-        setCooldown(uuid, 0L);
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_REMOVE_COOLDOWN)) {
+                ps.setString(1, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("removeCooldown failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public void createPlayerIfNotExists(UUID uuid, String name, int flyTime) {
         nameCache.put(uuid, name);
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_INSERT_IGNORE)) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, name);
-            ps.setInt(3, flyTime);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("createPlayerIfNotExists failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_INSERT_IGNORE)) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, name);
+                ps.setInt(3, flyTime);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("createPlayerIfNotExists failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public void removePlayer(UUID uuid) {
         nameCache.remove(uuid);
-        try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DELETE)) {
-            ps.setString(1, uuid.toString());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().severe("removePlayer failed for " + uuid + ": " + e.getMessage());
-        }
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_DELETE)) {
+                ps.setString(1, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().severe("removePlayer failed for " + uuid + ": " + e.getMessage());
+            }
+        });
     }
 
     public Map<UUID, Integer> loadAllFlyTimes() {
@@ -219,8 +240,7 @@ public class SQLStorage implements StorageInterface {
              ResultSet rs = stmt.executeQuery(QUERY_LOAD_ALL)) {
             while (rs.next()) {
                 try {
-                    UUID uuid = UUID.fromString(rs.getString("uuid"));
-                    map.put(uuid, rs.getInt("time"));
+                    map.put(UUID.fromString(rs.getString("uuid")), rs.getInt("time"));
                 } catch (IllegalArgumentException e) {
                     plugin.getLogger().warning("Invalid UUID in database, skipping: " + rs.getString("uuid"));
                 }
@@ -237,8 +257,7 @@ public class SQLStorage implements StorageInterface {
              ResultSet rs = stmt.executeQuery(QUERY_LOAD_ALL_COOLDOWNS)) {
             while (rs.next()) {
                 try {
-                    UUID uuid = UUID.fromString(rs.getString("uuid"));
-                    map.put(uuid, rs.getLong("cooldown"));
+                    map.put(UUID.fromString(rs.getString("uuid")), rs.getLong("cooldown"));
                 } catch (IllegalArgumentException e) {
                     plugin.getLogger().warning("Invalid UUID in cooldowns, skipping.");
                 }
@@ -250,6 +269,15 @@ public class SQLStorage implements StorageInterface {
     }
 
     public void close() {
+        dbExecutor.shutdown();
+        try {
+            if (!dbExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+                plugin.getLogger().warning("DB executor did not finish in time — some writes may be lost.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         nameCache.clear();
         try {
             if (connection != null && !connection.isClosed()) {
@@ -261,7 +289,24 @@ public class SQLStorage implements StorageInterface {
         }
     }
 
-    private String getPlayerName(UUID uuid) {
+    public void cachePlayerName(UUID uuid, String name) {
+        nameCache.put(uuid, name);
+        asyncWrite(() -> {
+            try (PreparedStatement ps = getConnection().prepareStatement(QUERY_UPDATE_NAME)) {
+                ps.setString(1, name);
+                ps.setString(2, uuid.toString());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning("cachePlayerName update failed for " + uuid + ": " + e.getMessage());
+            }
+        });
+    }
+
+    public void evictPlayerName(UUID uuid) {
+        nameCache.remove(uuid);
+    }
+
+    private String getPlayerNameSync(UUID uuid) {
         String cached = nameCache.get(uuid);
         if (cached != null) return cached;
 
