@@ -38,7 +38,17 @@ public class FlyRestrictionManager implements Listener {
     }
 
     private void setupWorldGuard() {
-        this.worldGuardEnabled = Bukkit.getPluginManager().isPluginEnabled("WorldGuard");
+        boolean hasWorldEdit = Bukkit.getPluginManager().isPluginEnabled("WorldEdit");
+        boolean hasWorldGuard = Bukkit.getPluginManager().isPluginEnabled("WorldGuard");
+
+        if (hasWorldGuard && !hasWorldEdit) {
+            plugin.getLogger().warning("WorldGuard detected but WorldEdit is missing — WorldGuard integration disabled.");
+            this.worldGuardEnabled = false;
+            return;
+        }
+
+        this.worldGuardEnabled = hasWorldGuard;
+
         if (worldGuardEnabled) {
             plugin.getLogger().info("WorldGuard: Hooked successfully.");
         }
@@ -201,7 +211,9 @@ public class FlyRestrictionManager implements Listener {
             plugin.getSoundEffectsManager().playDeactivationEffects(player);
         }
 
+        int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(uuid);
         plugin.getFlyRuntimeManager().cleanup(player);
+        plugin.getFlyTimeManager().setFlyTimeInternal(uuid, remaining);
 
         if (shouldNotify) {
             sendBlockMessage(player, isRegionBlock);

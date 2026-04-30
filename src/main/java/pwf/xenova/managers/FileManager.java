@@ -124,6 +124,11 @@ public class FileManager {
             return languages.values().iterator().next();
         }
 
+        if (lang == null) {
+            plugin.getLogger().severe("No language files loaded — all translations failed to load.");
+            throw new IllegalStateException("PowerFly has no language files available. Check your translations folder.");
+        }
+
         return lang;
     }
 
@@ -134,10 +139,7 @@ public class FileManager {
             config.update();
             config.save();
 
-            for (YamlDocument lang : languages.values()) {
-                lang.reload();
-                lang.save();
-            }
+            loadLanguages();
 
             plugin.getLogger().info("PowerFly files reloaded successfully.");
         } catch (IOException e) {

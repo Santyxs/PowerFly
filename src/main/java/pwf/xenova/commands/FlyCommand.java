@@ -170,7 +170,9 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
     }
 
     public void disableFly(Player player, boolean fromEnd) {
+        int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
         plugin.getFlyRuntimeManager().cleanup(player);
+        plugin.getFlyTimeManager().setFlyTimeInternal(player.getUniqueId(), remaining);
 
         if (fromEnd) handleFlyEnd(player);
 

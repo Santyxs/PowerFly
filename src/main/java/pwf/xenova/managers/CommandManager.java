@@ -1,6 +1,7 @@
 package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.util.StringUtil;
 import pwf.xenova.commands.*;
 import pwf.xenova.PowerFly;
@@ -35,10 +36,31 @@ public class CommandManager {
         SetFlyTimeCommand setFlyTimeCommand = new SetFlyTimeCommand(plugin);
         SetCooldownCommand setCooldownCommand = new SetCooldownCommand(plugin);
 
-        Objects.requireNonNull(plugin.getCommand("fly")).setExecutor(flyCommand);
-        Objects.requireNonNull(plugin.getCommand("buyflytime")).setExecutor(buyFlyTimeCommand);
+        PluginCommand flycmd = plugin.getCommand("fly");
+        if (flycmd == null) throw new IllegalStateException("Command 'fly' not found — make sure it's defined in plugin.yml.");
+        flycmd.setExecutor(flyCommand);
+        flycmd.setTabCompleter((sender, command, label, args) -> {
+            if (args.length == 1) {
+                return StringUtil.copyPartialMatches(args[0], getPlayerOptions(), new ArrayList<>());
+            }
+            if (args.length == 2) {
+                return StringUtil.copyPartialMatches(args[1], List.of("on", "off"), new ArrayList<>());
+            }
+            return new ArrayList<>();
+        });
 
-        Objects.requireNonNull(plugin.getCommand("powerfly")).setExecutor((sender, command, label, args) -> {
+        PluginCommand buycmd = plugin.getCommand("buyflytime");
+        if (buycmd == null) throw new IllegalStateException("Command 'buyflytime' not found — make sure it's defined in plugin.yml.");
+        buycmd.setExecutor(buyFlyTimeCommand);
+        buycmd.setTabCompleter((sender, command, label, args) -> {
+            if (args.length == 1) return List.of("<seconds>");
+            return new ArrayList<>();
+        });
+
+        PluginCommand pwfcmd = plugin.getCommand("powerfly");
+        if (pwfcmd == null) throw new IllegalStateException("Command 'powerfly' not found — make sure it's defined in plugin.yml.");
+
+        pwfcmd.setExecutor((sender, command, label, args) -> {
             if (args.length < 1) return false;
 
             String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -58,7 +80,7 @@ public class CommandManager {
             };
         });
 
-        Objects.requireNonNull(plugin.getCommand("powerfly")).setTabCompleter((sender, command, label, args) -> {
+        pwfcmd.setTabCompleter((sender, command, label, args) -> {
             if (args.length == 1) {
                 List<String> subcommands = List.of("help", "reload", "fly", "check", "addflytime", "delflytime", "buyflytime", "reset", "setflytime", "setcooldown");
                 return StringUtil.copyPartialMatches(args[0], subcommands, new ArrayList<>());
@@ -90,21 +112,6 @@ public class CommandManager {
                 };
             }
 
-            return new ArrayList<>();
-        });
-
-        Objects.requireNonNull(plugin.getCommand("fly")).setTabCompleter((sender, command, label, args) -> {
-            if (args.length == 1) {
-                return StringUtil.copyPartialMatches(args[0], getPlayerOptions(), new ArrayList<>());
-            }
-            if (args.length == 2) {
-                return StringUtil.copyPartialMatches(args[1], List.of("on", "off"), new ArrayList<>());
-            }
-            return new ArrayList<>();
-        });
-
-        Objects.requireNonNull(plugin.getCommand("buyflytime")).setTabCompleter((sender, command, label, args) -> {
-            if (args.length == 1) return List.of("<seconds>");
             return new ArrayList<>();
         });
     }

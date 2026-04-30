@@ -115,15 +115,20 @@ public class ClaimFlyManager implements Listener {
         if (player.hasPermission("powerfly.admin")) return;
 
         Location from = event.getFrom();
-        Location to   = event.getTo();
+        Location to = event.getTo();
 
         if (from.getBlockX() == to.getBlockX()
                 && from.getBlockY() == to.getBlockY()
                 && from.getBlockZ() == to.getBlockZ()) return;
 
         if (cannotFlyHere(player, to)) {
+            int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+            plugin.getFlyRuntimeManager().cleanup(player);
+            plugin.getFlyTimeManager().setFlyTimeInternal(player.getUniqueId(), remaining);
+
             player.setFlying(false);
             player.setAllowFlight(false);
+            plugin.getSoundEffectsManager().playDeactivationEffects(player);
             sendClaimFlyMessage(player, to);
         }
     }

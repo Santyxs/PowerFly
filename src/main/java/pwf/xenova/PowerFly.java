@@ -107,12 +107,19 @@ public class PowerFly extends JavaPlugin {
 
     private void setupStorage() {
         String storageType = getMainConfig().getString("storage-type", "yaml").toUpperCase();
-        if (storageType.equals("SQL")) {
-            storage = new SQLStorage(this);
-            getLogger().info("Using SQL storage.");
-        } else {
-            storage = new YAMLStorage(this);
-            getLogger().info("Using YAML storage.");
+        switch (storageType) {
+            case "SQL" -> {
+                storage = new SQLStorage(this);
+                getLogger().info("Using SQL storage.");
+            }
+            case "YAML" -> {
+                storage = new YAMLStorage(this);
+                getLogger().info("Using YAML storage.");
+            }
+            default -> {
+                getLogger().warning("Invalid storage-type '" + storageType + "' — falling back to YAML.");
+                storage = new YAMLStorage(this);
+            }
         }
     }
 
@@ -149,6 +156,7 @@ public class PowerFly extends JavaPlugin {
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
         getServer().getPluginManager().registerEvents(combatFlyManager, this);
         getServer().getPluginManager().registerEvents(flyTimeOnGroundManager, this);
+        getServer().getPluginManager().registerEvents(cooldownManager, this);
         registerPlayerJoinEvent();
         registerNoFallDamageEvent();
     }

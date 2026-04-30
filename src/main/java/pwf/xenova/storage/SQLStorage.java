@@ -28,7 +28,7 @@ public class SQLStorage implements StorageInterface {
     private static final String QUERY_GET_COOLDOWN     = "SELECT cooldown FROM " + TABLE_NAME + " WHERE uuid = ?;";
     private static final String QUERY_GET_NAME         = "SELECT name FROM " + TABLE_NAME + " WHERE uuid = ?;";
     private static final String QUERY_LOAD_ALL         = "SELECT uuid, time FROM " + TABLE_NAME + ";";
-    private static final String QUERY_LOAD_ALL_COOLDOWNS = "SELECT uuid, cooldown FROM " + TABLE_NAME + " WHERE cooldown > 0;";
+    private static final String QUERY_LOAD_ALL_COOLDOWNS = "SELECT uuid, cooldown FROM " + TABLE_NAME + " WHERE cooldown > 0 OR cooldown = -1;";
     private static final String QUERY_INSERT_IGNORE    =
             "INSERT OR IGNORE INTO " + TABLE_NAME + " (uuid, name, time, cooldown) VALUES (?, ?, ?, 0);";
     private static final String QUERY_DELETE           = "DELETE FROM " + TABLE_NAME + " WHERE uuid = ?;";

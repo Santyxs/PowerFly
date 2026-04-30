@@ -178,6 +178,21 @@ public class FlyRuntimeManager {
         }
     }
 
+    public void reload() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!hasActiveSession(player.getUniqueId())) continue;
+
+            boolean showBossBar = plugin.getFileManager().getConfig().getBoolean("show-bossbar", true);
+
+            if (showBossBar && !flyBossBars.containsKey(player.getUniqueId())) {
+                int remaining = plugin.getFlyTimeManager().getRemainingFlyTime(player.getUniqueId());
+                showBossBar(player, remaining);
+            } else if (!showBossBar) {
+                removeBossBar(player);
+            }
+        }
+    }
+
     public void cleanup(Player player) {
         stopTimer(player);
         removeBossBar(player);

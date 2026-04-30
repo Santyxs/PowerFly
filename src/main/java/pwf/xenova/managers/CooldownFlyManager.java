@@ -2,6 +2,9 @@ package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import pwf.xenova.storage.StorageInterface;
 import pwf.xenova.PowerFly;
@@ -12,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CooldownFlyManager {
+public class CooldownFlyManager implements Listener {
 
     private final PowerFly plugin;
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
@@ -58,7 +61,7 @@ public class CooldownFlyManager {
                     notifyRecharge(uuid);
                 }
             }
-        }.runTaskTimer(plugin, 20L, 20L);
+        }.runTaskTimer(plugin, 200L, 200L);
     }
 
     private void notifyRecharge(UUID uuid) {
@@ -140,5 +143,13 @@ public class CooldownFlyManager {
         long minutes = (totalSeconds % 3600) / 60;
         long seconds = totalSeconds % 60;
         return hours + "h " + minutes + "m " + seconds + "s";
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        if (!isOnCooldown(uuid)) {
+            cooldowns.remove(uuid);
+        }
     }
 }

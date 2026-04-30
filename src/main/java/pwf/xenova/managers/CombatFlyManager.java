@@ -9,6 +9,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
 
 import java.util.Map;
@@ -85,7 +86,9 @@ public class CombatFlyManager implements Listener {
             player.setFlying(false);
 
             plugin.getSoundEffectsManager().playDeactivationEffects(player);
-            plugin.getFlyCommand().cleanupFlyData(player);
+
+            FlyCommand flyCommand = plugin.getFlyCommand();
+            if (flyCommand != null) flyCommand.cleanupFlyData(player);
 
             player.sendMessage(plugin.getPrefixedMessage("fly-disabled-combat", "&cFly disabled due to combat!"));
         }
