@@ -12,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
 import pwf.xenova.PowerFly;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -57,7 +58,7 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
             var allowedWorlds = plugin.getMainConfig().getStringList("whitelist-worlds");
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!allowedWorlds.isEmpty() && !allowedWorlds.contains(player.getWorld().getName())) {
+                if (!allowedWorlds.isEmpty() && !matchesAnyPattern(player.getWorld().getName(), allowedWorlds)) {
                     continue;
                 }
 
@@ -109,6 +110,17 @@ public record SetCooldownCommand(PowerFly plugin) implements CommandExecutor {
         );
 
         return true;
+    }
+
+    private boolean matchesAnyPattern(String worldName, List<String> patterns) {
+        for (String pattern : patterns) {
+            if (pattern.contains("*")) {
+                if (worldName.matches(pattern.replace("*", ".*"))) return true;
+            } else {
+                if (worldName.equalsIgnoreCase(pattern)) return true;
+            }
+        }
+        return false;
     }
 
     private void resolvePlayer(String name, Consumer<OfflinePlayer> onFound, Runnable onNotFound) {
