@@ -24,6 +24,26 @@ public class FlyTimeOnGroundManager implements Listener {
     public FlyTimeOnGroundManager(PowerFly plugin) {
         this.plugin = plugin;
         reload();
+
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                UUID uuid = player.getUniqueId();
+
+                boolean isFalling = player.getFallDistance() > 0;
+                boolean justLanded = !isFalling && wasFalling.getOrDefault(uuid, false);
+
+                if (justLanded) {
+                    double currentY = player.getLocation().getY();
+                    double startY = fallStartY.remove(uuid);
+                    double calculatedFall = startY - currentY;
+
+                    if (calculatedFall > 3) {
+                        double damage = (calculatedFall - 3) * 0.5;
+                        player.damage(damage);
+                    }
+                }
+            }
+        }, 0L, 2L);
     }
 
     public void reload() {
