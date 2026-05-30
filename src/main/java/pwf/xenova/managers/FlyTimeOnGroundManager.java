@@ -1,5 +1,6 @@
 package pwf.xenova.managers;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -7,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import pwf.xenova.utils.WorldGuardFlags;
 import pwf.xenova.PowerFly;
 
 import java.util.Map;
@@ -26,22 +28,30 @@ public class FlyTimeOnGroundManager implements Listener {
         reload();
 
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
-            for (Player player : plugin.getServer().getOnlinePlayers()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+
+                if (!player.isOnline() || player.isDead()) continue;
+
                 UUID uuid = player.getUniqueId();
+
+                if (WorldGuardFlags.isFallDamageDenied(player)) continue;
 
                 boolean isFalling = player.getFallDistance() > 0;
                 boolean justLanded = !isFalling && wasFalling.getOrDefault(uuid, false);
 
                 if (justLanded) {
+                    Double startY = fallStartY.remove(uuid);
+                    if (startY == null) continue;
+
                     double currentY = player.getLocation().getY();
-                    double startY = fallStartY.remove(uuid);
                     double calculatedFall = startY - currentY;
 
                     if (calculatedFall > 3) {
-                        double damage = (calculatedFall - 3) * 0.5;
-                        player.damage(damage);
+                        player.damage((calculatedFall - 3) * 0.5);
                     }
                 }
+
+                wasFalling.put(uuid, isFalling);
             }
         }, 0L, 2L);
     }
@@ -51,8 +61,7 @@ public class FlyTimeOnGroundManager implements Listener {
     }
 
     public boolean shouldDecreaseFlyTime(Player player) {
-        if (player.isFlying()) return true;
-        return decreaseOnGround;
+        return player.isFlying() || decreaseOnGround;
     }
 
     public boolean isDecreaseOnGroundEnabled() {
@@ -61,11 +70,13 @@ public class FlyTimeOnGroundManager implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerMove(PlayerMoveEvent event) {
+
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
         if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
         if (plugin.getNoFallDamageSet().contains(uuid)) return;
+        if (WorldGuardFlags.isFallDamageDenied(player)) return;
         if (!event.hasChangedPosition()) return;
 
         double currentY = player.getLocation().getY();
@@ -83,8 +94,10 @@ public class FlyTimeOnGroundManager implements Listener {
 
         wasFalling.put(uuid, isFalling);
 
-        if (justLanded && fallStartY.containsKey(uuid)) {
-            double startY = fallStartY.remove(uuid);
+        if (justLanded) {
+            Double startY = fallStartY.remove(uuid);
+            if (startY == null) return;
+
             double calculatedFall = startY - currentY;
 
             if (calculatedFall > 3) {
@@ -95,6 +108,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
 
@@ -102,7 +116,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
         if (!event.isFlying()) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                if (plugin.getFlyRuntimeManager().hasActiveSession(uuid) && player.isOnline()) {
+                if (player.isOnline() && plugin.getFlyRuntimeManager().hasActiveSession(uuid)) {
                     player.setAllowFlight(true);
                 }
             }, 3L);
