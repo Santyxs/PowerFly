@@ -31,6 +31,7 @@ public class FlyTimeOnGroundManager implements Listener {
             for (Player player : Bukkit.getOnlinePlayers()) {
 
                 if (!player.isOnline() || player.isDead()) continue;
+                if (player.isGliding()) continue;
 
                 UUID uuid = player.getUniqueId();
 
@@ -83,6 +84,12 @@ public class FlyTimeOnGroundManager implements Listener {
 
         if (player.isFlying()) {
             fallStartY.put(uuid, currentY);
+            wasFalling.put(uuid, false);
+            return;
+        }
+
+        if (player.isGliding()) {
+            fallStartY.remove(uuid);
             wasFalling.put(uuid, false);
             return;
         }
