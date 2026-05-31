@@ -26,7 +26,7 @@ public class WorldGuardFlags {
                     Flags.FALL_DAMAGE
             );
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return false;
         }
     }
