@@ -28,6 +28,7 @@ pwf\xenova\utils\Metrics$DrilldownPie.class
 pwf\xenova\commands\ResetCommand.class
 pwf\xenova\managers\FlyRuntimeManager$1.class
 pwf\xenova\managers\CooldownFlyManager.class
+pwf\xenova\utils\WorldGuardFlags.class
 pwf\xenova\commands\FlyCommand.class
 pwf\xenova\commands\DelFlyTimeCommand.class
 pwf\xenova\utils\Metrics$SimplePie.class

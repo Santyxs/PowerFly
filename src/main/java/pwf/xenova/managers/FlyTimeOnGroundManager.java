@@ -47,8 +47,19 @@ public class FlyTimeOnGroundManager implements Listener {
                     double currentY = player.getLocation().getY();
                     double calculatedFall = startY - currentY;
 
-                    if (calculatedFall > 3) {
-                        player.damage((calculatedFall - 3) * 0.5);
+                    float vanillaFall = player.getFallDistance();
+
+                    int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
+
+                    if (blocksFallen >= 4) {
+
+                        int damage = blocksFallen - 3;
+
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            if (player.isOnline() && !player.isDead()) {
+                                player.damage(damage);
+                            }
+                        });
                     }
                 }
 
@@ -107,8 +118,19 @@ public class FlyTimeOnGroundManager implements Listener {
 
             double calculatedFall = startY - currentY;
 
-            if (calculatedFall > 3) {
-                player.damage((calculatedFall - 3) * 0.5);
+            float vanillaFall = player.getFallDistance();
+
+            int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
+
+            if (blocksFallen >= 4) {
+
+                int damage = blocksFallen - 3;
+
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline() && !player.isDead()) {
+                        player.damage(damage);
+                    }
+                });
             }
         }
     }
