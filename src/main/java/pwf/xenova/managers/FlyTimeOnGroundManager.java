@@ -9,6 +9,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
 import pwf.xenova.utils.WorldGuardFlags;
 import pwf.xenova.PowerFly;
 
@@ -52,14 +54,7 @@ public class FlyTimeOnGroundManager implements Listener {
                     float vanillaFall = player.getFallDistance();
                     int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
 
-                    if (blocksFallen >= minFallBlocks) {
-                        int damage = blocksFallen - 3;
-                        Bukkit.getScheduler().runTask(plugin, () -> {
-                            if (player.isOnline() && !player.isDead()) {
-                                player.damage(damage);
-                            }
-                        });
-                    }
+                    checkAndApplyFallDamage(player, blocksFallen);
                 }
 
                 wasFalling.put(uuid, isFalling);
@@ -121,17 +116,34 @@ public class FlyTimeOnGroundManager implements Listener {
             float vanillaFall = player.getFallDistance();
             int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
 
-            if (blocksFallen >= minFallBlocks) {
+            checkAndApplyFallDamage(player, blocksFallen);
+        }
+    }
 
-                int damage = blocksFallen - 3;
+    private void checkAndApplyFallDamage(Player player, int blocksFallen) {
+        if (blocksFallen < minFallBlocks) return;
 
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    if (player.isOnline() && !player.isDead()) {
-                        player.damage(damage);
-                    }
-                });
+        double damage = blocksFallen - 3;
+
+        ItemStack boots = player.getInventory().getBoots();
+
+        if (boots != null && boots.hasItemMeta()) {
+            int featherFallingLevel = boots.getEnchantmentLevel(Enchantment.FEATHER_FALLING);
+
+            if (featherFallingLevel > 0) {
+                double reduction = featherFallingLevel * 0.12;
+                damage = damage * (1.0 - reduction);
             }
         }
+
+        if (damage <= 0) return;
+
+        final double finalDamage = damage;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline() && !player.isDead()) {
+                player.damage(finalDamage);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
