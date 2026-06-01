@@ -39,7 +39,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
                 UUID uuid = player.getUniqueId();
 
-                if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) continue;
+                if (plugin.getNoFallDamageManager().isEnabled()) continue;
                 if (WorldGuardFlags.isFallDamageDenied(player)) continue;
 
                 boolean isFalling = player.getFallDistance() > 0;
@@ -82,8 +82,8 @@ public class FlyTimeOnGroundManager implements Listener {
         UUID uuid = player.getUniqueId();
 
         if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
-        if (plugin.getNoFallDamageSet().contains(uuid)) return;
-        if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) return;
+        if (plugin.getNoFallDamageManager().hasProtection(uuid)) return;
+        if (plugin.getNoFallDamageManager().isEnabled()) return;
         if (WorldGuardFlags.isFallDamageDenied(player)) return;
         if (!event.hasChangedPosition()) return;
 

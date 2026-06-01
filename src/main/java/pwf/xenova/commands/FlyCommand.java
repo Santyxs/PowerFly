@@ -6,7 +6,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import pwf.xenova.utils.MessageFormat;
@@ -196,12 +195,7 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
             plugin.getCooldownFlyManager().startCooldown(uuid);
         }
 
-        if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) {
-            plugin.getNoFallDamageSet().add(uuid);
-            new BukkitRunnable() {
-                public void run() { plugin.getNoFallDamageSet().remove(uuid); }
-            }.runTaskLater(plugin, 200L);
-        }
+        plugin.getNoFallDamageManager().grantProtection(uuid);
 
         player.sendActionBar(MessageFormat.parseMessage(
                 plugin.getMessageString("fly-time-ended", "&cFly time has ended.")));

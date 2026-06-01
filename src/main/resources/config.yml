@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 7
+config-version: 8
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -64,8 +64,11 @@ groups-cooldown:
   mod: 60
   admin: -1
 
-# Prevent fall damage for 10 seconds after fly time ends
-no-fall-damage: false
+# Prevent fall damage after fly time ends and while flying
+no-fall-damage:
+  enabled: false
+  # Blocks of fall distance protected (e.g: 10 blocks or fewer)
+  blocks: 10
 
 # Decrease fly time when the player is on the ground
 decrease-flytime-on-ground: false

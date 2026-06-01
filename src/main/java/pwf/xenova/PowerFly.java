@@ -7,7 +7,6 @@ import net.luckperms.api.LuckPermsProvider;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,10 +14,6 @@ import pwf.xenova.commands.*;
 import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 import pwf.xenova.storage.*;
-
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PowerFly extends JavaPlugin {
 
@@ -40,14 +35,12 @@ public class PowerFly extends JavaPlugin {
     private SlowMiningManager slowMiningManager;
     private StorageInterface storage;
     private FlyTimeOnGroundManager flyTimeOnGroundManager;
+    private NoFallDamageManager noFallDamageManager;
     private FlyCommand flyCommand;
     private FlyRuntimeManager flyRuntimeManager;
 
-    private final Set<UUID> noFallDamage = ConcurrentHashMap.newKeySet();
-
     public static PowerFly getInstance() { return instance; }
 
-    public Set<UUID> getNoFallDamageSet() { return noFallDamage; }
     public FileManager getFileManager() { return fileManager; }
     public LuckPerms getLuckPerms() { return luckPerms; }
     public FlyTimeManager getFlyTimeManager() { return flyTimeManager; }
@@ -61,6 +54,7 @@ public class PowerFly extends JavaPlugin {
     public SlowMiningManager getSlowMiningManager() { return slowMiningManager; }
     public StorageInterface getStorage() { return storage; }
     public FlyTimeOnGroundManager getFlyTimeOnGroundManager() { return flyTimeOnGroundManager; }
+    public NoFallDamageManager getNoFallDamageManager() { return noFallDamageManager; }
     public FlyCommand getFlyCommand() { return flyCommand; }
     public FlyRuntimeManager getFlyRuntimeManager() { return flyRuntimeManager; }
     public void setFlyCommand(FlyCommand flyCommand) { this.flyCommand = flyCommand; }
@@ -95,7 +89,7 @@ public class PowerFly extends JavaPlugin {
         if (soundEffectsManager != null) soundEffectsManager.cleanupAllLoops();
         if (slowMiningManager != null) slowMiningManager.clearAllOnDisable();
         if (combatFlyManager != null) combatFlyManager.cleanup();
-        noFallDamage.clear();
+        if (noFallDamageManager != null) noFallDamageManager.clearAllOnDisable();
         getLogger().info("\u001B[31mPowerFly plugin has been disabled.\u001B[0m");
     }
 
@@ -144,6 +138,7 @@ public class PowerFly extends JavaPlugin {
         claimFlyManager = new ClaimFlyManager(this);
         slowMiningManager = new SlowMiningManager(this);
         flyTimeOnGroundManager = new FlyTimeOnGroundManager(this);
+        noFallDamageManager = new NoFallDamageManager(this);
     }
 
     private void setupCommands() {
@@ -156,9 +151,9 @@ public class PowerFly extends JavaPlugin {
         getServer().getPluginManager().registerEvents(slowMiningManager, this);
         getServer().getPluginManager().registerEvents(combatFlyManager, this);
         getServer().getPluginManager().registerEvents(flyTimeOnGroundManager, this);
+        getServer().getPluginManager().registerEvents(noFallDamageManager, this);
         getServer().getPluginManager().registerEvents(cooldownManager, this);
         registerPlayerJoinEvent();
-        registerNoFallDamageEvent();
     }
 
     private void setupMetrics() {
@@ -219,32 +214,6 @@ public class PowerFly extends JavaPlugin {
                     flyTimeManager.handleJoin(player);
                 },
                 this
-        );
-    }
-
-    private void registerNoFallDamageEvent() {
-        Bukkit.getPluginManager().registerEvent(
-                EntityDamageEvent.class,
-                new org.bukkit.event.Listener() {},
-                org.bukkit.event.EventPriority.HIGH,
-                (listener, event) -> {
-                    EntityDamageEvent damageEvent = (EntityDamageEvent) event;
-                    if (!(damageEvent.getEntity() instanceof Player player)) return;
-                    if (damageEvent.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-
-                    UUID uuid = player.getUniqueId();
-
-                    if (noFallDamage.remove(uuid)) {
-                        damageEvent.setCancelled(true);
-                        return;
-                    }
-
-                    if (flyRuntimeManager.hasActiveSession(uuid)) {
-                        damageEvent.setCancelled(false);
-                    }
-                },
-                this,
-                true
         );
     }
 
