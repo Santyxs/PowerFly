@@ -7,6 +7,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 import pwf.xenova.utils.WorldGuardFlags;
 import pwf.xenova.PowerFly;
@@ -19,6 +20,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
     private final PowerFly plugin;
     private boolean decreaseOnGround;
+    private int minFallBlocks;
 
     private final Map<UUID, Double> fallStartY = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> wasFalling = new ConcurrentHashMap<>();
@@ -35,6 +37,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
                 UUID uuid = player.getUniqueId();
 
+                if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) continue;
                 if (WorldGuardFlags.isFallDamageDenied(player)) continue;
 
                 boolean isFalling = player.getFallDistance() > 0;
@@ -46,15 +49,11 @@ public class FlyTimeOnGroundManager implements Listener {
 
                     double currentY = player.getLocation().getY();
                     double calculatedFall = startY - currentY;
-
                     float vanillaFall = player.getFallDistance();
-
                     int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
 
-                    if (blocksFallen >= 4) {
-
+                    if (blocksFallen >= minFallBlocks) {
                         int damage = blocksFallen - 3;
-
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             if (player.isOnline() && !player.isDead()) {
                                 player.damage(damage);
@@ -70,6 +69,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
     public void reload() {
         this.decreaseOnGround = plugin.getFileManager().getConfig().getBoolean("decrease-flytime-on-ground", false);
+        this.minFallBlocks = plugin.getMainConfig().getInt("fall-damage.min-blocks", 4);
     }
 
     public boolean shouldDecreaseFlyTime(Player player) {
@@ -88,6 +88,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
         if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
         if (plugin.getNoFallDamageSet().contains(uuid)) return;
+        if (plugin.getMainConfig().getBoolean("no-fall-damage", false)) return;
         if (WorldGuardFlags.isFallDamageDenied(player)) return;
         if (!event.hasChangedPosition()) return;
 
@@ -117,12 +118,10 @@ public class FlyTimeOnGroundManager implements Listener {
             if (startY == null) return;
 
             double calculatedFall = startY - currentY;
-
             float vanillaFall = player.getFallDistance();
-
             int blocksFallen = (int) Math.round(Math.max(calculatedFall, vanillaFall));
 
-            if (blocksFallen >= 4) {
+            if (blocksFallen >= minFallBlocks) {
 
                 int damage = blocksFallen - 3;
 
@@ -133,6 +132,14 @@ public class FlyTimeOnGroundManager implements Listener {
                 });
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        fallStartY.remove(uuid);
+        wasFalling.remove(uuid);
+        event.getPlayer().setFallDistance(0);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
