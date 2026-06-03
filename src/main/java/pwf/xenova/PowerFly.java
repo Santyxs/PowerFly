@@ -15,6 +15,8 @@ import pwf.xenova.managers.*;
 import pwf.xenova.utils.*;
 import pwf.xenova.storage.*;
 
+import java.util.UUID;
+
 public class PowerFly extends JavaPlugin {
 
     private static PowerFly instance;
@@ -154,6 +156,7 @@ public class PowerFly extends JavaPlugin {
         getServer().getPluginManager().registerEvents(noFallDamageManager, this);
         getServer().getPluginManager().registerEvents(cooldownManager, this);
         registerPlayerJoinEvent();
+        registerPlayerDeathEvent();
     }
 
     private void setupMetrics() {
@@ -212,6 +215,30 @@ public class PowerFly extends JavaPlugin {
                     PlayerJoinEvent joinEvent = (PlayerJoinEvent) event;
                     Player player = joinEvent.getPlayer();
                     flyTimeManager.handleJoin(player);
+                },
+                this
+        );
+    }
+
+    private void registerPlayerDeathEvent() {
+        Bukkit.getPluginManager().registerEvent(
+                org.bukkit.event.entity.PlayerDeathEvent.class,
+                new org.bukkit.event.Listener() {},
+                org.bukkit.event.EventPriority.NORMAL,
+                (listener, event) -> {
+                    Player player = ((org.bukkit.event.entity.PlayerDeathEvent) event).getEntity();
+                    UUID uuid = player.getUniqueId();
+
+                    if (!flyRuntimeManager.hasActiveSession(uuid)) return;
+
+                    int remaining = flyTimeManager.getRemainingFlyTime(uuid);
+                    flyRuntimeManager.cleanup(player);
+                    flyTimeManager.setFlyTimeInternal(uuid, remaining);
+
+                    player.setAllowFlight(false);
+                    player.setFlying(false);
+
+                    player.sendMessage(getPrefixedMessage("fly-disabled", "&cFly has been disabled."));
                 },
                 this
         );
