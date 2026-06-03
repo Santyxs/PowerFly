@@ -1,4 +1,5 @@
 pwf\xenova\PowerFly$1.class
+pwf\xenova\managers\NoFallDamageManager.class
 pwf\xenova\managers\SlowMiningManager.class
 pwf\xenova\utils\Metrics$JsonObjectBuilder$JsonObject.class
 pwf\xenova\managers\CooldownFlyManager$1.class
@@ -36,7 +37,6 @@ pwf\xenova\commands\AddFlyTimeCommand.class
 pwf\xenova\managers\FlyTimeManager.class
 pwf\xenova\managers\CommandManager.class
 pwf\xenova\managers\FlyRestrictionManager.class
-pwf\xenova\commands\FlyCommand$1.class
 pwf\xenova\utils\Metrics$MultiLineChart.class
 pwf\xenova\commands\SetFlyTimeCommand.class
 pwf\xenova\commands\HelpCommand.class
@@ -46,5 +46,4 @@ pwf\xenova\commands\ReloadCommand.class
 pwf\xenova\managers\FileManager.class
 pwf\xenova\PowerFly.class
 pwf\xenova\utils\UpdateChecker.class
-pwf\xenova\PowerFly$2.class
 pwf\xenova\commands\CheckCommand.class
