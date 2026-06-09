@@ -23,6 +23,7 @@ public class FlyTimeOnGroundManager implements Listener {
     private final PowerFly plugin;
     private boolean decreaseOnGround;
     private int minFallBlocks;
+    private boolean decreaseInOwnClaims;
 
     private final Map<UUID, Double> fallStartY = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> wasFalling = new ConcurrentHashMap<>();
@@ -64,11 +65,22 @@ public class FlyTimeOnGroundManager implements Listener {
 
     public void reload() {
         this.decreaseOnGround = plugin.getFileManager().getConfig().getBoolean("decrease-flytime-on-ground", false);
-        this.minFallBlocks = plugin.getMainConfig().getInt("fall-damage.min-blocks", 4);
+        this.minFallBlocks    = plugin.getMainConfig().getInt("fall-damage.min-blocks", 4);
+        this.decreaseInOwnClaims = plugin.getMainConfig().getBoolean("decrease-flytime-in-own-claims", false);
     }
 
     public boolean shouldDecreaseFlyTime(Player player) {
-        return player.isFlying() || decreaseOnGround;
+        if (!player.isFlying() && !decreaseOnGround) return false;
+
+        if (decreaseInOwnClaims) {
+            try {
+                if (plugin.getClaimFlyManager().isInOwnClaim(player, player.getLocation())) {
+                    return false;
+                }
+            } catch (Throwable ignored) {}
+        }
+
+        return true;
     }
 
     public boolean isDecreaseOnGroundEnabled() {

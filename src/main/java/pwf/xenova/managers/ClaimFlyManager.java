@@ -85,6 +85,10 @@ public class ClaimFlyManager implements Listener {
         return TownyAPI.getInstance().getTownBlock(location) != null;
     }
 
+    public boolean isInOwnClaim(Player player, Location location) {
+        return isInOwnGPClaim(player, location) || isInOwnTownyClaim(player, location);
+    }
+
     public boolean cannotFlyHere(Player player, Location location) {
         if (onlyFlyInClaims) {
             return cannotFlyHereStrict(player, location);
