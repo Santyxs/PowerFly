@@ -46,4 +46,5 @@ pwf\xenova\commands\ReloadCommand.class
 pwf\xenova\managers\FileManager.class
 pwf\xenova\PowerFly.class
 pwf\xenova\utils\UpdateChecker.class
+pwf\xenova\PowerFly$2.class
 pwf\xenova\commands\CheckCommand.class
