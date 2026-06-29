@@ -7,7 +7,11 @@ import net.luckperms.api.LuckPermsProvider;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import pwf.xenova.commands.*;
@@ -155,8 +159,7 @@ public class PowerFly extends JavaPlugin {
         getServer().getPluginManager().registerEvents(flyTimeOnGroundManager, this);
         getServer().getPluginManager().registerEvents(noFallDamageManager, this);
         getServer().getPluginManager().registerEvents(cooldownManager, this);
-        registerPlayerJoinEvent();
-        registerPlayerDeathEvent();
+        getServer().getPluginManager().registerEvents(new CoreEventListener(), this);
     }
 
     private void setupMetrics() {
@@ -206,42 +209,29 @@ public class PowerFly extends JavaPlugin {
 
     // ----------------- Events -----------------
 
-    private void registerPlayerJoinEvent() {
-        Bukkit.getPluginManager().registerEvent(
-                PlayerJoinEvent.class,
-                new org.bukkit.event.Listener() {},
-                org.bukkit.event.EventPriority.NORMAL,
-                (listener, event) -> {
-                    PlayerJoinEvent joinEvent = (PlayerJoinEvent) event;
-                    Player player = joinEvent.getPlayer();
-                    flyTimeManager.handleJoin(player);
-                },
-                this
-        );
-    }
+    private class CoreEventListener implements Listener {
 
-    private void registerPlayerDeathEvent() {
-        Bukkit.getPluginManager().registerEvent(
-                org.bukkit.event.entity.PlayerDeathEvent.class,
-                new org.bukkit.event.Listener() {},
-                org.bukkit.event.EventPriority.NORMAL,
-                (listener, event) -> {
-                    Player player = ((org.bukkit.event.entity.PlayerDeathEvent) event).getEntity();
-                    UUID uuid = player.getUniqueId();
+        @EventHandler(priority = EventPriority.NORMAL)
+        public void onPlayerJoin(PlayerJoinEvent event) {
+            flyTimeManager.handleJoin(event.getPlayer());
+        }
 
-                    if (!flyRuntimeManager.hasActiveSession(uuid)) return;
+        @EventHandler(priority = EventPriority.NORMAL)
+        public void onPlayerDeath(PlayerDeathEvent event) {
+            Player player = event.getEntity();
+            UUID uuid = player.getUniqueId();
 
-                    int remaining = flyTimeManager.getRemainingFlyTime(uuid);
-                    flyRuntimeManager.cleanup(player);
-                    flyTimeManager.setFlyTimeInternal(uuid, remaining);
+            if (!flyRuntimeManager.hasActiveSession(uuid)) return;
 
-                    player.setAllowFlight(false);
-                    player.setFlying(false);
+            int remaining = flyTimeManager.getRemainingFlyTime(uuid);
+            flyRuntimeManager.cleanup(player);
+            flyTimeManager.setFlyTimeInternal(uuid, remaining);
 
-                    player.sendMessage(getPrefixedMessage("fly-disabled", "&cFly has been disabled."));
-                },
-                this
-        );
+            player.setAllowFlight(false);
+            player.setFlying(false);
+
+            player.sendMessage(getPrefixedMessage("fly-disabled", "&cFly has been disabled."));
+        }
     }
 
     // ----------------- Update Checker -----------------
@@ -261,7 +251,7 @@ public class PowerFly extends JavaPlugin {
                 getLogger().warning("=====================================");
                 Bukkit.getOnlinePlayers().forEach(player -> {
                     if (player.isOp() || player.hasPermission("powerfly.admin"))
-                        player.sendMessage(MessageFormat.parseMessage("&7[&ePower&fFly&7]&r &aNew version available: &f" + updateChecker.getLatestVersion()));
+                        player.sendMessage(MessageFormat.parseMessage("&7[&ePower&fFly&7]&r &6New version available: &f" + updateChecker.getLatestVersion()));
                 });
             } else getLogger().info("You are running the latest version.");
         });
