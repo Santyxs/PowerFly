@@ -1,6 +1,6 @@
-pwf\xenova\PowerFly$1.class
 pwf\xenova\managers\NoFallDamageManager.class
 pwf\xenova\managers\SlowMiningManager.class
+pwf\xenova\PowerFly$CoreEventListener.class
 pwf\xenova\utils\Metrics$JsonObjectBuilder$JsonObject.class
 pwf\xenova\managers\CooldownFlyManager$1.class
 pwf\xenova\utils\Metrics.class
@@ -46,5 +46,4 @@ pwf\xenova\commands\ReloadCommand.class
 pwf\xenova\managers\FileManager.class
 pwf\xenova\PowerFly.class
 pwf\xenova\utils\UpdateChecker.class
-pwf\xenova\PowerFly$2.class
 pwf\xenova\commands\CheckCommand.class
