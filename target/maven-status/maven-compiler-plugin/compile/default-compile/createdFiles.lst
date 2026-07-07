@@ -3,6 +3,7 @@ pwf\xenova\managers\SlowMiningManager.class
 pwf\xenova\PowerFly$CoreEventListener.class
 pwf\xenova\utils\Metrics$JsonObjectBuilder$JsonObject.class
 pwf\xenova\managers\CooldownFlyManager$1.class
+pwf\xenova\managers\FlyTimeOnGroundManager$1.class
 pwf\xenova\utils\Metrics.class
 pwf\xenova\managers\SoundEffectsManager.class
 pwf\xenova\commands\BuyFlyTimeCommand.class

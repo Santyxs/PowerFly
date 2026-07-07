@@ -52,7 +52,7 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
             return true;
         }
 
-        double pricePerSecond = plugin.getMainConfig().getDouble("flytime-price", 100.0);
+        double pricePerSecond = getPricePerSecond(player);
         double totalPrice = pricePerSecond * seconds;
         String currencySymbol = plugin.getMainConfig().getString("currency-symbol", "$");
 
@@ -76,6 +76,14 @@ public record BuyFlyTimeCommand(PowerFly plugin) implements CommandExecutor {
 
         sendWithPrefix(player, boughtMsg);
         return true;
+    }
+
+    private double getPricePerSecond(Player player) {
+        if (plugin.getMainConfig().getBoolean("use-groups-flytime-price", false)) {
+            String group = plugin.getGroupFlyTimeManager().getPrimaryGroup(player.getUniqueId());
+            return plugin.getGroupFlyTimeManager().getGroupFlyTimePrice(group);
+        }
+        return plugin.getMainConfig().getDouble("global-flytime-price", 100.0);
     }
 
     private void sendWithPrefix(CommandSender sender, String message) {

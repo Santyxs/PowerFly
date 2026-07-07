@@ -14,7 +14,9 @@ public class GroupFlyTimeManager {
     private final PowerFly plugin;
     private final LuckPerms luckPerms;
     private final Map<String, Integer> groupFlyTimes = new HashMap<>();
+    private final Map<String, Double> groupFlyTimePrices = new HashMap<>();
     private int defaultFlyTime;
+    private double defaultFlyTimePrice;
 
     public GroupFlyTimeManager(PowerFly plugin, LuckPerms luckPerms) {
         this.plugin = plugin;
@@ -28,8 +30,10 @@ public class GroupFlyTimeManager {
 
     public void loadTimesFromConfig() {
         groupFlyTimes.clear();
+        groupFlyTimePrices.clear();
 
         defaultFlyTime = plugin.getMainConfig().getInt("global-fly-time", 100);
+        defaultFlyTimePrice = plugin.getMainConfig().getDouble("global-flytime-price", 100.0);
 
         if (plugin.getMainConfig().isSection("groups-fly-time")) {
             Section section = plugin.getMainConfig().getSection("groups-fly-time");
@@ -40,11 +44,24 @@ public class GroupFlyTimeManager {
             }
         }
 
+        if (plugin.getMainConfig().isSection("groups-flytime-price")) {
+            Section section = plugin.getMainConfig().getSection("groups-flytime-price");
+
+            for (String group : section.getRoutesAsStrings(false)) {
+                double price = section.getDouble(group, defaultFlyTimePrice);
+                groupFlyTimePrices.put(group.toLowerCase(), price);
+            }
+        }
+
         plugin.getLogger().info("Loaded fly times for " + groupFlyTimes.size() + " groups.");
     }
 
     public int getGroupFlyTime(String group) {
         return groupFlyTimes.getOrDefault(group.toLowerCase(), defaultFlyTime);
+    }
+
+    public double getGroupFlyTimePrice(String group) {
+        return groupFlyTimePrices.getOrDefault(group.toLowerCase(), defaultFlyTimePrice);
     }
 
     public String getPrimaryGroup(UUID uuid) {

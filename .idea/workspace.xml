@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="PowerFly:jar" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="Adds group-based fly time prices and refines fall damage logic." />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="9b369ba8-1851-47bd-a26a-43d3e3276b77" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="44a1dcb2-7e9d-44b9-8e89-5b1cc4b4a33c" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="claude-haiku-4.5" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="bc11b675-1a15-4ef1-aa8e-61d801d9e799" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="claude-haiku-4.5" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="9b369ba8-1851-47bd-a26a-43d3e3276b77" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="claude-haiku-4.5" />
+            <option name="status" value="Completed" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/HP/Desktop/Proyectos/Minecraft Plugins/PowerFly" value="2uVxmY7DK84UO1jtNl0FXIxnM79" />
+    </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Agent" />
+  </component>
+  <component name="CopilotUserSelectedModel">
+    <selectedModels>
+      <entry key="agent-panel" value="Claude Haiku 4.5" />
+      <entry key="chat-panel" value="Claude Haiku 4.5" />
+    </selectedModels>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {}
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Santyxs/PowerFly&quot;,
+    &quot;accountId&quot;: &quot;3b39ad25-3515-4a3d-b986-cddff337f6f1&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/main/java/pwf/xenova/managers/ConfigUpdater.java" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MavenRunner">
+    <option name="delegateBuildToMaven" value="true" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2uVxmY7DK84UO1jtNl0FXIxnM79" />
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="claude-haiku-4.5" />
+          </model>
+        </option>
+        <option name="targetType" value="LOCAL" />
+      </template>
+    </option>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="false" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showScratchesAndConsoles" value="false" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Maven.PowerFly [clean,install,--non-recursive].executor": "Run",
+    "Maven.PowerFly [clean].executor": "Run",
+    "Maven.PowerFly [compile].executor": "Run",
+    "Maven.PowerFly [install,--non-recursive].executor": "Run",
+    "Maven.PowerFly [package].executor": "Run",
+    "Maven.PowerFly [validate].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Notification.DisplayName-DoNotAsk-Error Report": "Internal error report submitted",
+    "Notification.DoNotAsk-Error Report": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ToolWindow.Build.ShowToolbar": "false",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "full.screen.before.presentation.mode": "false",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/HP/Desktop/Proyectos/Minecraft Plugins/PowerFly/src/main/resources/translations",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "onboarding.tips.debug.path": "C:/Users/HP/Desktop/Proyectos/Minecraft Plugins/PowerFly/src/main/java/org/example/Main.java",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "advanced.settings"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\resources\translations" />
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova\translations" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\target" />
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\resources\translations" />
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main" />
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\resources" />
+      <recent name="C:\Users\HP\Desktop\Proyectos\Minecraft Plugins\PowerFly\src\main\java\pwf\xenova" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="pwf.xenova.commands" />
+      <recent name="" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="pwf.xenova.commands" />
+      <recent name="pwf.xenova.managers" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.26222.65" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.26222.65" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="" />
+      <created>1742347703658</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1742347703658</updated>
+    </task>
+    <task id="LOCAL-00056" summary="Rounds cooldown display time up and corrects cooldown start logic.">
+      <option name="closed" value="true" />
+      <created>1775435159536</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1775435159536</updated>
+    </task>
+    <task id="LOCAL-00057" summary="Rounds cooldown display time up and corrects cooldown start logic.">
+      <option name="closed" value="true" />
+      <created>1775435277535</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1775435277536</updated>
+    </task>
+    <task id="LOCAL-00058" summary="Manages player fly state, preventing re-toggle &amp; disabling on landing.">
+      <option name="closed" value="true" />
+      <created>1775438142822</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1775438142822</updated>
+    </task>
+    <task id="LOCAL-00059" summary="Bumps plugin version to 1.8 and updates PlaceholderAPI to 2.11.7.">
+      <option name="closed" value="true" />
+      <created>1775445212255</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1775445212256</updated>
+    </task>
+    <task id="LOCAL-00060" summary="Adds custom fall damage handling for players after plugin flight.">
+      <option name="closed" value="true" />
+      <created>1775941257764</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1775941257765</updated>
+    </task>
+    <task id="LOCAL-00061" summary="Refactors command tab completer, bumps config, and fixes translations.">
+      <option name="closed" value="true" />
+      <created>1776357769030</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1776357769031</updated>
+    </task>
+    <task id="LOCAL-00062" summary="Refactors core plugin systems and updates API to 1.21.">
+      <option name="closed" value="true" />
+      <created>1776881683203</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1776881683204</updated>
+    </task>
+    <task id="LOCAL-00063" summary="Adopts ConcurrentHashMap for managers and refines cooldown handling.">
+      <option name="closed" value="true" />
+      <created>1776899612656</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1776899612657</updated>
+    </task>
+    <task id="LOCAL-00064" summary="Adopts official bStats Bukkit dependency, removes custom class.">
+      <option name="closed" value="true" />
+      <created>1776900145689</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1776900145689</updated>
+    </task>
+    <task id="LOCAL-00065" summary="Bundles bStats source code, optimizes JAR, and refines cooldowns.">
+      <option name="closed" value="true" />
+      <created>1776959841621</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1776959841622</updated>
+    </task>
+    <task id="LOCAL-00066" summary="Adds configuration option for flying only inside claims and updates related messages">
+      <option name="closed" value="true" />
+      <created>1776978463577</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1776978463577</updated>
+    </task>
+    <task id="LOCAL-00067" summary="Centralizes main config access and streamlines command player lookup.">
+      <option name="closed" value="true" />
+      <created>1777058303900</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1777058303900</updated>
+    </task>
+    <task id="LOCAL-00068" summary="Synchronizes YAML storage for thread safety and centralizes command access.">
+      <option name="closed" value="true" />
+      <created>1777079122277</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1777079122278</updated>
+    </task>
+    <task id="LOCAL-00069" summary="Centralizes fly management, improves thread safety, and refines command messages.">
+      <option name="closed" value="true" />
+      <created>1777161997546</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1777161997547</updated>
+    </task>
+    <task id="LOCAL-00070" summary="Improves resource resolution, boss bar progress, and caches player names.">
+      <option name="closed" value="true" />
+      <created>1777225823829</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1777225823831</updated>
+    </task>
+    <task id="LOCAL-00071" summary="Prioritizes fall damage handling and ensures damage for active fly sessions.">
+      <option name="closed" value="true" />
+      <created>1777226627144</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1777226627144</updated>
+    </task>
+    <task id="LOCAL-00072" summary="Adds wildcard matching to world whitelist configuration.">
+      <option name="closed" value="true" />
+      <created>1777300362611</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1777300362612</updated>
+    </task>
+    <task id="LOCAL-00073" summary="Streamlines build by removing Apache Commons Lang3 dependency and shading.">
+      <option name="closed" value="true" />
+      <created>1777310597948</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1777310597949</updated>
+    </task>
+    <task id="LOCAL-00074" summary="Discontinues bStats integration to simplify plugin and build.">
+      <option name="closed" value="true" />
+      <created>1777310831351</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1777310831351</updated>
+    </task>
+    <task id="LOCAL-00075" summary="Extends reset scope, refines fly time, player resolution, and sound defaults.">
+      <option name="closed" value="true" />
+      <created>1777331535504</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1777331535506</updated>
+    </task>
+    <task id="LOCAL-00076" summary="Adds null check for FlyCommand before ending player fly sessions.">
+      <option name="closed" value="true" />
+      <created>1777332558115</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1777332558115</updated>
+    </task>
+    <task id="LOCAL-00077" summary="Removes affected player count from all-player command feedback.">
+      <option name="closed" value="true" />
+      <created>1777397376340</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1777397376340</updated>
+    </task>
+    <task id="LOCAL-00078" summary="Refines configuration comments and descriptions for clarity.">
+      <option name="closed" value="true" />
+      <created>1777399594368</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1777399594369</updated>
+    </task>
+    <task id="LOCAL-00079" summary="Bumps plugin version to 2.1.">
+      <option name="closed" value="true" />
+      <created>1777399728025</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1777399728025</updated>
+    </task>
+    <task id="LOCAL-00080" summary="Introduces async database operations and enhances config clarity.">
+      <option name="closed" value="true" />
+      <created>1777473754860</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1777473754861</updated>
+    </task>
+    <task id="LOCAL-00081" summary="Refactors sound effects to use a global task and simplifies player tracking.">
+      <option name="closed" value="true" />
+      <created>1777477939851</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1777477939852</updated>
+    </task>
+    <task id="LOCAL-00082" summary="Enhances fly management by improving command handling, adding cooldown cleanup on player quit, and refining sound effects integration.">
+      <option name="closed" value="true" />
+      <created>1777562460087</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1777562460087</updated>
+    </task>
+    <task id="LOCAL-00083" summary="Implements wildcard matching for world names in cooldown whitelist.">
+      <option name="closed" value="true" />
+      <created>1777664892610</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1777664892611</updated>
+    </task>
+    <task id="LOCAL-00084" summary="Simplifies sound effect play in command handler.">
+      <option name="closed" value="true" />
+      <created>1778078687543</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1778078687544</updated>
+    </task>
+    <task id="LOCAL-00085" summary="Implements plugin metrics and bumps version to 2.1.">
+      <option name="closed" value="true" />
+      <created>1778281413826</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1778281413827</updated>
+    </task>
+    <task id="LOCAL-00086" summary="Bumps version to 2.2 and adjusts SQLite JDBC dependency.">
+      <option name="closed" value="true" />
+      <created>1778290201413</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1778290201414</updated>
+    </task>
+    <task id="LOCAL-00087" summary="Implements fall damage calculation upon player landing and bumps version.">
+      <option name="closed" value="true" />
+      <created>1780094489091</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1780094489092</updated>
+    </task>
+    <task id="LOCAL-00088" summary="Prevents fall damage in WorldGuard protected regions.">
+      <option name="closed" value="true" />
+      <created>1780101759500</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1780101759501</updated>
+    </task>
+    <task id="LOCAL-00089" summary="Skips fall tracking for players who are currently gliding.">
+      <option name="closed" value="true" />
+      <created>1780183005543</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1780183005543</updated>
+    </task>
+    <task id="LOCAL-00090" summary="Refines fall damage calculation logic.">
+      <option name="closed" value="true" />
+      <created>1780250176095</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1780250176096</updated>
+    </task>
+    <task id="LOCAL-00091" summary="Catches Throwable during WorldGuard flag registration for robustness.">
+      <option name="closed" value="true" />
+      <created>1780269025399</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1780269025400</updated>
+    </task>
+    <task id="LOCAL-00092" summary="Configures fall damage and resets fall tracking on player teleport.">
+      <option name="closed" value="true" />
+      <created>1780328469459</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1780328469460</updated>
+    </task>
+    <task id="LOCAL-00093" summary="Refactors fall damage application to support Feather Falling.">
+      <option name="closed" value="true" />
+      <created>1780333216749</created>
+      <option name="number" value="00093" />
+      <option name="presentableId" value="LOCAL-00093" />
+      <option name="project" value="LOCAL" />
+      <updated>1780333216749</updated>
+    </task>
+    <task id="LOCAL-00094" summary="Refactors no-fall damage handling into a dedicated manager.">
+      <option name="closed" value="true" />
+      <created>1780349462039</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1780349462040</updated>
+    </task>
+    <task id="LOCAL-00095" summary="Adds NoFallDamageManager to handle no-fall damage logic and player protection">
+      <option name="closed" value="true" />
+      <created>1780349537938</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1780349537938</updated>
+    </task>
+    <task id="LOCAL-00096" summary="Updates compiler's tracking files for NoFallDamageManager.">
+      <option name="closed" value="true" />
+      <created>1780497322706</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1780497322708</updated>
+    </task>
+    <task id="LOCAL-00097" summary="Properly cleans up fly sessions when a player dies.">
+      <option name="closed" value="true" />
+      <created>1780513301926</created>
+      <option name="number" value="00097" />
+      <option name="presentableId" value="LOCAL-00097" />
+      <option name="project" value="LOCAL" />
+      <updated>1780513301926</updated>
+    </task>
+    <task id="LOCAL-00098" summary="Adds option to prevent fly time from decreasing in own claims.">
+      <option name="closed" value="true" />
+      <created>1781026032150</created>
+      <option name="number" value="00098" />
+      <option name="presentableId" value="LOCAL-00098" />
+      <option name="project" value="LOCAL" />
+      <updated>1781026032151</updated>
+    </task>
+    <task id="LOCAL-00099" summary="Adds config option to control fly time decrease in own claims.">
+      <option name="closed" value="true" />
+      <created>1782150540003</created>
+      <option name="number" value="00099" />
+      <option name="presentableId" value="LOCAL-00099" />
+      <option name="project" value="LOCAL" />
+      <updated>1782150540004</updated>
+    </task>
+    <task id="LOCAL-00100" summary="Bumps project version to 2.4.">
+      <option name="closed" value="true" />
+      <created>1782150667594</created>
+      <option name="number" value="00100" />
+      <option name="presentableId" value="LOCAL-00100" />
+      <option name="project" value="LOCAL" />
+      <updated>1782150667594</updated>
+    </task>
+    <task id="LOCAL-00101" summary="Rebump plugin version to 2.4.">
+      <option name="closed" value="true" />
+      <created>1782150796499</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1782150796499</updated>
+    </task>
+    <task id="LOCAL-00102" summary="Refactors event handling into a dedicated listener class.">
+      <option name="closed" value="true" />
+      <created>1782759477385</created>
+      <option name="number" value="00102" />
+      <option name="presentableId" value="LOCAL-00102" />
+      <option name="project" value="LOCAL" />
+      <updated>1782759477386</updated>
+    </task>
+    <task id="LOCAL-00103" summary="Bumps project version to 2.5 and updates dependencies.">
+      <option name="closed" value="true" />
+      <created>1783018962771</created>
+      <option name="number" value="00103" />
+      <option name="presentableId" value="LOCAL-00103" />
+      <option name="project" value="LOCAL" />
+      <updated>1783018962772</updated>
+    </task>
+    <task id="LOCAL-00104" summary="Adds group-based fly time prices and refines fall damage logic.">
+      <option name="closed" value="true" />
+      <created>1783397543800</created>
+      <option name="number" value="00104" />
+      <option name="presentableId" value="LOCAL-00104" />
+      <option name="project" value="LOCAL" />
+      <updated>1783397543800</updated>
+    </task>
+    <option name="localTasksCounter" value="105" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="java:net.kyori:adventure-api" />
+    <option featureType="dependencySupport" implementationName="java:io.papermc.paper:paper-api" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Implements fall damage calculation upon player landing and bumps version." />
+    <MESSAGE value="Prevents" />
+    <MESSAGE value="Prevents fall damage in WorldGuard protected regions." />
+    <MESSAGE value="Skips fall tracking for players who are currently gliding." />
+    <MESSAGE value="Refines fall damage calculation logic and bumps version to 2.3." />
+    <MESSAGE value="Refines fall damage calculation logic." />
+    <MESSAGE value="Catches Throwable during WorldGuard flag registration for robustness." />
+    <MESSAGE value="Configures fall damage" />
+    <MESSAGE value="Configures fall damage and resets fall tracking on player teleport." />
+    <MESSAGE value="Refactors fall damage application to support Feather Falling." />
+    <MESSAGE value="Refactors" />
+    <MESSAGE value="Refactors no-fall damage handling into a dedicated manager." />
+    <MESSAGE value="Adds NoFallDamageManager to handle no-fall damage logic and player protection" />
+    <MESSAGE value="Updates compiler's tracking files for NoFallDamageManager." />
+    <MESSAGE value="Properly cleans up fly sessions when a player dies" />
+    <MESSAGE value="Properly cleans up fly sessions when a player dies." />
+    <MESSAGE value="Adds option to prevent fly time from decreasing in own claims." />
+    <MESSAGE value="Adds config entry to prevent fly time decreasing in own claims." />
+    <MESSAGE value="Adds config option to control fly time decrease in own claims." />
+    <MESSAGE value="Bumps project version to 2.4." />
+    <MESSAGE value="Bumps plugin version to 2.4." />
+    <MESSAGE value="Rebump plugin version to 2.4." />
+    <MESSAGE value="Refactors event handling into a dedicated listener class." />
+    <MESSAGE value="Bumps project version to 2.5 and updates dependencies." />
+    <MESSAGE value="Adds group-based fly time prices and refines fall damage logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adds group-based fly time prices and refines fall damage logic." />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>

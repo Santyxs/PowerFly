@@ -1,6 +1,11 @@
 package pwf.xenova.managers;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -67,6 +72,8 @@ public class FlyTimeOnGroundManager implements Listener {
         this.decreaseOnGround = plugin.getFileManager().getConfig().getBoolean("decrease-flytime-on-ground", false);
         this.minFallBlocks    = plugin.getMainConfig().getInt("fall-damage.min-blocks", 4);
         this.decreaseInOwnClaims = plugin.getMainConfig().getBoolean("decrease-flytime-in-own-claims", false);
+
+        plugin.getLogger().info("Decrease fly time on ground: " + (isDecreaseOnGroundEnabled() ? "enabled" : "disabled"));
     }
 
     public boolean shouldDecreaseFlyTime(Player player) {
@@ -99,7 +106,7 @@ public class FlyTimeOnGroundManager implements Listener {
         if (WorldGuardFlags.isFallDamageDenied(player)) return;
         if (!event.hasChangedPosition()) return;
 
-        double currentY = player.getLocation().getY();
+        double currentY = event.getTo().getY();
 
         if (player.isFlying()) {
             fallStartY.put(uuid, currentY);
@@ -152,10 +159,51 @@ public class FlyTimeOnGroundManager implements Listener {
 
         final double finalDamage = damage;
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline() && !player.isDead()) {
-                player.damage(finalDamage);
+            if (!player.isOnline() || player.isDead()) return;
+
+            double adjustedDamage = applyLandingModifiers(player, finalDamage, player.getLocation());
+            if (adjustedDamage > 0) {
+                player.damage(adjustedDamage);
             }
         });
+    }
+
+    private double applyLandingModifiers(Player player, double damage, Location landingLocation) {
+        Block feetBlock = landingLocation.getBlock();
+        Block belowBlock = feetBlock.getRelative(BlockFace.DOWN);
+
+        if (isWaterLike(feetBlock) || isWaterLike(belowBlock)) return 0;
+
+        Material feetType = feetBlock.getType();
+        if (feetType == Material.COBWEB || feetType == Material.POWDER_SNOW || isClimbable(feetType)) {
+            return 0;
+        }
+
+        Material belowType = belowBlock.getType();
+
+        if (belowType == Material.SLIME_BLOCK) {
+            return player.isSneaking() ? damage : 0;
+        }
+
+        if (belowType == Material.HAY_BLOCK) {
+            return damage * 0.2;
+        }
+
+        return damage;
+    }
+
+    private boolean isWaterLike(Block block) {
+        if (block.getType() == Material.WATER) return true;
+        return block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged();
+    }
+
+    private boolean isClimbable(Material material) {
+        return switch (material) {
+            case LADDER, VINE, WEEPING_VINES, WEEPING_VINES_PLANT,
+                 TWISTING_VINES, TWISTING_VINES_PLANT, CAVE_VINES,
+                 CAVE_VINES_PLANT, SCAFFOLDING -> true;
+            default -> false;
+        };
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

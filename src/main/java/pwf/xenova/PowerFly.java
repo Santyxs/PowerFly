@@ -136,7 +136,7 @@ public class PowerFly extends JavaPlugin {
     private void setupManagers() {
         flyRuntimeManager = new FlyRuntimeManager(this);
         flyTimeManager = new FlyTimeManager(this);
-        groupFlyTimeManager = new GroupFlyTimeManager(this, luckPerms);
+        groupFlyTimeManager = new GroupFlyTimeManager(this, getLuckPerms());
         cooldownManager = new CooldownFlyManager(this);
         soundEffectsManager = new SoundEffectsManager(this);
         combatFlyManager = new CombatFlyManager(this);
@@ -280,11 +280,6 @@ public class PowerFly extends JavaPlugin {
         String prefix = getDefaultPrefix();
         String message = fileManager.getLang(getLangCode()).getString(key, defaultMessage);
         return MessageFormat.parseMessageWithPrefix(prefix, message);
-    }
-
-    public Component getMessage(String key, String defaultMessage) {
-        String message = fileManager.getLang(getLangCode()).getString(key, defaultMessage);
-        return MessageFormat.parseMessage(message);
     }
 
     public String getMessageString(String key, String defaultMessage) {
