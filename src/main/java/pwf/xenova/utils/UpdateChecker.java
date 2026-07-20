@@ -4,12 +4,15 @@ import org.bukkit.Bukkit;
 import pwf.xenova.PowerFly;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class UpdateChecker {
@@ -18,6 +21,8 @@ public class UpdateChecker {
     private static final String SPIGOT_URL = "https://www.spigotmc.org/resources/%s";
     private static final String USER_AGENT = "PowerFly-UpdateChecker";
     private static final int TIMEOUT = 5000;
+
+    private static final Pattern NAME_PATTERN = Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"");
 
     private final PowerFly plugin;
     private final String resourceId;
@@ -31,33 +36,34 @@ public class UpdateChecker {
         this.resourceId = resourceId;
     }
 
-    public void checkForUpdates() {
-        checkForUpdates((Consumer<Boolean>) null);
-    }
-
-    public void checkForUpdates(Runnable callback) {
-        checkForUpdates(callback != null ? success -> { if (success) callback.run(); } : null);
-    }
-
     public void checkForUpdates(Consumer<Boolean> callback) {
         CompletableFuture.runAsync(() -> {
             boolean success = false;
             try {
                 HttpURLConnection conn = (HttpURLConnection) new URI(String.format(API_URL, resourceId)).toURL().openConnection();
                 conn.setRequestProperty("User-Agent", USER_AGENT);
+                conn.setRequestProperty("Accept", "application/json");
                 conn.setConnectTimeout(TIMEOUT);
                 conn.setReadTimeout(TIMEOUT);
 
-                String response;
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                    response = reader.lines().collect(Collectors.joining());
+                int statusCode = conn.getResponseCode();
+
+                if (statusCode != HttpURLConnection.HTTP_OK) {
+                    String errorBody = readStream(conn.getErrorStream());
+                    plugin.getLogger().warning("UpdateChecker: API returned HTTP " + statusCode + " for resource " + resourceId + ". Response: " + truncate(errorBody));
+                    if (callback != null) {
+                        Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
+                    }
+                    return;
                 }
+
+                String response = readStream(conn.getInputStream());
 
                 String parsed = parseVersion(response);
 
                 if (parsed == null) {
-                    plugin.getLogger().warning("UpdateChecker: Could not parse version from API response.");
+                    plugin.getLogger().warning("UpdateChecker: Could not parse version from API response. Raw response: "
+                            + truncate(response));
                     if (callback != null) {
                         Bukkit.getScheduler().runTask(plugin, () -> callback.accept(false));
                     }
@@ -84,18 +90,25 @@ public class UpdateChecker {
         });
     }
 
+    private String readStream(InputStream stream) throws java.io.IOException {
+        if (stream == null) return "";
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.joining());
+        }
+    }
+
+    private String truncate(String text) {
+        if (text == null) return "null";
+        return text.length() > 300 ? text.substring(0, 300) + "..." : text;
+    }
+
     private String parseVersion(String json) {
         if (json == null || json.isEmpty()) return null;
 
-        int keyIndex = json.indexOf("\"name\":\"");
-        if (keyIndex == -1) return null;
+        Matcher matcher = NAME_PATTERN.matcher(json);
+        if (!matcher.find()) return null;
 
-        int start = keyIndex + 8;
-        int end = json.indexOf('"', start);
-
-        if (end == -1 || end <= start) return null;
-
-        String version = json.substring(start, end).trim();
+        String version = matcher.group(1).trim();
         return version.isEmpty() ? null : version;
     }
 
