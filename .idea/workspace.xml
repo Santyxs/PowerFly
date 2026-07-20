@@ -9,12 +9,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="">
+    <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="Bumps plugin version to 2.6 and fixed update checker.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pwf/xenova/utils/UpdateChecker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pwf/xenova/utils/UpdateChecker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/PowerFly.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/PowerFly.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/utils/UpdateChecker.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/utils/UpdateChecker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pwf/xenova/commands/FlyCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pwf/xenova/commands/FlyCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/CooldownFlyManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/CooldownFlyManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/config.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/translations/cn.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/translations/cn.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/translations/en.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/translations/en.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/translations/es.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/translations/es.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/translations/pt.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/translations/pt.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/translations/rus.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/translations/rus.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -201,14 +205,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1742347703658</updated>
-    </task>
-    <task id="LOCAL-00058" summary="Manages player fly state, preventing re-toggle &amp; disabling on landing.">
-      <option name="closed" value="true" />
-      <created>1775438142822</created>
-      <option name="number" value="00058" />
-      <option name="presentableId" value="LOCAL-00058" />
-      <option name="project" value="LOCAL" />
-      <updated>1775438142822</updated>
     </task>
     <task id="LOCAL-00059" summary="Bumps plugin version to 1.8 and updates PlaceholderAPI to 2.11.7.">
       <option name="closed" value="true" />
@@ -594,7 +590,15 @@
       <option name="project" value="LOCAL" />
       <updated>1783397646170</updated>
     </task>
-    <option name="localTasksCounter" value="107" />
+    <task id="LOCAL-00107" summary="Bumps plugin version to 2.6 and fixed update checker.">
+      <option name="closed" value="true" />
+      <created>1784582957943</created>
+      <option name="number" value="00107" />
+      <option name="presentableId" value="LOCAL-00107" />
+      <option name="project" value="LOCAL" />
+      <updated>1784582957944</updated>
+    </task>
+    <option name="localTasksCounter" value="108" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -616,9 +620,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Implements fall damage calculation upon player landing and bumps version." />
-    <MESSAGE value="Prevents" />
-    <MESSAGE value="Prevents fall damage in WorldGuard protected regions." />
     <MESSAGE value="Skips fall tracking for players who are currently gliding." />
     <MESSAGE value="Refines fall damage calculation logic and bumps version to 2.3." />
     <MESSAGE value="Refines fall damage calculation logic." />
@@ -641,7 +642,10 @@
     <MESSAGE value="Refactors event handling into a dedicated listener class." />
     <MESSAGE value="Bumps project version to 2.5 and updates dependencies." />
     <MESSAGE value="Adds group-based fly time prices and refines fall damage logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Adds group-based fly time prices and refines fall damage logic." />
+    <MESSAGE value="Bumps plugin version to 2.6 and fort" />
+    <MESSAGE value="Bumps plugin version to 2.6 and fortifies update checker." />
+    <MESSAGE value="Bumps plugin version to 2.6 and fixed update checker." />
+    <option name="LAST_COMMIT_MESSAGE" value="Bumps plugin version to 2.6 and fixed update checker." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

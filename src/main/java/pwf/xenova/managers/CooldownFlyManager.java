@@ -17,6 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CooldownFlyManager implements Listener {
 
+    private static final int NO_COOLDOWN = -1;
+    private static final int PERMANENT_COOLDOWN = -2;
+
     private final PowerFly plugin;
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     private final StorageInterface storage;
@@ -88,12 +91,18 @@ public class CooldownFlyManager implements Listener {
             cooldownSeconds = plugin.getMainConfig().getInt("global-cooldown", 100);
         }
 
-        if (cooldownSeconds == -1) {
+        if (cooldownSeconds == NO_COOLDOWN) {
             plugin.getFlyTimeManager().reloadFlyTime(playerUUID);
             return;
         }
 
         plugin.getFlyTimeManager().setFlyTimeInternal(playerUUID, 0);
+
+        if (cooldownSeconds == PERMANENT_COOLDOWN) {
+            setPermanentCooldown(playerUUID);
+            return;
+        }
+
         setCooldown(playerUUID, cooldownSeconds);
     }
 
@@ -104,6 +113,11 @@ public class CooldownFlyManager implements Listener {
 
         storage.setCooldown(playerUUID, cooldownUntil);
         cooldowns.put(playerUUID, cooldownUntil);
+    }
+
+    private void setPermanentCooldown(UUID playerUUID) {
+        storage.setCooldown(playerUUID, -1L);
+        cooldowns.put(playerUUID, -1L);
     }
 
     public void removeCooldown(UUID playerUUID) {
@@ -120,6 +134,11 @@ public class CooldownFlyManager implements Listener {
 
     public boolean isNotOnCooldown(UUID playerUUID) {
         return !isOnCooldown(playerUUID);
+    }
+
+    public boolean isPermanentCooldown(UUID playerUUID) {
+        Long val = cooldowns.get(playerUUID);
+        return val != null && val == -1L;
     }
 
     public String getRemainingCooldownFormatted(UUID playerUUID) {

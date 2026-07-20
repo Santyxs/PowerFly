@@ -108,9 +108,14 @@ public record FlyCommand(PowerFly plugin) implements CommandExecutor {
                 return false;
             }
 
-            String cooldown = plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
-            String msg = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{cooldown_time} &cto fly again.")
-                    .replace("{cooldown_time}", cooldown);
+            String msg;
+            if (plugin.getCooldownFlyManager().isPermanentCooldown(uuid)) {
+                msg = plugin.getMessageString("fly-cooldown-permanent", "&cYou have used up your fly time. Ask a staff member to give you more.");
+            } else {
+                String cooldown = plugin.getCooldownFlyManager().getRemainingCooldownFormatted(uuid);
+                msg = plugin.getMessageString("fly-cooldown", "&cYou have used your fly time, wait &f{cooldown_time} &cto fly again.")
+                        .replace("{cooldown_time}", cooldown);
+            }
             sendRaw(player, msg);
             return false;
         }

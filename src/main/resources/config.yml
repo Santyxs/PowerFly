@@ -4,7 +4,7 @@
 # Discord:  https://discord.gg/E2hAAa7F6q     #
 ###############################################
 
-config-version: 10
+config-version: 11
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━ #
 #       CORE SETTINGS      #
@@ -50,14 +50,20 @@ groups-fly-time:
   admin: -1
 
 # Global cooldown time in seconds for all players or players without a group
-# You can use a number (e.g: 500 or -1 for no cooldown)
+# You can use:
+#   - a number (e.g: 500)
+#   - -1 for no cooldown (fly time is instantly recharged)
+#   - -2 for a permanent cooldown (players cannot fly again until a staff member gives them more fly time)
 global-cooldown: 100
 
 # Enable or disable group-based cooldowns (LuckPerms required)
 use-groups-cooldown: true
 
 # Cooldown time in seconds for each group (can be customized based on LuckPerms groups)
-# You can use a number (e.g: 500 or -1 for no cooldown)
+# You can use:
+#   - a number (e.g: 500)
+#   - -1 for no cooldown (fly time is instantly recharged)
+#   - -2 for a permanent cooldown (players cannot fly again until a staff member gives them more fly time)
 groups-cooldown:
   default: 100
   vip: 30

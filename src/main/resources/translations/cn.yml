@@ -1,4 +1,4 @@
-config-version: 7
+config-version: 8
 
 # 玩家消息
 actionbar-fly-time: "&e飞行时间: &6{fly_time}"
@@ -6,6 +6,7 @@ bossbar-fly-time: "&e飞行时间: &6{fly_time}"
 fly-time-warning: "&6⚠ &e剩余 &c10秒 &e飞行时间!"
 fly-time-ended: "&c飞行时间已结束"
 fly-cooldown: "&c你已使用完飞行时间，请等待 &6{cooldown_time} &c才能再次飞行"
+fly-cooldown-permanent: "&c你已用完所有飞行时间。请联系管理员获取更多时间。"
 fly-enabled: "&a飞行已启用"
 fly-disabled: "&c飞行已禁用"
 fly-time-recharged: "&a你的飞行时间已自动恢复"
