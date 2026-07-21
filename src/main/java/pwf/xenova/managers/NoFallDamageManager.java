@@ -44,6 +44,10 @@ public class NoFallDamageManager implements Listener {
         return enabled;
     }
 
+    public double getBlocks() {
+        return blocks;
+    }
+
     public void grantProtection(UUID uuid) {
         if (!enabled || blocks <= 0) return;
         remainingBlocks.put(uuid, blocks);

@@ -1,4 +1,4 @@
-config-version: 7
+config-version: 8
 
 # Mensagens do jogador
 actionbar-fly-time: "&eTempo de voo: &6{fly_time}"
@@ -6,6 +6,7 @@ bossbar-fly-time: "&eTempo de voo: &6{fly_time}"
 fly-time-warning: "&6⚠ &eRestam &c10s &ede voo!"
 fly-time-ended: "&cO tempo de voo terminou."
 fly-cooldown: "&cVocê gastou o seu tempo de voo, aguarde &6{cooldown_time} &cpara voar novamente."
+fly-cooldown-permanent: "&cVocê gastou todo o seu tempo de voo. Peça a um membro da staff para te dar mais."
 fly-enabled: "&aO voo foi habilitado."
 fly-disabled: "&cO voo foi desabilitado."
 fly-time-recharged: "&aSeu tempo de voo foi recarregado automaticamente."

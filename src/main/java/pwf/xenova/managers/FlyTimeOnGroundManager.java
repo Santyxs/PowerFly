@@ -45,7 +45,7 @@ public class FlyTimeOnGroundManager implements Listener {
 
                 UUID uuid = player.getUniqueId();
 
-                if (plugin.getNoFallDamageManager().isEnabled()) continue;
+                if (plugin.getNoFallDamageManager().hasProtection(uuid)) continue;
                 if (WorldGuardFlags.isFallDamageDenied(player)) continue;
 
                 boolean isFalling = player.getFallDistance() > 0;
@@ -102,7 +102,6 @@ public class FlyTimeOnGroundManager implements Listener {
 
         if (!plugin.getFlyRuntimeManager().hasActiveSession(uuid)) return;
         if (plugin.getNoFallDamageManager().hasProtection(uuid)) return;
-        if (plugin.getNoFallDamageManager().isEnabled()) return;
         if (WorldGuardFlags.isFallDamageDenied(player)) return;
         if (!event.hasChangedPosition()) return;
 
@@ -140,6 +139,10 @@ public class FlyTimeOnGroundManager implements Listener {
     }
 
     private void checkAndApplyFallDamage(Player player, int blocksFallen) {
+        if (plugin.getNoFallDamageManager().isEnabled()) {
+            blocksFallen -= (int) Math.round(plugin.getNoFallDamageManager().getBlocks());
+        }
+
         if (blocksFallen < minFallBlocks) return;
 
         double damage = blocksFallen - 3;
