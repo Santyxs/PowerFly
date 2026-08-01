@@ -1,8 +1,9 @@
 name: PowerFly
-version: ${project.version}
+version: v${project.version}
 description: A fully customizable fly plugin featuring timed fly, cooldown control, and complete configuration.
 authors:
   - Santysx
+website: https://discord.gg/E2hAAa7F6q
 api-version: 1.21
 main: pwf.xenova.PowerFly
 softdepend: [LuckPerms, Vault, WorldEdit, WorldGuard, PlaceholderAPI, Towny, GriefPrevention]
