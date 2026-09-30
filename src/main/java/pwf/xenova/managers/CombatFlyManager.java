@@ -71,10 +71,15 @@ public class CombatFlyManager implements Listener {
         };
     }
 
+    private boolean canUseFly(Player player) {
+        return player.hasPermission("powerfly.fly") || player.hasPermission("powerfly.admin");
+    }
+
     private void enterCombat(Player player) {
         UUID uuid = player.getUniqueId();
 
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
+        if (!canUseFly(player)) return;
 
         cancelTimer(uuid);
 

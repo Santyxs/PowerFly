@@ -11,9 +11,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/FlyTimeOnGroundManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/FlyTimeOnGroundManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/NoFallDamageManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pwf/xenova/managers/NoFallDamageManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/config.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/PowerFly.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/PowerFly.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/AddFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/AddFlyTimeCommand.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/BuyFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/BuyFlyTimeCommand.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/CheckCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/CheckCommand.class" afterDir="false" />
@@ -24,17 +22,10 @@
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ResetCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ResetCommand.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetCooldownCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetCooldownCommand.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetFlyTimeCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/CooldownFlyManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/CooldownFlyManager$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/CooldownFlyManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/CooldownFlyManager.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/ExpansionManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/ExpansionManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/FlyTimeOnGroundManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/FlyTimeOnGroundManager$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/FlyTimeOnGroundManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/FlyTimeOnGroundManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/NoFallDamageManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/NoFallDamageManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/translations/cn.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/translations/cn.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/translations/en.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/translations/en.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/translations/es.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/translations/es.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/translations/pt.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/translations/pt.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/translations/rus.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/translations/rus.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-archiver/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-archiver/pom.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/original-PowerFly.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-PowerFly.jar" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -221,14 +212,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1742347703658</updated>
-    </task>
-    <task id="LOCAL-00060" summary="Adds custom fall damage handling for players after plugin flight.">
-      <option name="closed" value="true" />
-      <created>1775941257764</created>
-      <option name="number" value="00060" />
-      <option name="presentableId" value="LOCAL-00060" />
-      <option name="project" value="LOCAL" />
-      <updated>1775941257765</updated>
     </task>
     <task id="LOCAL-00061" summary="Refactors command tab completer, bumps config, and fixes translations.">
       <option name="closed" value="true" />
@@ -614,7 +597,15 @@
       <option name="project" value="LOCAL" />
       <updated>1784584812853</updated>
     </task>
-    <option name="localTasksCounter" value="109" />
+    <task id="LOCAL-00109" summary="Adds permanent fly cooldowns and refines fall damage logic.">
+      <option name="closed" value="true" />
+      <created>1784673015104</created>
+      <option name="number" value="00109" />
+      <option name="presentableId" value="LOCAL-00109" />
+      <option name="project" value="LOCAL" />
+      <updated>1784673015105</updated>
+    </task>
+    <option name="localTasksCounter" value="110" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -636,7 +627,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refines fall damage calculation logic and bumps version to 2.3." />
     <MESSAGE value="Refines fall damage calculation logic." />
     <MESSAGE value="Catches Throwable during WorldGuard flag registration for robustness." />
     <MESSAGE value="Configures fall damage" />
@@ -661,7 +651,8 @@
     <MESSAGE value="Bumps plugin version to 2.6 and fortifies update checker." />
     <MESSAGE value="Bumps plugin version to 2.6 and fixed update checker." />
     <MESSAGE value="Adds permanent fly time cooldown, updates config and translations." />
-    <option name="LAST_COMMIT_MESSAGE" value="Adds permanent fly time cooldown, updates config and translations." />
+    <MESSAGE value="Adds permanent fly cooldowns and refines fall damage logic." />
+    <option name="LAST_COMMIT_MESSAGE" value="Adds permanent fly cooldowns and refines fall damage logic." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
