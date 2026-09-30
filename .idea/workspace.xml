@@ -9,23 +9,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/PowerFly.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/PowerFly.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/AddFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/AddFlyTimeCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/BuyFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/BuyFlyTimeCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/CheckCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/CheckCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/DelFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/DelFlyTimeCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/FlyCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/FlyCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/HelpCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/HelpCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ReloadCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ReloadCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ResetCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/ResetCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetCooldownCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetCooldownCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetFlyTimeCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/commands/SetFlyTimeCommand.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/ExpansionManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/pwf/xenova/managers/ExpansionManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-archiver/pom.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-archiver/pom.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/original-PowerFly.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/original-PowerFly.jar" afterDir="false" />
+    <list default="true" id="d3e77495-5ab4-4262-9abd-5b1390ba3d43" name="Changes" comment="Applies combat restrictions only to players with fly permission.">
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -199,8 +184,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.258" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.258" />
+        <option value="bundled-jdk-30f59d01ecdd-a203e0a19954-intellij.indexing.shared.core-IU-262.10315.125" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.10315.125" />
       </set>
     </attachedChunks>
   </component>
@@ -212,14 +197,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1742347703658</updated>
-    </task>
-    <task id="LOCAL-00061" summary="Refactors command tab completer, bumps config, and fixes translations.">
-      <option name="closed" value="true" />
-      <created>1776357769030</created>
-      <option name="number" value="00061" />
-      <option name="presentableId" value="LOCAL-00061" />
-      <option name="project" value="LOCAL" />
-      <updated>1776357769031</updated>
     </task>
     <task id="LOCAL-00062" summary="Refactors core plugin systems and updates API to 1.21.">
       <option name="closed" value="true" />
@@ -605,7 +582,15 @@
       <option name="project" value="LOCAL" />
       <updated>1784673015105</updated>
     </task>
-    <option name="localTasksCounter" value="110" />
+    <task id="LOCAL-00110" summary="Applies combat restrictions only to players with fly permission.">
+      <option name="closed" value="true" />
+      <created>1790794309869</created>
+      <option name="number" value="00110" />
+      <option name="presentableId" value="LOCAL-00110" />
+      <option name="project" value="LOCAL" />
+      <updated>1790794309870</updated>
+    </task>
+    <option name="localTasksCounter" value="111" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -627,7 +612,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Refines fall damage calculation logic." />
     <MESSAGE value="Catches Throwable during WorldGuard flag registration for robustness." />
     <MESSAGE value="Configures fall damage" />
     <MESSAGE value="Configures fall damage and resets fall tracking on player teleport." />
@@ -652,7 +636,8 @@
     <MESSAGE value="Bumps plugin version to 2.6 and fixed update checker." />
     <MESSAGE value="Adds permanent fly time cooldown, updates config and translations." />
     <MESSAGE value="Adds permanent fly cooldowns and refines fall damage logic." />
-    <option name="LAST_COMMIT_MESSAGE" value="Adds permanent fly cooldowns and refines fall damage logic." />
+    <MESSAGE value="Applies combat restrictions only to players with fly permission." />
+    <option name="LAST_COMMIT_MESSAGE" value="Applies combat restrictions only to players with fly permission." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
