@@ -13,6 +13,7 @@ import pwf.xenova.commands.FlyCommand;
 import pwf.xenova.PowerFly;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +22,7 @@ public class CombatFlyManager implements Listener {
     private final PowerFly plugin;
     private final Map<UUID, Long> combatExpiry = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitRunnable> combatTimers = new ConcurrentHashMap<>();
+    private final Set<UUID> notifyOnEnd = ConcurrentHashMap.newKeySet();
 
     private boolean disableFlyInCombat;
     private String combatType;
@@ -71,7 +73,7 @@ public class CombatFlyManager implements Listener {
         };
     }
 
-    private boolean canUseFly(Player player) {
+    private boolean hasFlyAccess(Player player) {
         return player.hasPermission("powerfly.fly") || player.hasPermission("powerfly.admin");
     }
 
@@ -79,7 +81,6 @@ public class CombatFlyManager implements Listener {
         UUID uuid = player.getUniqueId();
 
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
-        if (!canUseFly(player)) return;
 
         cancelTimer(uuid);
 
@@ -87,6 +88,8 @@ public class CombatFlyManager implements Listener {
         combatExpiry.put(uuid, expireTime);
 
         if (player.isFlying() && plugin.getFlyRuntimeManager().hasActiveSession(uuid)) {
+            notifyOnEnd.add(uuid);
+
             player.setAllowFlight(false);
             player.setFlying(false);
 
@@ -113,8 +116,11 @@ public class CombatFlyManager implements Listener {
                 }
 
                 if (System.currentTimeMillis() >= expireTime) {
+                    boolean notify = notifyOnEnd.contains(uuid);
                     cleanupPlayer(uuid);
-                    player.sendMessage(plugin.getPrefixedMessage("combat-ended", "&aYou are no longer in combat."));
+                    if (notify && hasFlyAccess(player)) {
+                        player.sendMessage(plugin.getPrefixedMessage("combat-ended", "&aYou are no longer in combat."));
+                    }
                     cancel();
                 }
             }
@@ -149,6 +155,7 @@ public class CombatFlyManager implements Listener {
 
     public void cleanupPlayer(UUID uuid) {
         combatExpiry.remove(uuid);
+        notifyOnEnd.remove(uuid);
         cancelTimer(uuid);
     }
 
@@ -156,6 +163,7 @@ public class CombatFlyManager implements Listener {
         combatTimers.values().forEach(BukkitRunnable::cancel);
         combatTimers.clear();
         combatExpiry.clear();
+        notifyOnEnd.clear();
     }
 
     private void cancelTimer(UUID uuid) {

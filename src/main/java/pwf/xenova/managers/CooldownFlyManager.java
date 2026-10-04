@@ -69,7 +69,7 @@ public class CooldownFlyManager implements Listener {
 
     private void notifyRecharge(UUID uuid) {
         Player player = Bukkit.getPlayer(uuid);
-        if (player != null && player.isOnline()) {
+        if (player != null && player.isOnline() && (player.hasPermission("powerfly.fly") || player.hasPermission("powerfly.admin"))) {
             player.sendMessage(plugin.getPrefixedMessage("fly-time-recharged", "&aYour fly time has been recharged."));
         }
     }
